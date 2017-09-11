@@ -1,0 +1,2742 @@
+<?xml version="1.0" encoding="ascii"?>
+<!DOCTYPE rfc SYSTEM "rfc2629.dtd" [ ]>
+
+
+<?xml-stylesheet type='text/xsl' href='rfc2629.xslt' ?>
+<!-- used by XSLT processors -->
+<!-- For a complete list and description of processing instructions (PIs),
+     please see http://xml.resource.org/authoring/README.html -->
+<!-- Below are generally applicable Processing Instructions (PIs) that most I-Ds might want to use.
+     (Here they are set differently than their defaults in xml2rfc v1.35) -->
+<!-- give errors regarding ID-nits and DTD validation -->
+<?rfc strict="yes"?>
+
+<!-- control the table of contents (ToC) -->
+<!-- generate a ToC -->
+<?rfc toc="yes"?>
+<!-- the number of levels of subsections in ToC. default: 3 -->
+<?rfc tocdepth="2"?>
+
+<!-- control references -->
+<!-- use anchors instead of numbers for refs, i.e, [RFC2119] instead of [1] -->
+<?rfc symrefs="yes"?>
+<!-- sort the reference entries alphabetically -->
+<?rfc sortrefs="no" ?>
+
+<!-- control vertical white space
+     (using these PIs as follows is recommended by the RFC Editor) -->
+<!-- do not start each main section on a new page -->
+<?rfc compact="yes" ?>
+<!-- "no" to keep one blank line between list items (rfced) -->
+<?rfc subcompact="yes" ?>
+
+<!-- encourage use of "xml2rfc" tool -->
+<?rfc rfcprocack="yes" ?>
+<!-- end of list of popular I-D processing instructions -->
+
+
+
+
+<rfc category="std" docName="draft-mglt-ipsecme-diet-esp-05" ipr="trust200902">
+    <front>
+        <title abbrev="Diet-ESP">ESP Header Compression and Diet-ESP</title>
+        <author fullname="Daniel Migault" initials="D." surname="Migault">
+            <organization>Ericsson</organization>
+            <address>
+                <postal>
+                    <street>8400 boulevard Decarie</street>
+                    <city>Montreal, QC H4P 2N2</city>
+                    <country>Canada</country>
+               </postal>
+        <!--<phone>+33 1 45 29 60 52</phone> -->
+        <email>daniel.migault@ericsson.com</email>
+            </address>
+        </author>
+
+        <author fullname="Tobias Guggemos" initials="T." surname="Guggemos">
+            <organization>LMU Munich</organization>
+            <address>
+                <postal>
+                    <street>Oettingenstr. 67</street>
+                    <city>80538 Munchen</city>
+                    <region>Bavaria</region>
+                    <country>Germany</country>
+                </postal>
+                <phone/>
+                <facsimile/>
+                <email>guggemos@mnm-team.org</email>
+                <uri>http://www.mnm-team.org/~guggemos</uri>
+            </address>
+        </author>
+
+
+        <author fullname="Carsten Bormann" initials="C." surname="Bormann">
+            <organization>Universitaet Bremen TZI</organization>
+            <address>
+                <postal>
+                    <street>Postfach 330440</street>
+                    <city>Bremen  D-28359</city>
+                    <country>Germany</country>
+                </postal>
+                <phone>+49-421-218-63921</phone>
+                <facsimile/>
+                <email>cabo@tzi.org</email>
+                <uri/>
+            </address>
+        </author>
+
+        <date/>
+        <area>INTERNET</area>
+
+        <workgroup>ipsecme</workgroup>
+
+        <abstract>
+
+<t>ESP Header Compression (EHC) defines a flexible framework to compress
+communications protected with IPsec/ESP. Compression and decompression
+is defined by EHC Rules orchestrated by EHC Strategies.</t>
+
+<t>The document specifies the Diet-ESP EHC Strategy and associated EHC
+Rules. Diet-ESP compresses up to 32 bytes per packet for traditional
+IPv6 VPN and up to 66 bytes for IPv6 VPN set over a single TCP or UDP
+session.</t>
+
+        </abstract>
+    </front>
+
+    <middle>
+
+      <section title="Requirements notation">
+
+<t>The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+"SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+document are to be interpreted as described in <xref target="RFC2119"/>.
+</t>
+
+      </section>
+
+      <section title="Introduction">
+      
+<t>IPsec/ESP <xref target="RFC4303"/> secures communications either
+using end-to-end security or by building a VPN where the traffic is
+carried to a secure domain via a security gateway.</t>
+        
+<t>IPsec/ESP was not designed to minimize its associated networking
+overhead. In fact, bandwidth optimization often adds computational
+overhead that may negatively impact large infrastructures in which
+bandwidth usage is not a constraint. On the other hand, in IoT
+communications, sending extra bytes can significantly impact the battery
+life of devices and thus the life time of the device. The document
+describes a framework that optimizes the networking overhead associated
+to IPsec/ESP for these devices. </t>
+
+       
+<t>ESP Header Compression (EHC) is a framework that compresses ESP
+protected communications. EHC is highly flexible to address any use case
+where compression is necessary. EHC takes advantage of the negotiation
+between the communication endpoint to agree on the cryptographic
+parameters. In some cases, the agreement already includes parameters
+that remain constant during the communications (like layer 4 ports, or
+IP addresses). EHC takes advantage of these already agreed parameters
+and defines additionnal parameters that could be agreed for the purpose
+of compression. Similarly, EHC also defines EHC Rules which define how
+fields may be compressed and decompressed given the provided parameters.
+Finally, EHC defines EHC Strategy which defines how a set of EHC Rule is
+coordinated.</t>
+
+             
+<t>The document specifies the Diet-ESP EHC Strategy and associated EHC
+Rules. Diet-ESP compresses up to 32 bytes per packet for traditional VPN
+and up to 66 bytes for VPN set over a single TCP or UDP session.</t>
+   
+      </section>
+
+        <section anchor="sec:terminology" title="Terminology">
+
+          <t>This document uses the following terminology:
+              <list style="hanging" hangIndent="8">
+                <t hangText="- EHC">ESP Header Compression</t>
+                <t hangText="- IoT">Internet of Things</t>
+                <t hangText="- IP">If not stated otherwise, IP means IPv6.</t>
+                <t hangText="- LSB">Least Significant Bytes</t>
+                <t hangText="- MSB">Most Significant Bytes</t>
+                <t hangText="- SAD">IPsec Security Association Database</t>
+                <t hangText="- SA">IPsec Security Association</t>
+                <t hangText="- SPD">IPsec Security Policy Database</t>
+                <t hangText="- TS">IPsec Traffic Selector</t>
+                <t hangText="- SPI">ESP Security Parameter Index</t>
+                <t hangText="- SN">ESP Sequence Number</t>
+                <t hangText="- PAD">ESP Padding</t>
+                <t hangText="- PL">ESP Pad Length</t>
+                <t hangText="- NH">Next Header</t>
+                <t hangText="- IV">Initialization Vector</t>
+                <t hangText="- IIV">Implicit Initialization Vector</t>
+                <t hangText="- ICV">Integrity Check Value</t>
+                <t hangText="- VPN">Virtual Private Network</t>
+              </list>
+          </t>
+        </section>
+
+      <section anchor="sec:overview" title="Protocol Overview">
+
+<t>ESP Header Compression (EHC) compresses IPsec ESP packets, thus
+reducing the size of the packet sent on the wire, while carrying an
+equivalent level of information with an equivalent level of security.
+</t>
+      
+<t>The primarily motivation for payload size reduction were IoT related
+use cases, were the cost of sending extra bytes largely overcomes
+additional computations and thus considerably reduces the life time of
+battery powered devices. As a result, IoT communication rather favors
+expensive compression over additional bandwidth. Standard IPsec VPN may
+also consider reduction of their bandwidth, but on the other hand, the
+acceptable computation overhead must remain very low. The ESP Header
+Compression designated in this document together with the EHC Strategy
+named Diet-ESP attempts to reach both of these two goals.</t>
+
+      
+<t>ESP Header Compression compresses the standard ESP payload by
+compressing different fields with specific compression rules performed
+in the ESP stack. Concerned fields include those of the ESP protocol, as
+well as other protocols in the ESP payload such as the IP header when
+the tunnel mode is used, the UDP or the TCP header. In fact non ESP
+fields may be compressed by ESP under certain circumstances and ESP
+Header Compression is not intended to provide a generic way outside of
+ESP to compress these protocols. Further compression of the ESP payload
+may be performed by generic mechanism and outside ESP with more generic
+mechanisms such as for example ROHCoverIPsec <xref target="RFC5858"/> or
+SCHC <xref target="I-D.toutain-6lpwa-ipv6-static-context-hc"/> which are
+orthogonal to ESP Header Compression.</t>
+
+<t>As depicted in <xref target="fig:overview"/>, in order to compress
+the ESP packets, the two peers are expected to agree on the EHC Strategy
+- Diet-ESP in our case - as well as some extra parameters needed to
+derive the EHC Rules and EHC Context.</t>
+
+          <figure anchor="fig:overview" title="ESP Header Compression Overview">
+            <artwork align="center"><![CDATA[
+        EHC Strategy,                       EHC Strategy,
+        EHC Context    <==================> EHC Context
+             |                                    |
+EHC Rules    |                          EHC Rules | 
+     |       |                           |        |
+     v       v                           v        v
+    +====================+              +====================+ 
+    |        ESP         |              |         ESP        |
+    +====================+              +====================+
+    | < pre-esp >        |              | < pre-esp >        |
+    +--------------------+              +--------------------+
+    | < clear text esp > |              | < clear text esp > |
+    +--------------------+              +--------------------+
+    | < encryption >     |              | < encryption >     |
+    +--------------------+              +--------------------+
+    | < post-esp >       |              | < post-esp >       |
+    +--------------------+              +--------------------+]]>
+</artwork>
+</figure>
+
+<t>In <xref target="fig:overview"/>, the ESP stack is represented by
+various sub layers describing the packet processing inside the ESP. The
+"pre-esp" layer represents treatment performed to a non ESP packet, i.e.
+before ESP encapsulation or decapsulation is being proceeded. "clear
+text esp" designates the ESP encapsulation / decapsulation processing
+performed on an non encrypted ESP packet. "encryption" designates the
+encryption/decryption phase and "post-esp" the processing performed on
+an ESP encrypted packet. EHC Rules may be processed at any of these
+layers - except for "encryption" layer, and thus impact differently the
+standard ESP. More specifically, EHC Rules performed at the "pre-esp" or
+"post-esp" layer does not require the current ESP stack to be updated
+and can simply be appended to the current ESP stack. On the other hand,
+EHC Rules at the "clear text esp" may require modification of the
+current ESP stack.</t>
+
+
+<t>The set of EHC rules described in this document as well as the EHC
+Strategies may be extended in the future. Nothing prevents such EHC
+Rules and Strategies to be updated.</t>
+
+</section>
+
+<section  title="EHC Context">
+
+<t>The EHC Context provides the necessary information so the two peers
+can proceed to the appropriated compression and decompression defined by
+the EHC Strategy. As this document is limited to the Diet-ESP strategy,
+the EHC Context in this section is also designated as Diet-ESP Context
+and is used by the Diet-ESP Strategy to activate specific EHC Rules as
+well as to execute the EHC Rule by providing the necessary parameters..
+</t>
+
+<t>The Diet-ESP Context is defined on a per-SA basis. It is composed of
+attributes that are not Diet-ESP specific, as well as attributes that
+are Diet-ESP specific. Attributes that are not Diet-ESP specific are
+already stored in some form in the SA. Such attributes are designated by
+"Yes" in the "In SA" column. Diet-ESP specific attributes may need to be
+specified so Diet-ESP can be executed properly.</t>
+
+
+    <section title="Diet-ESP Context Parameters for ESP" anchor="sec-context-esp">
+          <texttable>
+            <ttcol>Context Attribute</ttcol>
+            <ttcol>In SA</ttcol>
+            <ttcol>Possible Values</ttcol>
+            
+            <c>ipsec_mode</c>
+            <c>Yes</c>
+            <c>"Tunnel", "Transport"</c>
+            <c>outer_version</c>
+            <c>Yes</c>
+            <c>"IPv4", "IPv6"</c>
+            <c>esp_spi</c>
+            <c>Yes</c>
+            <c>ESP SPI</c>
+            <c>esp_spi_lsb </c>
+            <c>No</c>
+            <c> 0, 1, 2, 3, 4 </c>  
+            <c>esp_sn</c>
+            <c>Yes</c>
+            <c>ESP Sequence Number</c>
+            <c>esp_sn_lsb </c>
+            <c>No</c>
+            <c> 0, 1, 2, 3, 4 </c>  
+            <c>esp_sn_gen</c>
+            <c>No</c>
+            <c>"Time", "Incremental"</c>
+            <c>esp_align</c>
+            <c>No</c>
+            <c>8, 16, 24, 32</c>
+            <c>esp_encr</c>
+            <c>Yes</c>
+            <c>ESP Encryption Algorithm</c>
+          </texttable>
+    </section>
+
+    <section title="EHC Context Parameters for Inner IP ">
+
+<t>Parameters associated to the Inner IP addresses are only specified
+when the SA has been configured with the tunnel mode. As a result when
+ipsec_mode is set to "Transport" the parameters below MUST NOT be
+considered and are considered as "Undefined"</t>
+
+          <texttable>
+            <ttcol>Context Attribute</ttcol>
+            <ttcol>In SA</ttcol>
+            <ttcol>Possible Values</ttcol>
+            <c>ip_version</c>
+            <c>Yes</c>
+            <c>"IPv4", "IPv6"</c>
+          </texttable>
+     
+    <section title="EHC Context Parameters for inner IPv6">
+          <texttable>
+            <ttcol>Context Attribute</ttcol>
+            <ttcol>In SA</ttcol>
+            <ttcol>Possible Values</ttcol>
+            <c>ip6_tcfl_comp</c>
+            <c>No</c>
+            <c> "Outer",  "Value", "UnComp" </c> 
+            <c>ip6_tc</c>
+            <c>No</c>
+            <c>IPv6 Traffic Class</c>
+            <c>ip6_fl</c>
+            <c>No</c>
+            <c>IPv6 Flow Label</c>
+            <c>ip6_hl_comp</c>
+            <c>No</c>
+            <c> "Outer",  "Value", "UnComp" </c> 
+            <c>ip6_hl</c>
+            <c>No</c>
+            <c>Hop Limit Value</c>
+            <c>ip6_src</c>
+            <c>Yes</c>
+            <c>IPv6 Source Address</c>
+            <c>ip6_dst</c>
+            <c>Yes</c>
+            <c>IPv6 Destination Address</c>
+          </texttable>
+
+<t>ip6_tcfl_comp indicates how Traffic Class and Flow Label fields of
+the inner IP Header are expected to be compressed. "Outer" indicates
+Traffic Class and Flow Label are read from the outer IP header, "Value"
+indicates these values are provided by the Diet-ESP Context, while
+"Uncompress" indicates that no compression occurs and these values are
+read in the inner IP inner header.</t>
+
+<t>ip6_hl_comp indicates how Hop Limit field of the inner IP Header is
+expected to be compressed. (see ip6_tcfl_comp).</t>
+
+<t>ip6_dst designates the Destination IPv6 Address of the inner IP
+header. The IP address is provided by the TS, and can be defined as a
+range of IP addresses. Compression is only considered when ip6_dst
+indicates a single IP Address. When the TS defines more than a single IP
+address ip6_dst is considered as "Unspecified" and its value MUST NOT be
+considered for compression.</t> 
+
+    </section>
+
+    <section title="EHC Context Parameters for inner IPv4">
+
+
+          <texttable>
+            <ttcol>Context Attribute</ttcol>
+            <ttcol>In SA</ttcol>
+            <ttcol>Possible Values</ttcol>
+            <c>ip4_options</c>
+            <c>No</c>
+            <c>"Options", "No_Options"</c>
+            <c>ip4_id</c>
+            <c>No</c>
+            <c>IPv4 Identification</c>
+            <c> ip4_id_lsb</c>
+            <c>No</c>
+            <c> 0,1,2 </c>
+            <c> ip4_ttl_comp</c>
+            <c>No</c>
+            <c> "Outer",  "Value", "UnComp" </c> 
+            <c>ip4_ttl</c>
+            <c>No</c>
+            <c>IPv4 Time To Live</c>
+            <c>ip4_src</c>
+            <c>Yes</c>
+            <c>IPv4 Source Address</c>
+            <c>ip4_dst</c>
+            <c>Yes</c>
+            <c>IPv4 Destination Address</c>
+            <c>ip4_frag_enable</c>
+            <c>No</c>
+            <c>"True", "False"</c>
+          </texttable>
+
+<t>ip4_options specifies if the IPv4 header contains any options. If set
+to "No_Options", the first 8 bit of the IPv4 header (being the IP
+version and IP header length) are compressed. If set to "Options"
+this bits are sent uncompressed.</t>
+
+<t>ip4_ttl indicates how the Time To Live field of the inner IP Header
+is expected to be compressed. (see ip6_hl_comp).</t>
+
+    </section>
+    </section>
+
+    <section title="EHC Context Parameters for Transport Protocol" anchor="sec-context-transport">
+
+<t>The following parameters are provided by the SA but the SA may
+specify single value or a range of values. When the SA specifies a range
+of values, these parameters MUST NOT be considered and are considered as
+Unspecified.</t>  
+
+          <texttable>
+            <ttcol>Context Attribute</ttcol>
+            <ttcol>In SA</ttcol>
+            <ttcol>Possible Values</ttcol>
+            <c>l4_proto</c>
+            <c>Yes</c>
+            <c>IPv6/ESP Next Header,IPv4 Protocol</c>
+            <c>l4_src</c>
+            <c>Yes</c>
+            <c>UDP/UDP-Lite/TCP Source Port</c>
+            <c>l4_dst</c>
+            <c>Yes</c>
+            <c>UDP/UDP-Lite/TCP Destination Port</c>
+
+          </texttable>
+
+    <section title="EHC Context Parameters for UDP">
+      <t>For UDP, there are no additional parameters necessary than the ones in <xref target="sec-context-transport"/> </t>
+
+
+    </section>
+
+    <section title="EHC Context Parameters for UDP-Lite">
+          <texttable>
+            <ttcol>Context Attribute</ttcol>
+            <ttcol>In SA</ttcol>
+            <ttcol>Possible Values</ttcol>
+            <c>udplite_coverage </c>
+            <c>No</c>
+            <c>8-16535, "Length", "uncompressed"</c>
+
+          </texttable>
+
+<t>udplite_coverage: For UDP-Lite, the checksum can have different
+coverages, which is defined by the "Checksum Coverage" field which
+replaces the "Length" field of UDP. This context field defines the
+coverage in advance by either a specific value (8-16535), the actual
+length of the UDP-Lite payload ("Length" or 0) or as uncompressed. Note
+that udplite coverage is indicated on a packet basis and cannot be
+greater than the UDP length. In this case udplite_coverage is negotiated
+for all packets and the actual coverage for a given UDP packet is
+derived as the minimum value between udplite_coverage and the length of
+the UDP packet.</t>
+
+    </section>
+
+    <section title="EHC  Context Parameters for TCP">
+      <texttable>
+            <ttcol>Context Attribute</ttcol>
+            <ttcol>In SA</ttcol>
+            <ttcol>Possible Values</ttcol>
+            <c>tcp_sn</c>
+            <c>No</c>
+            <c>TCP Sequence Number</c>
+            <c>tcp_ack</c>
+            <c>No</c>
+            <c>TCP Acknowledgment Number</c>
+            <c> tcp_lsb </c>
+            <c>No</c>
+            <c>0, 1, 2, 3, 4</c>
+            <c>tcp_options</c>
+            <c>No</c>
+            <c>"True", "False"</c>
+            <c>tcp_urgent</c>
+            <c>No</c>
+            <c>"True", "False"</c>
+          </texttable>
+<t>tcp_sn holds the current Sequence Number of the TCP session.</t>
+
+<t>tcp_ack holds the current Acknowledgement Number of the TCP
+session.</t>
+      
+<t>tcp_lsb holds the number of lsb of tcp_sn and tcp_ack sent on the
+wire.</t>
+      
+<t>tcp_options says if options are enabled in the current TCP session.
+If tcp_options is set to "False" the Options field in TCP can be
+elided.</t>
+      
+<t>tcp_urgent says if the urgent pointer is enabled in the current TCP
+session. If tcp_urgent is set to "False" the Urgent Pointer field in TCP
+can be elided.</t>
+
+    </section>
+    </section>
+    </section>
+
+    <section title="EHC Rules">
+    
+<t>This section describes the EHC Rules involved in Diet-ESP. The EHC
+Rules defined by Diet-ESP may be used in the future by EHC Strategies
+other than Diet-ESP, so they are described in an independent way.</t>
+
+          
+<t>A EHC Rule defines the compression and decompression of one or more
+fields and EHC Rules are represented this way:</t>
+
+            <figure anchor="fig:ehc-rules" title="EHC Rules">
+            <artwork align="center">
+              <![CDATA[
++---------------+-------+---------+----------------+
+|   EHC Rule    | Field | Action  |  Parameters    |
++---------------+-------+---------+----------------+
+|               | f1    |    a1   | p1_1, ... p1_n |
+|               +-------+---------+----------------+
+| EHC_RULE_NAME ~      ...                         ~
+|               +-------+---------+----------------+
+|               | fm    |    am   | pm_1, ... pm_n |
++---------------+-------+---------+----------------+
+]]>
+            </artwork>
+            </figure>
+
+          
+<t>The EHC Rule is designated by a name (EHC_RULE_NAME) and the
+concerned Fields (f1, ..., fm). Each field compression and decompression
+is represented by an Action (a1, ..., am). The Parameters indicate the
+necessary parameters for the action to  perform both the compression and
+the decompression.</t>
+
+          
+<t>The table below provides a high level description of the Actions used
+by Diet-ESP. As these Action may take different arguments and may
+operate differently for each field a compete description is provided in
+the next sections as part of the EHC Rule description.  </t>
+
+          <texttable>
+            <ttcol>Function</ttcol>
+            <ttcol>Compression</ttcol>
+            <ttcol>Decompression</ttcol>
+
+            <c>send-value</c>
+            <c>No</c>
+            <c>No</c>
+
+            <c>elided</c>
+            <c>Not send</c>
+            <c>Get from EHC Context</c>
+            <c>lsb(_lsb_size)</c>
+            <c>Sent LSB</c>
+            <c>Get from EHC Context</c>
+
+            <c>lower</c>
+            <c>Not send</c>
+            <c>Get from lower layer</c>
+
+            <c>checksum</c>
+            <c>Not send</c>
+            <c>Compute checksum.</c>
+
+            <c>padding(_align)</c>
+            <c>Compute padding</c>
+            <c>Get padding</c>
+          </texttable>
+<t>
+               <list style="letters">
+
+<t>send-value designates an action that does not perform any compression
+or decompression of a field.</t>
+                   
+<t>elided designates an action where both peers have a local value of
+the field. The compression of the field consists in removing the field,
+and the decompression consists in retrieving the field value from a
+known local value. The local value may be stored in a EHC Context or
+defined by the EHC Rule (like a zero value for example).</t>
+                   
+<t>lsb designates an action where both peers have a local value of the
+field, but the compression consists in sending only the LSB bytes
+instead of the whole field. The decompression consists in retrieving the
+field from the LSB sent as well as some other additional local
+values.</t>
+                   
+<t>lower designates an action where the compression consists in not
+sending the field. The decompression consists in retrieving the field
+from the lower layers of the packet. A typical example is when both IP
+and UDP carry the length of the payload, then the length of the UDP
+payload can be inferred from the one of the IP layer.</t>
+                  
+<t>checksum designates an action where the compression consists in not
+sending a checksum field. The decompression consists in re-computing the
+checksum. ESP provides an integrity-check based on signature of the ESP
+payload (ICV). This makes removing checksum possible, without harming
+the checksum mechanism.</t>
+                  
+<t>padding designates an action that computes the padding of the ESP
+packet. The function is specific to the ESP.</t>
+               
+</list></t>
+
+<t>For all actions, the function can be performed only when the
+appropriated parameters and fields are provided. When a field or a
+parameters does not have an appropriated value its value is designated
+as "Unspecified". Specifically some fields such as inner IP addresses,
+ports or transport protocols are agreed during the SA negotiation and
+are specified by the SA. Their value in the SA may take various values
+that are not appropriated to enable a compression. For example, when
+these fields are defined as a range of values, or by selectors such as
+OPAQUE or ANY these fields cannot be retrieved from a local value.
+Instead, when they are defined as a "Single" value (i.e a single IP
+address, or a single port number or a single transport protocol number)
+compression and decompression can be performed. These SA related fields
+are considered as "Unspecified" when not limited to a "Single"
+value.</t>
+
+<t>When a field or a parameter is "Unspecified", the EHC Rule MUST NOT
+be activated. This is the purpose of the EHC Strategy to avoid ending in
+such case. In any case, when one of these condition is not met, the EHC
+Rule MUST NOT perform any compression or decompression action and the
+packet MUST be discarded. When possible, an error SHOULD be raised and
+logged.</t>
+
+
+    <section title="EHC Rules for ESP">
+
+            <t>This section describes the EHC Rules for ESP which are summed up in the table below.</t>
+            <texttable>
+              <ttcol>EHC Rule</ttcol>
+              <ttcol>Field</ttcol>
+              <ttcol>Action</ttcol>
+              <ttcol>Parameters</ttcol>
+
+              <c>ESP_SPI</c>
+              <c>SPI</c>
+              <c>lsb</c>
+              <c>esp_spi_lsb, esp_spi</c>
+
+              <c>ESP_SN</c>
+              <c>Sequence&nbsp;Number</c>
+              <c>lsb</c>
+              <c>esp_sn_lsb, esp_sn_gen, esp_sn</c>
+
+              <c>ESP_NH</c>
+              <c>Next Header</c>
+              <c>elided</c>
+              <c>l4_proto, ipsec_mode</c>
+
+              <c>ESP_PAD</c>
+              <c>Pad Length, Padding</c>
+              <c>padding</c>
+              <c>esp_align, esp_encr</c>
+            </texttable>
+
+            
+<t>ESP_SPI designates the EHC Rule compressing / decompressing the SPI.
+ESP_SPI is performed in the "post-esp" phase.  The SPI is compressed
+using "lsb". The sending peer only places the LSB bytes of the SPI and
+the receiving peer retrieve the SPI from the LSB bytes carried in the
+packets as well as from the SPI value stored in the SA. The SPI MUST be
+retrieved as its full value is included in the signature check. The two
+peers MUST agree on the number of LSB bytes to be sent: "esp_spi_lsb".
+Upon agreeing on "esp_spi_lsb", the receiving peer MUST NOT agree on a
+value not carrying sufficient information to retrieve the full SPI.</t>
+
+            
+<t>ESP_SN designates the EHC Rule compressing / decompressing the ESP
+Sequence Number. ESP_SN is performed in the "post-esp" phase.  ESP_SN
+is only activated if the SN ("esp_sn"), the LSB significant bytes
+("esp_sn_lsb") and the method used to generate the SN ("esp_sn_gen") are
+defined.  The Sequence Number is compressed using "lsb". Similarly to
+the SPI, the Sequence Number MUST be retrieved in order to complete the
+signature check of the ESP packet. Unlike the SPI, the Sequence Number
+is not agreed by the peers, but is changing for every packet. As a
+result, in order to retrieve the Sequence Number from the LSB
+"esp_sn_lsb", the peers MUST agree on generating Sequence Number in a
+similar way. This is negotiated with "esp_sn_gen" and the receiver MUST
+ensure that "esp_sn_lsb" is big enough to absorb minor packet losses or
+time differences between the peers.</t>
+
+            
+<t>ESP_NH  designates the EHC Rule compressing / decompressing the ESP
+Next Header. ESP_NH is performed in the "clear text esp" phase.  ESP_NH
+is only activated if the Next Header is specified. The Next Header can
+be specified as IP (IPv4 or IPv6) when the IPsec tunnel mode is used
+("ipsec_mode" set to "Tunnel") or when the transport mode ("ipsec_mode"
+set to "Transport") is used when the Traffic Selector defines a "Single"
+Protocol ID ("l4_proto").  The Next Header, is compressed using
+"elided". The Next Header indicates the Header in the Payload Data. When
+the Tunnel mode is chosen, the type of the header is known to be an IP
+header. Similarly, the TS may also hold transport layer protocol, which
+specifies the Next Header value for Transport mode. The Next Header
+value is only there to provide sufficient information for decapsulating
+ESP. In other words decompressing this fields would occur in the "clear
+text esp" phase and striped but directly removed again by the ESP stack.
+For these reasons, implementation may simply omit decompressing this
+field.</t>
+
+            
+<t>ESP_PAD designates the EHC Rule compressing / decompressing the Pad
+Length and Padding fields. ESP_PAD is performed in the "clear text esp"
+phase. Pad Length and Padding define the padding. The purpose of padding
+is to respect a 32 bit alignment for ESP or block sizes of the used
+cryptographic suite. As the ESP trailer is encrypted, Padding and Pad
+Length MUST to be performed by ESP and not by the encryption algorithm.
+Thus, ESP_PAD always needs to respect the cipher alignment ("esp_encr"),
+if applicable. Compression may be performed especially when device
+support alignment smaller than 32 bit. Such alignment is designated as
+"esp_align" and the  padding bytes are the necessary bytes so the ESP
+packet has a length that is a multiple of "esp_align".</t>
+
+           
+<t>When "esp_align" is set to an 8-bit alignment padding bytes are not
+necessary, and Padding as well as Pad Length are removed. For values
+that are different from 8-bit alignment, padding bytes needs to be
+computed according to the ESP packet length why ESP_PAD MUST be the last
+action of "clear text esp". The resulting number of padding byte is then
+expressed in Padding and Pad Length fields with Pad Length set to
+padding bytes number - 1 and Padding is generated as described in <xref
+target="RFC4303"/>.</t>
+
+           
+<t>Combining the Pad Length and Padding fields could potentially add an
+overhead on fixed size padding. In fact some applications may only send
+the same type of fixed size data, in which case the Pad Length would not
+be necessary to be specified. However, the only corner case Pad Length
+fields would actually add an overhead is when padding is expected to be
+of zero size. In this case, specifying an 8-bit alignment solve this
+issue.</t>
+
+
+    </section>
+
+    <section title="EHC Rules for inner IPv4">
+
+            
+<t>All IPv4 EHC Rules MUST be performed during the "clear text esp"
+phase. The EHC Rules are only defined for compressing the inner IPv4
+header and thus can only be used when the SA is using the Tunnel mode.
+</t>
+
+            <texttable>
+              <ttcol>EHC Rule</ttcol>
+              <ttcol>Field</ttcol>
+              <ttcol>Action</ttcol>
+              <ttcol>Parameters</ttcol>
+
+              <c>IP4_OPT_DIS</c>
+              <c>Version</c>
+              <c>elided</c>
+              <c>ip_version</c>
+              <c></c>
+              <c>Header Length</c>
+              <c>elided</c>
+              <c></c>
+
+              <c>IP4_LENGTH</c>
+              <c>Total Length</c>
+              <c>lower</c>
+              <c></c>
+
+              <c>IP4_ID</c>
+              <c>Identification</c>
+              <c>lsb</c>
+              <c>ip4_id, ip4_id_lsb</c>
+
+              <c>IP4_FRAG_DIS</c>
+              <c>Flags</c>
+              <c>elided</c>
+              <c></c>
+              <c></c>
+              <c>Fragment Offset</c>
+              <c>elided</c>
+              <c></c>
+
+              <c>IP4_TTL_OUTER</c>
+              <c>Time To Live</c>
+              <c>elided</c>
+              <c>ip4_ttl</c>
+
+              <c>IP4_TTL_VALUE</c>
+              <c>Time To Live</c>
+              <c>elided</c>
+              <c>ip4_ttl</c>
+
+              <c>IP4_PROT</c>
+              <c>Protocol</c>
+              <c>elided</c>
+              <c>l4_proto</c>
+
+              <c>IP4_CHECK</c>
+              <c>Header Checksum</c>
+              <c>checksum</c>
+              <c></c>
+
+              <c>IP4_SRC</c>
+              <c>Source Address</c>
+              <c>elided</c>
+              <c>ip4_src</c>
+
+              <c>IP4_DST</c>
+              <c>Dest. Address</c>
+              <c>elided</c>
+              <c>ip4_dst</c>
+            </texttable>
+
+      
+<t>IP4_OPT_DIS designates that the IPv4 header does not include any
+options and indicates if the first byte of the IPv4 header - consisting
+of IP version and IPv4 Header Length, are compressed.  The Version
+"ip_version" is defined by the SA and is thus compressed using "elided".
+If the header does not contain any options, it is compressed with
+"elided" and decompressed to "20", the default length of the IPv4
+header. If the header does contains some options, the length is not
+compressed.  </t>
+
+      
+<t>IP4_LENGTH designates the EHC Rule compressing / decompressing the
+Total Length Field of the inner IPv4 header.  The Total Length is
+compressed by the sender and not sent. The receiver decompresses it by
+recomputing the Total Length from the outer IP header. The outer IP
+header can be IPv4 or IPv6 and IP4_LENGTH MUST support both versions if
+both versions are supported by the device. Note that the length of the
+inner IP payload may also be subject to updates if decompression of the
+upper layers occurs.</t>
+
+      
+<t>IP4_ID designates the EHC Rule compressing / decompressing the
+Identification Field. IP4_ID is only activated if the ID ("ip4_id"), the
+LSB significant bytes ("ip4_id_lsb") are defined.  Upon agreeing on
+"ip4_id_lsb", the receiving peer MUST NOT agree on a value not carrying
+sufficient information to retrieve the full IP Identification. Note also
+that unlike the ESP SN, the IPv4 Identification is not part of the SA.
+As a result, when the ID is compressed, its value MUST be stored in the
+EHC Context. The reserved attribute for that is "ip4_id"</t>
+
+       
+<t>IP4_FRAG_DIS designates that the inner IPv4 header does not support
+fragmentation.  If activated, IP4_FRAG_DIS indicates compression of
+Flags and Fragment Offset field in the IPv4 header which consists of 2
+bytes. Both fields are compressed with "elided" and decompressed with
+their default value according to <xref target="RFC0791"/>, which is
+0b010 for Flags and 0 for Fragment Offset.  </t>
+      
+<t>IP4_TTL_OUTER designates an EHC Rule compressing / decompressing the
+Time To Live field of the inner IP header. If the outer IP header is an
+IPv6 header, the Hop Limit is used for decompression.  The Time To Live
+field is compressed / decompressed using "lower", thus the field is not
+sent. The receiver decompresses it by reading its value from the outer
+IP header (TTL in case of IPv4 or HL in case of IPv6).</t>
+
+      
+<t>IP4_TTL_VALUE designates an EHC Rule compressing / decompressing the
+Time To Live field of the inner IP header.  IP4_TTL_VALUE  is only
+activated when the Hop Limit ("ip4_ttl") has been agreed.  Time To Live
+is compressed / decompressed using the "elided" method.</t>
+
+      
+<t>IP4_PROTO designates the EHC Rule compressing / decompressing the
+Protocol field of the inner IPv4 header. IP4_PROTO is only activated if
+the Protocol is specified, that is when the Traffic Selectors defines a
+"Single" Protocol ID ("l4_proto"). When the Protocol ID identified by
+the SA has a "Single" value, the Protocol is compressed and decompressed
+using the "elided" method.</t>
+
+      
+<t>IP4_CHECK designates the EHC rule compressing / decompressing the
+Header Checksum field of the inner IPv4 header.  The IPv4 header
+checksum is not sent by the sender and the receiver computes from the
+decompressed inner IPv4 header. IP4_CHECK MUST compute the checksum and
+not fill the checksum field with zeros. As a result, IP4_CHECK is the
+last decompressing EHC Rule to be performed on the decompressed IPv4
+header.  </t>
+
+      
+<t>IP4_SRC compresses the source IP address of the inner IPv4 header.
+IP4_SRC_IP is only be activated when the Traffic Selectors agreed by the
+SA defines a "Single" source IP address ("ip4_src").  The Source IP
+address is compressed / decompressed using the "elided" method.</t>
+   
+<t>IP4_DST works in a similar way as IP4_SRC_IP but for the destination
+IP address ("ip4_dst")</t>
+
+    </section>
+
+    <section title="EHC Rules for inner IPv6">
+            
+<t>All IPv6 EHC Rules MUST be performed during the "clear text esp"
+phase. The EHC Rules are only defined for compressing the inner IPv6
+header and thus can only be used when the SA is using the Tunnel mode.
+</t>
+
+
+            <texttable>
+              <ttcol>EHC Rule</ttcol>
+              <ttcol>Field</ttcol>
+              <ttcol>Action</ttcol>
+              <ttcol>Parameters</ttcol>
+
+              <c>IP6_OUTER</c>
+              <c>Version</c>
+              <c>elided</c>
+              <c>ip_version</c>
+              <c></c>
+              <c>Traffic Class</c>
+              <c>lower</c>
+              <c></c>
+              <c></c>
+              <c>Flow Label</c>
+              <c>lower</c>
+
+              <c></c>
+              <c>IP6_VALUE</c>
+              <c>Version</c>
+              <c>elided</c>
+              <c>ip_version</c>
+              <c></c>
+              <c>Traffic Class</c>
+              <c>elided</c>
+              <c>ip6_tc</c>
+              <c></c>
+              <c>Flow Label</c>
+              <c>elided</c>
+              <c>ip6_fl</c>
+
+              <c>IP6_LENGTH</c>
+              <c>Payload Length</c>
+              <c>lower</c>
+              <c></c>
+
+              <c>IP6_NH</c>
+              <c>Next Header</c>
+              <c>elided</c>
+              <c>l4_proto</c>
+
+              <c>IP6_HL_OUTER</c>
+              <c>Hop Limit</c>
+              <c>lower</c>
+              <c></c>
+
+              <c>IP6_HL_VALUE</c>
+              <c>Hop Limit</c>
+              <c>elided</c>
+              <c>ip6_hl</c>
+
+              <c>IP6_SRC</c>
+              <c>Source Address</c>
+              <c>elided</c>
+              <c>ip6_src</c>
+
+              <c>IP6_DST</c>
+              <c>Dest. Address</c>
+              <c>elided</c>
+              <c>ip6_dst</c>
+            </texttable>
+
+    
+<t>IP6_OUTER designates an EHC Rule for compressing / decompressing  the
+first 32 bits of the inner IPv6 header formed by the Version, Traffic
+Class and Flow Label.  IP6_OUTER only proceeds to compression when both
+the outer and inner IP header are IPv6 header. When the outer IP header
+is an IPv4, the compression is bypassed. Bypassing enables to proceed to
+compression of IPv4 and IPv6 traffic in a VPN use case with a single SA.
+The Version "ip_version" is defined by the SA and is thus compressed
+using "elided". The other parameters Traffic Class and Flow Label are
+compressed using "lower". More specifically, the fields are not sent.
+The receiver decompresses them by reading their value from the outer
+IPv6 header.</t>
+    
+<t>IP6_VALUE designates an EHC Rule for compressing / decompressing the
+first 32 bits of the inner IPv6 header formed by the Version, Traffic
+Class and Flow Label.  IP6_VALUE  is only activated if the Version of
+the inner IP header agreed by the SA is set to "Version 6" ("ip_version"
+set to "Version 6") and the specific values of the Traffic Class
+("ip6_tc") and the Flow Label ("ip6_fl") are specified.  With IP6_VALUE
+all fields are compressed and decompressed using "elided". Version is
+provided by the SA ("ip_version") while other fields are explicitly
+provided (ip6_tc, ip6_fl.</t>   
+
+<t>IP6_LENGTH designates the EHC Rule compressing / decompressing the
+Payload Length Field of the inner IPv6 header.  The Payload Length is
+compressed by the sender and is not sent. The receiver decompress it by
+recomputing the Payload Length from the outer IP header. The IP header
+can be IPv4 or IPv6 and IP6_LENGTH MUST support both versions if both
+versions are supported by the device. Note that the length of the inner
+IP payload may also be subject to updates if decompression of the upper
+layers occurs.</t>
+
+<t>IP6_NH designates the EHC Rule compressing / decompressing the  Next
+Header field of the inner IPv6 header.  IP6_NH  is only activated if the
+Next Header is specified, that is when the Traffic Selectors defines a
+"Single" Protocol ID ("l4_proto").  When the Protocol ID identified by
+the SA has a "Single" value, the Next Header is compressed and
+decompressed using the "elided" method.  </t>
+
+<t>IP6_HL_OUTER designates an EHC Rule compressing / decompressing the
+Hop Limit field of the inner IP header. If the outer IP header is an
+IPv4 header, the Time To Live is used for decompression.  The Hop Limit
+field is compressed / decompressed using the "lower". More specifically,
+the fields are not sent. The receiver decompresses them by reading their
+value from the outer IPv6 header.</t>
+ 
+<t>IP6_HL_VALUE designates an EHC Rule compressing / decompressing the
+Hop Limit field of the inner IP header.  IP6_HL_VALUE  is only activated
+when the Hop Limit ("ip6_hl") has been agreed.  The Hop Limit is
+compressed / decompressed using the "elided" method.</t> 
+
+<t>IP6_SRC compresses the source IP address of the inner IP header.
+IP6_SRC_IP is only be activated when the Traffic Selectors agreed by the
+SA defines a "Single" source IP address ("ip6_src").  The Source IP
+address is compressed / decompressed using the "elided" method.</t>
+
+<t>IP6_DST works in a similar way as IP6_SRC_IP but for the destination
+IP address ("ip6_dst")</t>
+
+
+    </section>
+ 
+    <section title="EHC Rules for UDP">
+            
+<t>All UDP EHC Rules MUST be performed during the "pre-esp" phase. The
+EHC Rules are only defined when the Traffic Selectors agreed during the
+SA negotiation results in "Single" Protocol ID ("l4_proto") which is set
+to UDP (17). </t>
+
+            <texttable>
+              <ttcol>EHC Rule</ttcol>
+              <ttcol>Field</ttcol>
+              <ttcol>Action</ttcol>
+              <ttcol>Parameters</ttcol>
+
+              <c>UDP_SRC</c>
+              <c>Source Port</c>
+              <c>elided</c>
+              <c>l4_source</c>
+
+              <c>UDP_DST</c>
+              <c>Dest. Port</c>
+              <c>elided</c>
+              <c>l4_dest</c>
+
+              <c>UDP_LENGTH</c>
+              <c>Length</c>
+              <c>lower</c>
+              <c></c>
+
+              <c>UDP_CHECK</c>
+              <c>UDP Checksum</c>
+              <c>checksum</c>
+              <c></c>
+            </texttable>
+    
+<t>UDP_SRC designates the EHC Rule that compresses / decompresses the
+UDP Source Port.  UDP_SRC is only activated when the Source Port agreed
+by the SA negotiation ("l4_src") is "Single".  The Source Port is then
+compressed / decompressed using the "elided" method.</t>
+    
+<t>UDP_DST works in a similar way as UDP_SRC but for the Destination
+Port ("l4_dst").</t>
+    
+<t>UDP_LENGTH designates the EHC Rule compressing / decompressing the
+Length Field of the UDP header.  The length is compressed by the sender
+and is not sent. The receiver decompresses it by recomputing the Length
+from the IP address header. The IP address can be IPv4 or IPv6 and
+UDP_LENGTH MUST support both versions if both versions are supported by
+the device.</t>
+    
+<t>UDP_CHECK designates the EHC Rule compressing / decompressing the UDP
+Checksum.  The UDP Checksum is not sent by the sender and the receiver
+computes from the decompressed UDP payload. UDP_CHECK MUST compute the
+checksum and not fill the checksum field with zeros. As a result,
+UDP_CHECK is the last decompressing EHC Rule to be performed on the
+decompressed UDP Payload.</t>  
+
+    </section>
+
+    <section title="EHC Rules for UDP-Lite">
+            
+<t>All UDP-lite EHC Rules MUST be performed during the "pre-esp" phase.
+The EHC Rules are only defined when the Traffic Selectors agreed during
+the SA negotiation results in a "Single" Protocol ID ("l4_proto") which
+is set to UDPLite (136). </t>
+
+
+            <texttable>
+              <ttcol>EHC Rule</ttcol>
+              <ttcol>Field</ttcol>
+              <ttcol>Action</ttcol>
+              <ttcol>Parameters</ttcol>
+
+              <c>UDP-LITE_SRC</c>
+              <c>Source Port</c>
+              <c>elided</c>
+              <c>l4_source</c>
+
+              <c>UDP-LITE_DST</c>
+              <c>Dest. Port</c>
+              <c>elided</c>
+              <c>l4_dest</c>
+
+              <c>UDP-LITE_COVERAGE</c>
+              <c>Checksum Coverage</c>
+              <c>elided</c>
+              <c>udplite_coverage</c>
+
+              <c>UDP-LITE_CHECK</c>
+              <c>UDP-Lite Checksum</c>
+              <c>checksum</c>
+              <c></c>
+            </texttable>
+
+<t>UDP-LITE_SRC works similarly to UDP_SRC</t>
+<t>UDP-LITE_DST works similarly to UDP_DST</t>
+
+<t>UDP-LITE_COVERAGE designates the EHC Rule compressing / decompressing
+the UDP-Lite Coverage field.  UDP-LITE_COVERAGE is only activated when
+the Coverage ("udplite_coverage") has been agreed with a valid value.
+The Coverage is compressed / decompressed using the "elided" method.</t>  
+
+<t>UDP-LITE_CHECK designates the EHC Rule compressing / decompressing
+the UDP-Lite checksum.  UDP-LITE_CHECK is only activated if the Coverage
+is defined either elided or sent.  UDP-LITE_CHECK computes the checksum
+using "checksum" according to the uncompressed UDP packet and the value
+of the Coverage.</t>
+ 
+    </section>
+
+    <section title="EHC Rules for TCP">
+            
+<t>All TCP EHC Rules MUST be performed during the "pre-esp" phase. The
+EHC Rules are only defined when the Traffic Selectors agreed during the
+SA negotiation results in a"Single" Protocol ID ("l4_proto") which is
+set to TCP (6). </t>
+
+            <texttable>
+              <ttcol>EHC Rule</ttcol>
+              <ttcol>Field</ttcol>
+              <ttcol>Action</ttcol>
+              <ttcol>Parameters</ttcol>
+
+              <c>TCP_SRC</c>
+              <c>Source Port</c>
+              <c>elided</c>
+              <c>l4_source</c>
+
+              <c>TCP_DST</c>
+              <c>Dest. Port</c>
+              <c>elided</c>
+              <c>l4_dest</c>
+
+              <c>TCP_SN</c>
+              <c>Sequence Number</c>
+              <c>lsb</c>
+              <c>tcp_sn, tcp_ls</c>
+
+              <c>TCP_ACK</c>
+              <c>Acknowledgment Number</c>
+              <c>lsb</c>
+              <c>tcp_ack, tcp_lsb</c>
+
+              <c>TCP_OPTIONS</c>
+              <c>Data Offset</c>
+              <c>elided</c>
+              <c>tcp_options</c>
+
+              <c></c>
+              <c>Reserved Bits</c>
+              <c>elided</c>
+              <c></c>
+
+
+              <c>TCP_CHECK</c>
+              <c>TCP Checksum</c>
+              <c>checksum</c>
+              <c></c>
+              <c>TCP_URGENT</c>
+              <c>elided</c>
+              <c>tcp_urgent</c>
+            </texttable>
+
+            
+<t>TCP_SRC works similarly to UDP_SRC.</t>
+            
+<t>TCP_DST works similarly to UDP_DST.</t>
+
+<t>TCP_SN designates the EHC Rule compressing / decompressing the TCP
+Sequence Number.  TCP_SN  is only activated if the SN ("tcp_sn") and the
+LSB significant bytes ("tcp_lsb") are defined.  The TCP SN is compressed
+using "lsb". The sending peer only places the LSB bytes of the TCP SN
+("tcp_sn")  and the receiving peer retrieve the TCP SN from the LSB
+bytes carried in the packets as well as from the TCP SN value stored in
+EHC Context ("tcp_sn"). The two peers MUST agree on the number of LSB
+bytes to be sent: "tcp_lsb". Upon agreeing on "tcp_lsb", the receiving
+peer MUST NOT agree on a value not carrying sufficient information to
+retrieve the full TCP SN. Note also that unlike the ESP SN, the TCP SN
+is not part of the SA. As a result, when the SN is compressed, the value
+of the TCP SN MUST be stored in the EHC Context. The reserved attribute
+for that is "tcp_sn"</t>
+
+<t>TCP_ACK designates the EHC Rule compressing / decompressing the TCP
+Acknowledgment Number and works similarly to TCP SN. Note that "tcp_lsb"
+is agreed for both TCP SN and TCP Acknowledgment. Similarly the value of
+the complete TCP Acknowledgment Number MUST be stored in the "tcp_ack"
+attribute of the EHC Context.</t>
+
+ 
+<t>TCP_OPTIONS designates the EHC Rule compressing / decompressing TCP
+options related fields such as Data Offset and Reserved Bits.
+TCP_OPTION can only be activated when the TCP Option ("tcp_options") is
+defined.  When "tcp_options" is set to "False" and indicates there are
+no TCP Options, the Data Offsets and Reserved Bits are compressed /
+decompressed using the "elided" method with Data Offset and Reserved
+Bits set to zero.  </t>
+          
+<t>TCP_CHECK designates the EHC Rule compressing / decompressing the TCP
+Checksum. TCP_CHECK works similarly as UDP_CHECK.  </t>
+
+<t>TCP_URGENT  designates the EHC Rule compressing / decompressing the
+urgent related information.  When "tcp_urgent" is set to "False" and
+indicates there are no TCP Urgent related information, the Urgent
+Pointer is then "elided" and filled with zeros.</t>
+
+    </section>
+
+
+    </section>
+    <section title="Diet-ESP EHC Strategy">
+    
+<t>From the attributes of the EHC Context, Diet-ESP defined as an EHC
+Strategy, which EHC Rules to apply. The EHC Strategy is defined for
+outbound packets which compresses the packet as well as for inbound
+packet where the decompression occurs. </t>
+
+
+<t>Diet-ESP results from a compromise between compression efficiency,
+ease to configure Diet-ESP and the various use cases considered. In
+order to achieve a great simplicity, 
+<list style="symbols">
+
+<t>Diet-ESP favors compression methods that required fewer
+configuration: For IPv6, ip6_tcfl_comp and ip6_hl_com to "Outer" so that
+ip6_tc, ip6_fl and ip6_hl can be derived from the packet. Similarly,
+ip4_ttl_comp has is set to "Outer" so ip4_tll can be derived from the
+packet. </t>
+
+<t>Diet-ESP limits compression method to those foreseen as the most
+commonly used. As such, esp_sn_gen has been set to "Incremental" as this
+is the most common method used to generate SN. The other method would be
+"Time".</t>  
+
+<t>Diet-ESP limits compression to the most foreseen scenarios. IPv4
+compression has been limited in favor of IPv6 as constraint devices have
+largely adopted IPv6, and the gain versus the complexity to deploy IPv4
+inner IP addresses has not been proved. As a result some compressions
+for IPv4 are not considered by DIet-ESP. This involved compression of
+the IPv4 options by setting ip4_options to "No_Options".  Similarly IPv4
+ID compression has not been enabled by setting ip4_id and ip4_id_lsb to
+"UNspecified".</t>
+
+<t>Diet-ESP negotiated values shared by different rules such as tcp_lsb
+which is shared for TCP ACK as well as for the TCP SN.</t>
+
+<t>Diet-ESP defines a logic to set the necessary parameters from those
+agreed by the standard ESP agreement, which limits the setting of
+parameters.</t>
+
+</list></t>
+
+
+<t>The remaining parameters that the two peers needs to agree on are:
+
+<list style="symbols">
+<t>esp_sn_lsb</t>
+<t>esp_spi_lsb</t>
+<t>esp_align</t>
+<t>udplite_coverage</t>
+<t>tcp_lsb</t>  
+<t>tcp_options</t>
+<t>tcp_urgent</t>
+</list></t>
+   
+<t>Implementation may differ from the description below. However, the
+outcome MUST remain the same.</t>
+ 
+    <section title="Outbound Packet Processing">
+    
+<t>Diet-ESP compression is defined as follows:
+    
+<list style="numbers">
+       
+<t>In phase "pre-esp": Match the inbound packet with the SA and
+determine if the Diet-ESP EHC Strategy has been activated. If the
+Diet-ESP EHC Strategy has been activated proceed to next step, otherwise
+skip all steps associated to Diet-ESP and proceed to the standard ESP as
+defined in <xref target="RFC4303"/> </t>
+        
+<t>In phase "pre-esp": If "l4_proto" designates a "Single" Protocol ID
+(UDP, TCP or UDP-Lite), proceed to the compression of the specific
+layer. Otherwise, the transport layer is not compressed.</t>
+        
+<t>In phase "clear text esp": If "ipsec_mode" is set to "Tunnel" mode,
+determine "ip_version" the IP version of the inner IP addresses and
+proceed to the appropriated inner IP address compression.</t>
+
+<t>In phase "clear text esp" and "post-esp": Proceed to the ESP
+compression.</t>
+    
+</list></t>
+
+<t>UDP compression is defined as below:
+
+    <list style="numbers">
+        
+<t>If the "l4_src" designates a "Single" Source Port, apply UDP_SRC to
+compress the Source Port.</t>
+        
+<t>If the "l4_dst" designates a "Single" Destination Port, apply UDP_DST
+to compress the Destination Port.</t>
+        
+<t>Apply UDP_CHECK to compress the Checksum.</t>
+        
+<t>Apply UDP_LENGTH to compress the Length.</t>
+    
+</list> </t>
+
+    <t>UDP-lite compression is defined as below:
+    <list style="numbers">
+        
+<t>If the "l4_src" designates a "Single" Source Port, apply the
+UDP-LITE_SRC to compress the Source Port.</t>
+        
+<t>If the "l4_dst" designates a "Single" Destination Port, apply the
+UDP-LITE_DST, to compress the Destination Port.</t>
+        
+<t>If "udplite_coverage" is specified, apply the UDP-LITE_COVERAGE, to
+compress the Coverage.</t>    
+        
+<t>Apply UDP-LITE_CHECK to compress the Checksum.</t>
+    
+</list> </t>
+
+    <t>TCP compression is defined as below:
+    <list style="numbers">
+        
+<t>If the "l4_src" designates a "Single" Source Port than apply the
+TCP_SRC to compress the Source Port.</t>
+        
+<t>If the "l4_dst" designates a "Single" Destination Port than apply the
+TCP_DST to compress the Destination Port.</t>
+        
+<t>If "tcp_lsb" is lower than 4, then "tcp_sn" "tcp_ack" attributes of
+the Diet-ESP Context are updated with the value provided from the packet
+before  applying the TCP_SN and the TCP_ACK EHC Rules.</t>
+        
+<t>If "tcp_options" is set to "False" apply the TCP_OPTIONS EHC
+Rule.</t>
+        
+<t>If "tcp_urgent" is set to "False" apply the TCP_URGENT EHC Rule.</t>
+        
+<t>Apply TCP_CHECK to compress the Checksum.</t>
+    
+</list> </t>
+
+
+<t>Inner IPv6 Header compression is defined as below:
+    
+<list style="numbers">
+        
+<t>If the "ip6_src" designates a "Single" Source IP address, apply the
+IP6_SRC to compress the IPv6 Source Address.</t>
+        
+<t>If the "ip6_dst" designates a "Single" Destination IP address, apply
+the IP6_DST to decompress the IPv6 Destination Address.</t>
+        
+<t> Apply IPv6_HL_OUTER to compress the Hop Limit.</t>
+
+        
+<t>If "l4_proto" designates a "Single" Protocol ID (UDP, TCP or UDP-Lite), apply IP6_NH to compress the Next Header.</t>
+        
+<t>Apply, IP6_LENGTH to compress the Length.</t>
+        
+<t>Apply IP6_OUTER to compress Version, Traffic Class and Flow Label.</t>
+        
+    </list></t>
+
+<t>Inner IPv4 Header compression is defined as below:
+    <list style="numbers">
+<!--
+<t>If no options are enabled for IPv4, IP4_OPT_DIS in order to compress
+Version and IHL</t>
+-->
+
+<t>Apply, IP4_LENGTH to compress the Length.</t>
+
+<!--
+<t>If fragmentation is disabled, apply IP4_FRAG_DIS</t>
+-->
+
+<t> Apply IP4__TTL_OUTER to compress Time To Live.</t>
+
+<t>Apply, IP4_CHECK to compress the IPv4 header checksum.</t>
+        
+<t>If the "ip4_src" designates a "Single" Source IP address, apply the
+IP4_SRC to compress the IPv4 Source Address.</t>
+        
+<t>If the "ip4_dst" designates a "Single" Destination IP address, apply
+the IP4_DST to decompress the IPv4 Destination Address.</t>
+    
+</list></t>
+
+<t>ESP compression is defined as below:
+    
+   <list style="numbers">
+        
+<t>In phase "clear text esp": If "ipsec_mode" is set to "Tunnel" or
+"l4_proto" is set to a "Single value - eventually different from TCP,
+UDP or UDP-Lite, apply ESP_NH, to compress the Next Header.</t>
+        
+<t>In phase "clear text esp": If "esp_encr" specify an encryption
+algorithm that does not provide padding, then apply ESP_ALIGN to
+compress the Pad Length and Padding.</t>
+        
+<t>Proceed to the ESP encryption as defined in <xref
+target="RFC4303"/>.</t>
+        
+<t>In phase "post-esp: If "esp_sn_lsb" is different from 4, then apply
+ESP_SN. To compress the ESP SN.</t>
+        
+<t>In phase "post-esp": If "esp_spi_lsb" is different from 4, then apply
+ESP_SPI to compress the SPI.</t>
+
+    </list>
+    </t>
+    </section>
+
+    <section title="Inbound Packet Processing">
+    
+<t>Diet-ESP decompression is defined as follows:
+    
+<list style="numbers">
+        
+<t>Match the inbound packet with the SA and determine if the Diet-ESP
+EHC Strategy has been activated. When Diet-ESP is activated this means
+that the "esp_spi_lsb" are sufficient to index the SA and proceed to
+next step, otherwise skip all steps associated to Diet-ESP and proceed
+to the standard ESP as defined in <xref target="RFC4303"/> </t> 
+        
+<t>In phase "clear text esp" and "post-esp": Proceed to the ESP
+decompression.</t>
+        
+<t>In phase "clear text esp": If "ipsec_mode" is set to "Tunnel" mode,
+determine "ip_version" the IP version of the inner IP addresses and
+proceed to the appropriated inner IP address decompression, except for
+the computation of the checksums and length.</t>
+        
+<t>In phase "pre-esp": If "l4_proto" designates a "Single" Protocol ID
+(UDP, TCP or UDP-Lite), proceed to the decompression of the specific
+layer, except for the computation of the checksums and length replaced
+by zero fields.</t>
+        
+<t>In phase "pre-esp": Proceed to the decompression of the checksums and
+length.  </t>
+    
+</list></t>
+
+<t>ESP decompression is defined as follows: 
+    
+    <list style="numbers">
+        
+<t>In phase "post-esp": If "esp_spi_lsb" is different from 4, then apply
+ESP_SPI to decompress the SPI.</t>
+        
+<t>In phase "post-esp: If "esp_sn_lsb" is different from 4, then apply
+ESP_SN. To decompress the ESP SN.</t> 
+        
+<t>Proceed to the ESP signature validation and decryption as defined in
+<xref target="RFC4303"/>.</t>
+        
+<t>In phase "clear text esp": If "ipsec_mode" is set to "Tunnel" or
+"l4_proto" is set to a "Single value - eventually different from TCP,
+UDP or UDP-Lite, apply ESP_NH, to decompress the Next Header.</t>
+        
+<t>In phase "clear text esp": If "esp_encr" specify an encryption
+algorithm that does not provide padding, then apply ESP_ALIGN to
+compress the Pad Length and Padding.</t>
+        
+<t>Extract the ESP Data Payload and apply decompression EHC Rule to the
+ESP Data Payload.</t>
+    
+    </list></t>
+
+<t>UDP decompression is defined as follows:
+
+    <list style="numbers">
+       
+<t>If the "l4_src" designates a "Single" Source Port, apply UDP_SRC to
+decompress the Source Port.</t>
+        
+<t>If the "l4_dst" designates a "Single" Destination Port, apply UDP_DST
+to decompress the Destination Port.</t>
+        
+<t>Apply UDP_LENGTH to compress the Length. The length value is computed
+from the length provided by the lower layer, with the additional added
+bytes during the UDP decompression including the length size.</t>
+        
+<t>Apply UDP_CHECK to decompress the Checksum.</t>
+        
+<t>Update the Length of the lower layers: <list style="numbers">
+               
+<t>If "ipsec_mode" is set to "Transport" mode, update the Length of the
+outer IP header (IPv4 or IPv6). The Length is incremented by the number
+of bytes generated by the decompression of the transport layer.  </t>
+                
+<t>If "ipsec_mode" is set to "Tunnel" mode, update the Length of the
+inner IP address (IPv4 or IPv6) as well as the outer IP header (IPv4 or
+IPv6). The Length is incremented by the number of bytes generated by the
+decompression of the transport layer.</t>
+
+            </list>
+        </t>
+    </list>
+    </t>
+
+<t>UDP-Lite decompression is defined as follows:
+
+    <list style="numbers">
+        
+<t>If the "l4_src" designates a "Single" Source Port, apply the
+UDP-LITE_SRC to decompress the Source Port.</t>
+        
+<t>If the "l4_dst" designates a "Single" Destination Port, apply the
+UDP-LITE_DST, to decompress the Destination Port.</t>
+        
+<t>If "udplite_coverage" is specified, apply the UDP-LITE_COVERAGE, to
+decompress the Coverage.</t>
+        
+<t>Apply UDP-LITE_CHECK to compress the Checksum.</t>
+        
+<t>Update the Length of the lower layers as defined in UDP.</t>
+
+    </list></t>
+
+<t>TCP decompression is defined as follows:
+    <list style="numbers">
+        
+<t>If the "l4_src" designates a "Single" Source Port than apply the
+TCP_SRC to decompress the Source Port.</t>
+        
+<t>If the "l4_dst" designates a "Single" Destination Port than apply the
+TCP_DST to decompress the Destination Port.</t>
+        
+<t>If "tcp_lsb" is lower than 4, apply TCP_SN and the TCP_ACK to
+decompress the TCP Sequence Number and the TCP Acknowledgment
+Number.</t>
+        
+<t>If "tcp_options" is set to "False" apply TCP_OPTIONS to decompress
+Data Offset and Reserved Bits. </t>
+        
+<t>If "tcp_urgent" is set to "False" apply the TCP_URGENT to decompress
+the Urgent Pointer.</t>
+        
+<t>Apply TCP_CHECK to decompress the Checksum.</t>
+    
+</list></t>
+
+<t>Inner IPv6 decompression is defined as follows:
+
+    <list style="numbers">
+        
+<t> Apply IP6_OUTER to decompress Version, Traffic Class and Flow
+Label.</t>
+        
+<t>Set the Length to zero.</t>
+        
+<t>If "l4_proto" designates a "Single" Protocol ID (UDP, TCP or
+UDP-Lite), apply IP6_NH to decompress the Next Header.</t>
+        
+<t>Hop Limit is decompressed with IP6_HL_OUTER (with "ip6_hl_comp"
+set to "Outer").</t>
+        
+<t>If the "ip6_src" designates a "Single" Source IP address, apply the
+IP6_SRC to de compress the IPv6 Source Address.</t>
+        
+<t>If the "ip6_dst" designates a "Single" Destination IP address than
+apply the IP6_DST to decompress the IPv6 Destination Address.</t>
+        
+<t>Apply, IP6_LENGTH to provide the replace the zero length value by its
+appropriated appropriated value. The Length value considers the length
+provided by the lower layers to which are added the additional bytes due
+to the decompression, minus the length of the inner IP6 Header.</t>
+    
+</list></t>
+
+<t>Inner IPv4 decompression is defined as follows:
+    
+<list style="numbers">
+
+<!--
+<t>If "ip4_options" is set to "No_Options" decompress Version (to 4) and
+IHL (to 20).</t>
+-->
+        
+<t>Apply, IP4_LENGTH to provide the replace the zero length value by its
+appropriated appropriated value. The Length value considers the length
+provided by the lower layers to which are added the additional bytes due
+to the decompression, minus the length of the inner IPv4 Header. The
+value computed from the lower layer will have to be overwritten in case
+further decompression occurs.</t>
+
+<!--        
+<t>If "ip4_frag_enable" is set to "No":
+          
+<list style="numbers">
+            
+<t>Decompress Flags with 0b000 ("Don't Fragment", "Last Fragment")</t>
+            
+<t>Decompress Fragment Offset with 0</t>
+          
+</list></t>
+-->
+        
+<t>Apply IP4_TTL_OUTER to decompress Time To Live.</t> 
+        
+<t>If "l4_proto" designates a "Single" Protocol ID (UDP, TCP or
+UDP-Lite), apply IP4_PROT to decompress the Protocol Field.</t>
+        
+<t>If the "ip4_src" designates a "Single" Source IP address, apply the
+IP4_SRC to de compress the IPv4 Source Address.</t>
+        
+<t>If the "ip4_dst" designates a "Single" Destination IP address than
+apply the IP4_DST to decompress the IPv4 Destination Address.</t>
+        
+<t>Apply IP4_CHECK to decompress the checksum of the IPv4 header</t>
+    
+</list></t>
+
+    </section>
+
+    </section>
+
+      <section title="IANA Considerations">
+            <t>There are no IANA consideration for this document.</t>
+        </section>
+
+        <section anchor="sec-security-considerations" title="Security Considerations">
+            <t>This section lists security considerations related to the Diet-ESP protocol.</t>
+                <t>
+                    <list style="hanging" hangIndent="3">
+                        
+<t hangText="Security Parameter Index (SPI):"> <vspace blankLines="0"/>
+The Security Parameter Index (SPI) is used by the receiver to index the
+Security Association that contains appropriated cryptographic material.
+If the SPI is not found, the packet is rejected as no further checks can
+be performed. In EHC, the value of the SPI is not reduced, but
+compressed why the SPI value may not be fully provided between the
+compressor and the de-compressor. On the other hand, its uncompressed
+value is provided to the ESP-procession and no weakness is introduced to
+ESP itself. On an implementation perspective, it is strongly recommended
+that decompression is deterministic. Compression and decompression adds
+some additional treatment to the ESP packet, which might be used by an
+attacker. In order to minimize the load associated to decompression,
+decompression is expected to be deterministic. The incoming compressed
+SPI with the associated IP addresses should output a single and unique
+uncompressed SPI value. If an uncompressed SPI values have to be
+considered, then the receiver could end in n signature checks which may
+be used by an attacker for a DoS attack.</t>
+
+
+                        
+<t hangText="Sequence Numer (SN):"> <vspace blankLines="0"/> The
+Sequence Number (SN) is used as an anti-replay attack mechanism.
+Compression and decompression of the SN is already part of the standard
+ESP namely the Extended Sequence Number (ESN). The SN in a standard ESP
+packet is 32 bit long, whether EHC enables to reduce it to 0 bytes and
+the main limitation to the compression a deterministic decompression. SN
+compression consists in indicating the least significant bits of the
+uncompressed SN on the wire. The size of the compressed SN must consider
+the maximum reordering index such that the probability that a later sent
+packet arrives before an earlier one. In addition the size of SN should
+also consider maximum consecutive packets lost during transmission. In
+the case of ESP, this number is set to 2^32 which is, in most real world
+case, largely over-provisioned. When the compression of the SN is not
+appropriately provisioned, the most significant bit value may be
+de-synchronized between the sending and receiving parties. Although
+IKEv2 provides some re-synchronization mechanisms, in case of IoT the
+de-synchronization will most likely result in a renegotiation and thus
+DoS possibilities. Note that IoT communication may also use some
+external parameters, i.e. other than the compressed SN, to define
+whether a packet be considered or not and eventually derive the SN. One
+such scenario may be the use of time windows. Suppose a device is
+expected to send some information every hour or every week. In this
+case, for example, the SN may be compressed to zero bytes. Instead the
+SN may be derived by incrementing the SN every hour after the last
+received valid packet. Considering the time the packet is received make
+it possible to consider the time derivation of the sensor clock.  If
+TIME is used as the method to generate the SN, the receiver MUST ensure
+that the esp_sn_lsb is big enough to resist time differences between the
+nodes.  Note also that the anti-replay mechanism needs to define the
+size of the anti-replay window.<xref target="RFC4303"/> provides
+guidance to set the window size and are similar to those used to define
+the size of the compressed SN.</t>
+            
+</list> </t> </section>
+
+        <section anchor="sec-privacy-considerations" title="Privacy Considerations">
+                <t>
+                    <list style="hanging" hangIndent="3">
+                        
+<t hangText="Security Parameter Index (SPI):"> <vspace blankLines="0"/>
+Until Diet-ESP is not deployed outside the scope of IoT and small
+devices, the use of a compressed SPI may provide an indication that one
+of the endpoint is a sensor. Such information may be used, for example,
+to evaluate the number of appliances deployed, or -  in addition with
+other information, such as the time interval, the geographic location -
+be used to derive the type of data transmitted.</t>
+
+                     
+<t hangText="Sequence Number (SN):"> If incremented for each ESP packet,
+the SN may leak some information like the amount of transmitted data or
+the age of the sensor. The age of the sensor may be correlated with the
+software used and the potential bugs. On the other hand, re-keying will
+re-initialize the SN, but the cost of a re-keying may not be negligible
+and thus, frequent re-keying can be considered. In addition to the
+re-key operation, the SN may be generated in order to reduce the
+accuracy of the information leaked. In fact, the SN does not have to be
+incremented by one for each packet it just has to be an increasing
+function. Using a function such as a TIME may prevent characterizing the
+age or the use of the sensor. Note that the use of such function may
+also impact the compression efficiency and result in larger compressed
+SN.</t> </list> </t>
+
+        </section>
+
+      <section title="Acknowledgment">
+                 
+<t>We thank Orange and Universitee Pierre et Marie Curie for initiating
+the work on Diet-ESP. We Would like to thank Sylvain Killian for
+implementing an open source Diet-ESP on Contiki and testing it on the
+FIT IoT-LAB <xref target="fit-iot-lab"/> funded by the French Ministry
+of Higher Education and Research. We thank the IoT-Lab Team and the
+INRIA for maintaining the FIT IoT-LAB platform and for providing feed
+backs in an efficient way.</t> <t>We would like to thank Bob Moskowitz
+for not copyrighting Diet HIP. The "Diet" terminology is from him.</t>
+<t>We woudl like to thank those we received many useful feed backs among
+others: Dominique Bartel, Anna Minaburo, Suresh Krishnan, Samita
+Chakrabarti, Michael Richarson, Tero Kivinen.</t> </section>
+
+    </middle>
+
+    <back>
+        <references title="Normative References">
+             <?rfc include="reference.RFC.0791.xml"?>
+             <?rfc include="reference.RFC.2119.xml"?>
+             <!--
+             <?rfc include="reference.RFC.3095.xml"?>
+             <?rfc include="reference.RFC.3602.xml"?>
+             <?rfc include="reference.RFC.3686.xml"?>
+             <?rfc include="reference.RFC.4104.xml"?>
+             <?rfc include="reference.RFC.4301.xml"?>
+             -->
+             <?rfc include="reference.RFC.4303.xml"?>
+             <?rfc include="reference.RFC.4309.xml"?>
+             <!--
+             <?rfc include="reference.RFC.4413.xml"?>
+             <?rfc include="reference.RFC.4555.xml"?>
+             <?rfc include="reference.RFC.7321.xml"?>
+             -->
+             <?rfc include="reference.RFC.5225.xml"?>
+             <!--
+             <?rfc include="reference.RFC.5857.xml"?>
+             -->
+             <?rfc include="reference.RFC.5858.xml"?>
+             <!--
+             <?rfc include="reference.RFC.7252.xml"?>
+             <?rfc include="reference.RFC.7296.xml"?>
+             -->
+
+        </references>
+
+
+        <references title="Informational References">
+          <!--
+          <?rfc include="reference.RFC.5856.xml"?>
+          -->
+          <?rfc include="reference.I-D.toutain-6lpwa-ipv6-static-context-hc"?>
+          <!--
+          <?rfc include="reference.I-D.raza-6lowpan-ipsec.xml"?>
+          -->
+          <?rfc include="reference.I-D.mglt-ipsecme-implicit-iv.xml"?>
+          <!--
+          <?rfc include="reference.I-D.mglt-6lo-diet-esp-requirements.xml"?>
+          <?rfc include="reference.I-D.mglt-ipsecme-rfc7321bis.xml"?>
+          -->
+          <reference anchor="fit-iot-lab" target="https://www.iot-lab.info">
+                    <front>
+                    <title>Future Internet of Things (FIT) IoT-LAB</title>
+                    <author/>
+                    <date/>
+                    </front>
+          </reference>
+
+        </references>
+
+
+            <section title="Illustrative Examples">
+            <section anchor="sec-vpn-udp"  title="Single UDP Session IoT VPN">
+
+            
+<t>This section considers a IoT IPv6 probe hosting a UDP application.
+The probe is dedicated to a single application and establishes a single
+UDP session. As a result, inner IP addresses and UDP Ports have a
+"Single" value and can be easily compressed. The probes sets an IPsec
+VPN using IPv6 addresses in order to connect its secure domain -
+typically a Home Gateway. The use of IPv6 for inner and outer IP
+addresses, enables to infer inner IP fields from the outer IP address.
+The probes encrypts with AES-CCM_8 <xref target="RFC4309"/>. AES-CCM
+does not have padding, so the padding is performed by ESP. The probes
+uses an 8 bit alignment which enables to fully compress the ESP Trailer.
+In addition, as the probe SA is indexed using the outer IP addresses (or
+eventually the radio identifiers) which enables to fully compress the
+SPI. As the probe provides information every hour, the Sequence Number
+using time can be derived from the received time, which enables to fully
+compress the SN.</t>
+
+<t> <xref target="fig-iot-udp"/> represents the original UDP packet and
+<xref target="fig-iot-udp-diet-esp"/> represents the corresponding
+packet compressed with Diet-ESP. The compression with Diet-ESP results
+in a reduction of 61 bytes overhead. With IPv4 inner IP addressed
+Diet-ESP results in an 45 byte overhead reduction.</t>
+
+<t>Further compression may be done for example by using an implicit IV
+<xref target="I-D.mglt-ipsecme-implicit-iv"/> and by compressing the
+outer IP addresses (not represented) on the figure. In addition,
+application data may also be compressed with mechanisms outside of the
+scope of Diet-ESP.</t>
+
+                <figure anchor="fig-iot-udp" title="Standard ESP VPN Packet Description">
+                  <artwork><![CDATA[
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
+E|               Security Parameters Index (SPI)                 |  ^
+S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+P|                      Sequence Number (SN)                     |  |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+ |                                                               |  |
+ |                             IV                                |  |
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+- |
+I|version| traffic class |               flow label              |^ |
+P+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+v|         payload length        |  next header  |   hop limit   || |
+6+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |                                                               || a
+ |                      inner source IP                          || u
+ |                                                               |e t
+ |                                                               |n h
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+c e
+ |                                                               |r n
+ |                    inner destination IP                       |y t
+ |                                                               |p i
+ |                                                               |t c
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+e a
+U|          source port          |           dest port           |d t
+D+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| e
+P|             length            |            checksum           || d
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |                                                               || |
+ ~                        APPLICATION DATA                       ~| |
+ |                                                               || |
+-|                                               +-+-+-+-+-+-+-+-+| |
+E|                                               |    Padding    || |
+S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+P|     Padding (continue)        |  Pad Length   | Next Header   |v v
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
+ |         Integrity Check Value-ICV   (variable)                |
+ |                                                               |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+                    ]]></artwork>
+                </figure>
+
+
+
+
+
+
+
+                <figure anchor="fig-iot-udp-diet-esp" title="Diet-ESP Single UDP Session IoT VPN Packet Description">
+                  <artwork><![CDATA[
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+--
+|                                                               | ^
+|                             IV                                | |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ aut
+|                                                               | hen
+~                        APPLICATION DATA                       ~ tic
+|                          (encrypted)                          | ate
+|                                               +-+-+-+-+-+-+-+-+ |
+|                                               |               | V
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+               |--
+|         Integrity Check Value-ICV   (variable)                |
+|                                               +-+-+-+-+-+-+-+-+
+|                                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+                    ]]></artwork>
+                </figure>
+
+<t>The following table illustrates the activated rules and the
+attributes of the Diet-ESP Context that needs an explicit agreement to
+achieve the compression. All other attributes used by the rules are part
+of the SA agreement. Parameters of not activated rules are left
+"Unspecified".</t>
+
+
+          <texttable>
+            <ttcol>EHC Rule</ttcol>
+            <ttcol>Context Attribute</ttcol>
+            <ttcol>Value</ttcol>
+
+            <c>ESP_SPI</c>
+            <c>esp_spi_lsb </c>
+            <c> 0 </c>
+
+            <c>ESP_SN</c>
+            <c>esp_sn_lsb </c>
+            <c> 0  </c>
+            <c></c>
+            <c>esp_sn_gen</c>
+            <c></c>
+
+            <c>ESP_NH</c>
+            <c></c><c></c>
+            <c>ESP_PAD</c>
+            <c>esp_align</c>
+            <c>8</c>
+
+            <c></c><c></c><c></c>
+            <c>IP6_OUTER</c>
+            <c>ip6_tcfl_comp</c>
+            <c> </c>
+            <c></c>
+            <c>ip6_hl_comp</c>
+            <c> </c>
+
+
+            <c>IP6_LENGTH</c>
+            <c></c><c></c>
+            <c>IP6_NH</c>
+            <c></c><c></c>
+            <c>IP6_HL_OUTER</c>
+            <c></c><c></c>
+            <c>IP6_SRC</c>
+            <c></c><c></c>
+            <c>IP6_DST</c>
+            <c></c><c></c>
+
+            <c></c><c></c><c></c>
+            <c>UDP_SRC</c>
+            <c></c><c></c>
+            <c>UDP_DST</c>
+            <c></c><c></c>
+            <c>UDP_LENGTH</c>
+            <c></c><c></c>
+            <c>UDP_CHECK</c>
+            <c></c><c></c>
+          </texttable>
+
+            </section>
+
+            <section title="Single TCP session IoT VPN">
+             
+<t>This section considers the same probe as described in <xref
+target="sec-vpn-udp"/> but instead of using UDP as a transport layer,
+the probe uses TCP. In this case TCP is used with no options, no urgent
+pointers and the SN and ACK Number are compressed to 2 bytes as the
+throughput is expected to be low.</t>
+
+<t><xref target="fig-iot-tcp"/> represents the original TCP packet and
+<xref target="fig-tcp-diet-esp"/> represents the corresponding packet
+compressed with Diet-ESP. The compression with Diet-ESP results in a
+reduction of 66 bytes overhead. With IPv4 inner address Diet-ESP results
+in a 50 byte overhead reduction.</t>
+
+
+                <figure anchor="fig-iot-tcp" title="Standard IoT Single TCP Session VPN Packet Description">
+                  <artwork><![CDATA[
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
+E|               Security Parameters Index (SPI)                 |  ^
+S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+P|                      Sequence Number (SN)                     |  |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+ |                                                               |  |
+ |                             IV                                |  |
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+- |
+I|version| traffic class |               flow label              |^ |
+P+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+v|         payload length        |  next header  |   hop limit   || |
+6+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |                                                               || a
+ |                      inner source IP                          || u
+ |                                                               |e t
+ |                                                               |n h
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+c e
+ |                                                               |r n
+ |                    inner destination IP                       |y t
+ |                                                               |p i
+ |                                                               |t c
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+e a
+T|          source port          |           dest port           |d t
+C+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| e
+P|                      Sequence Number (SN)                     || d
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |                     ACK Sequence Number                       || |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |Off. | Rserv |      Flags      |         Window Size           || |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |             Checksum          |      Urgent Pointer           || |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |                                                               || |
+ ~                        APPLICATION DATA                       ~| |
+ |                                                               || |
+ |                                               +-+-+-+-+-+-+-+-+| |
+E|                                               |    Padding    || |
+S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+P|     Padding (continue)        |  Pad Length   | Next Header   |V V
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
+ |         Integrity Check Value-ICV   (variable)                |
+ |                                                               |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+                    ]]></artwork>
+                </figure>
+
+
+
+
+                <figure anchor="fig-tcp-diet-esp" title="Diet-ESP Single TCP Session IoT VPN Packet Description">
+                  <artwork><![CDATA[
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---a
+|                                                               |  ^u
+|                             IV                                |  |t
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+--|h
+|     Sequence Number (SN)      |  ACK Sequence Number          |^e|e
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|n|n
+|    Flags      |         Window Size           |               ||c|t
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+               ||r|i
+|                                                               ~|y|c
+~                        APPLICATION DATA                       ||p|a
+|                                                               ||t|t
+|                               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|e|e
+|                               |                               |vdvd
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                               |---
+|         Integrity Check Value-ICV   (variable)                |
+|                               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+                    ]]></artwork>
+                </figure>
+
+
+<t>The following table illustrates the activated rules and the
+attributes of the Diet-ESP Context that needs an explicit agreement to
+achieve the compression. All other attributes used by the rules are part
+of the SA agreement. Parameters of not activated rules are left
+"Unspecified". Note for simplicity, tcp_sn and tcp_ack are negotiated to
+start with 0, but it could be any other value as well.</t>
+
+
+              <texttable>
+                <ttcol>EHC Rule</ttcol>
+                <ttcol>Context Attribute</ttcol>
+                <ttcol>Value</ttcol>
+
+                <c>ESP_SPI</c>
+                <c>esp_spi_lsb </c>
+                <c> 0 </c>
+
+                <c>ESP_SN</c>
+                <c>esp_sn_lsb </c>
+                <c> 0  </c>
+                <c></c>
+                <c>esp_sn_gen</c>
+                <c> </c>
+
+                <c>ESP_NH</c>
+                <c></c><c></c>
+                <c>ESP_PAD</c>
+                <c>esp_align</c>
+                <c>8</c>
+
+                <c></c><c></c><c></c>
+                <c>IP6_OUTER</c>
+                <c>ip6_tcfl_comp</c>
+                <c>  </c>
+                <c></c>
+                <c>ip6_hl_comp</c>
+                <c> </c>
+
+
+                <c>IP6_LENGTH</c>
+                <c></c><c></c>
+                <c>IP6_NH</c>
+                <c></c><c></c>
+                <c>IP6_HL_OUTER</c>
+                <c></c><c></c>
+                <c>IP6_SRC</c>
+                <c></c><c></c>
+                <c>IP6_DST</c>
+                <c></c><c></c>
+
+                <c></c><c></c><c></c>
+                <c>TCP_SRC</c>
+                <c></c><c></c>
+                <c>TCP_DST</c>
+                <c></c><c></c>
+                <c>TCP_SN</c>
+                <c>tcp_lsb</c>
+                <c>2</c>
+                <c></c>
+                <c>tcp_sn</c>
+                <c>0</c>
+                <c>TCP_ACK</c>
+                <c>tcp_lsb</c>
+                <c>2</c>
+                <c></c>
+                <c>tcp_ack</c>
+                <c>0</c>
+                <c>TCP_OPTIONS</c>
+                <c>tcp_options</c>
+                <c>"False"</c>
+                <c>TCP_CHECK</c>
+                <c></c><c></c>
+                <c>TCP_URGENT</c>
+                <c>tcp_urgent</c>
+                <c>"False"</c>
+              </texttable>
+
+
+
+
+            </section>
+
+            <section title="Traditional VPN ">
+
+
+           
+<t>This section illustrates the case of an company VPN. The VPN is
+typically set by a remote host that forwards all its traffic to the
+security gateway. As transport protocols are "Unspecified", compression
+is limited to ESP and the inner IP header. For the inner IP header, the
+Destination IP address is "Unspecified" so the compression of the inner
+IP address excludes the Destination IP address. Similarly, the inner IP
+Next Header cannot be compressed as the transport layer is not
+specified. For ESP, the security gateway may only have a sufficiently
+low number of remote users with relatively low throughput in which case
+SPI and SN can be compressed to 2 bytes. As throughput remains
+relatively low, the alignment may also set to 8 bits.</t>
+
+              <section title="IPv6 in IPv6">
+
+<t><xref target="fig-vpn6"/> represents the original TCP packet with
+IPv6 inner IP addresses and <xref target="fig-vpn6-diet-esp"/>
+represents the corresponding packet compressed with Diet-ESP. The
+compression with Diet-ESP results in a reduction of 32 bytes.</t>
+
+
+                <figure anchor="fig-vpn6" title="Standard ESP VPN Packet Description">
+                  <artwork><![CDATA[
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
+E|               Security Parameters Index (SPI)                 |  ^
+S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+P|                      Sequence Number (SN)                     |  |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+ |                                                               |  |
+ |                             IV                                |  |
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+- |
+I|version| traffic class |               flow label              |^ |
+P+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+v|         payload length        |  next header  |   hop limit   || |
+6+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |                                                               || a
+ |                      inner source IP                          || u
+ |                                                               |e t
+ |                                                               |n h
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+c e
+ |                                                               |r n
+ |                    inner destination IP                       |y t
+ |                                                               |p i
+ |                                                               |t c
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+e a
+T|          source port          |           dest port           |d t
+C+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| e
+P|                      Sequence Number (SN)                     || d
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |                     ACK Sequence Number                       || |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |Off. | Rserv |      Flags      |         Window Size           || |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |             Checksum          |      Urgent Pointer           || |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |                                                               || |
+ ~                        APPLICATION DATA                       ~| |
+ |                                                               || |
+-|                                               +-+-+-+-+-+-+-+-+| |
+E|                                               |    Padding    || |
+S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+P|     Padding (continue)        |  Pad Length   | Next Header   |V V
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
+ |         Integrity Check Value-ICV   (variable)                |
+ |                                                               |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+                    ]]></artwork>
+                </figure>
+
+
+                <figure anchor="fig-vpn6-diet-esp" title="Diet-ESP VPN Packet Description">
+                  <artwork><![CDATA[
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
+|             SPI               |              SN               |  ^
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+|                                                               |  |
+|                             IV                                |  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+--|
+|  Next Header  |                                               |^ |
++-+-+-+-+-+-+-+-+                                               || |
+|                                                               || |
+|                    inner destination IP                       || |
+|                                                               || |a
+|               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |u
+|               |          source port          |  dest. port   ~|e|t
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|n|h
+~  (continue)   |            TCP Sequence Number (SN)           ~|c|e
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|r|n
+~  (continue)   |    ACK Sequence Number (SN)                   ~|y|t
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|p|i
+~  (continue)   |Off. | Rserv |      Flags      | Window Size   ~|t|c
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|e|a
+~  (continue)   |             Checksum          |   Urgent      ~|d|t
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |e
+~ Pointer       |                                               || |d
++-+-+-+-+-+-+-+-+                                               || |
+~                        APPLICATION DATA                       ~| |
+|                                                               || |
+|                                                               |v v
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
+|         Integrity Check Value-ICV   (variable)                |
+|                                                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+                    ]]></artwork>
+                </figure>
+
+
+
+<t>The following table illustrates the activated rules and the
+attributes of the Diet-ESP Context that needs an explicit agreement to
+achieve the compression. All other attributes used by the rules are part
+of the SA agreement. Parameters of not activated rules are left
+"Unspecified".</t>
+
+              <texttable>
+                <ttcol>EHC Rule</ttcol>
+                <ttcol>Context Attribute</ttcol>
+                <ttcol>Value</ttcol>
+
+                <c>ESP_SPI</c>
+                <c>esp_spi_lsb </c>
+                <c>2</c>
+
+                <c>ESP_SN</c>
+                <c>esp_sn_lsb </c>
+                <c>2</c>
+                <c></c>
+                <c>esp_sn_gen</c>
+                <c></c>
+
+                <c>ESP_NH</c>
+                <c></c><c></c>
+                <c>ESP_PAD</c>
+                <c>esp_align</c>
+                <c>8</c>
+
+                <c></c><c></c><c></c>
+                <c>IP6_OUTER</c>
+                <c>ip6_tcfl_comp</c>
+                <c> </c>
+
+
+                <c>IP6_LENGTH</c>
+                <c></c><c></c>
+                <c>IP6_HL_OUTER</c>
+                <c>ip6_hl_comp</c>
+                <c> </c>
+                <c>IP6_SRC</c>
+                <c></c><c></c>
+
+              </texttable>
+
+            </section>
+              <section title="IPv6 in IPv4">
+                
+<t> If the compressed inner IP header is an IPv6, but the outer IP
+header is an IPv4 header, the activated rules differ, as IP6_OUTER
+cannot be used. Instead, ip6_tcfl_comp and ip6_hl_comp are set to
+"Value". The resulting ESP packet is the same as in <xref
+target="fig-vpn6-diet-esp"/>. </t>
+
+                <texttable>
+                <ttcol>EHC Rule</ttcol>
+                <ttcol>Context Attribute</ttcol>
+                <ttcol>Value</ttcol>
+
+                <c>ESP_SPI</c>
+                <c>esp_spi_lsb </c>
+                <c>2</c>
+
+                <c>ESP_SN</c>
+                <c>esp_sn_lsb </c>
+                <c>2</c>
+                <c></c>
+                <c>esp_sn_gen</c>
+                <c></c>
+
+                <c>ESP_NH</c>
+                <c></c><c></c>
+                <c>ESP_PAD</c>
+                <c>esp_align</c>
+                <c>8</c>
+
+                <c></c><c></c><c></c>
+                <c>IP6_OUTER</c>
+                <c>ip6_tcfl_comp</c>
+
+                <c> </c>
+                <c>IP6_LENGTH</c>
+                <c></c><c></c>
+                <c>IP6_HL_OUTER</c>
+                <c>ip6_hl_comp</c>
+                <c> </c>
+                <c>IP6_SRC</c>
+                <c></c><c></c>
+
+              </texttable>
+
+            </section>
+              <section title="IPv4 in IPv4">
+<t><xref target="fig-vpn4"/> represents the original TCP packet with IPv4 inner IP addresses and <xref target="fig-vpn4-diet-esp"/> represents the corresponding packet compressed with Diet-ESP. The compression with Diet-ESP results in a reduction of 24 bytes.</t>
+
+
+                <figure anchor="fig-vpn4" title="Standard ESP VPN Packet Description">
+                  <artwork><![CDATA[
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
+E|               Security Parameters Index (SPI)                 |  ^
+S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+P|                      Sequence Number (SN)                     |  |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+ |                                                               |  |
+ |                             IV                                |  |
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+- |
+I|Version|  IHL  |Type of Service|          Total Length         |^ |
+P+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+v|         Identification        |Flags|      Fragment Offset    || a
+4+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| u
+ |  Time to Live |    Protocol   |         Header Checksum       |e t
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+n h
+ |                       Source Address                          |c e
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+r n
+ |                    Destination Address                        |y t
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+p i
+ |                    Options                    |    Padding    |t c
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+e a
+T|          source port          |           dest port           |d t
+C+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| e
+P|                      Sequence Number (SN)                     || d
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |                     ACK Sequence Number                       || |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |Off. | Rserv |      Flags      |         Window Size           || |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |             Checksum          |      Urgent Pointer           || |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |                                                               || |
+ ~                        APPLICATION DATA                       ~| |
+ |                                                               || |
+-|                                               +-+-+-+-+-+-+-+-+| |
+E|                                               |    Padding    || |
+S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+P|     Padding (continue)        |  Pad Length   | Next Header   |V V
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
+ |         Integrity Check Value-ICV   (variable)                |
+ |                                                               |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+                    ]]></artwork>
+                </figure>
+
+
+                <figure anchor="fig-vpn4-diet-esp" title="Diet-ESP VPN Packet Description">
+                  <artwork><![CDATA[
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
+|             SPI               |              SN               |  ^
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+|                                                               |  |
+|                             IV                                |  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+--|
+|Type of Service|    Protocol   |     inner destination IP      ~^ |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-|| |
+~  (continue)                   |            source port        || |a
+|-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |u
+|        destination port       |     TCP Sequence Number (SN)  ~|e|t
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|n|h
+~  (continue)                   |     ACK Sequence Number       ~|c|e
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|r|n
+~  (continue)                   |Off. | Rserv |      Flags      ||y|t
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|p|i
+|          Window Size          |             Checksum          ||t|c
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|e|a
+|        Urgent Pointer         |       APPLICATION DATA        ||d|t
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                               +| |e
+~                                                               || |d
+|                                                               || |
+|                                                               |v v
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
+|         Integrity Check Value-ICV   (variable)                |
+|                                                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+                    ]]></artwork>
+                </figure>
+
+
+
+<t>The following table illustrates the activated rules and the
+attributes of the Diet-ESP Context that needs an explicit agreement to
+achieve the compression. All other attributes used by the rules are part
+of the SA agreement. Parameters of not activated rules are left
+"Unspecified".</t>
+
+              <texttable>
+                <ttcol>EHC Rule</ttcol>
+                <ttcol>Context Attribute</ttcol>
+                <ttcol>Value</ttcol>
+
+                <c>ESP_SPI</c>
+                <c>esp_spi_lsb </c>
+                <c>2</c>
+
+                <c>ESP_SN</c>
+                <c>esp_sn_lsb </c>
+                <c>2</c>
+                <c></c>
+                <c>esp_sn_gen</c>
+                <c>"Incremental"</c>
+
+                <c>ESP_NH</c>
+                <c></c><c></c>
+                <c>ESP_PAD</c>
+                <c>esp_align</c>
+                <c>8</c>
+
+                <c></c><c></c><c></c>
+                <c>IP4_OPT_DIS</c>
+                <c></c><c></c>
+                <c>IP4_LENGTH</c>
+                <c></c><c></c>
+                <c>IP4_FRAG_DIS</c>
+                <c></c><c></c>
+                <c>IP4_TTL_OUTER</c>
+                <c></c><c></c>
+                <c>IP4_CHECK</c>
+                <c></c><c></c>
+                <c>IP4_SRC</c>
+                <c></c><c></c>
+
+              </texttable>
+
+            </section>
+              <section title="IPv4 in IPv6">
+
+<t> If the compressed inner IP header is an IPv4, but
+the outer IP header is an IPv6 header, the activated rules differ, as
+IP4_TTL_OUTER cannot be used. Instead, IP4_TTL_VALUE is used. The
+resulting ESP packet is the same as in <xref
+target="fig-vpn4-diet-esp"/>. </t>
+
+                <texttable>
+                <ttcol>EHC Rule</ttcol>
+                <ttcol>Context Attribute</ttcol>
+                <ttcol>Value</ttcol>
+
+                <c>ESP_SPI</c>
+                <c>esp_spi_lsb </c>
+                <c>2</c>
+
+                <c>ESP_SN</c>
+                <c>esp_sn_lsb </c>
+                <c>2</c>
+                <c></c>
+                <c>esp_sn_gen</c>
+                <c>"Incremental"</c>
+
+                <c>ESP_NH</c>
+                <c></c><c></c>
+                <c>ESP_PAD</c>
+                <c>esp_align</c>
+                <c>8</c>
+
+                <c></c><c></c><c></c>
+                <c>IP4_OPT_DIS</c>
+                <c></c><c></c>
+                <c>IP4_LENGTH</c>
+                <c></c><c></c>
+                <c>IP4_FRAG_DIS</c>
+                <c></c><c></c>
+                <c>IP4_CHECK</c>
+                <c></c><c></c>
+                <c>IP4_SRC</c>
+                <c></c><c></c>
+
+              </texttable>
+              </section>
+
+            </section>
+        </section>
+
+<!--
+      <section anchor="sec:header-description" title="EHC Classification (Informative)">
+        <t>EHC Rules for Header fields depends on the property of the given field. The complete classification for all supported protocols is provided in <xref target="sec:header-description"/> The current classification is based on the classification provided by ROHC (see Appendix A of <xref target="RFC5225"/>). However, as EHC agrees on a context out of band, not all classifications provided by ROHC are necessary and classification may end up differently. </t>
+
+          <t>A key difference between ROHC and ESP Header Compression is that ESP needs an explicit agreement between the peers, whereas ROHC does not proceed to any out-of-band agreement. Instead ROHC learns some values by reading them from an initial packet. This learning phase is not anymore needed with ESP Header Compression as these fields can be agreed. For that reason fields classified as STATIC-DEF by ROHC becomes classified as STATIC-KNOWN for ESP Header Compression. In addition, the EHC classification also differs from the ROHC classification as EHC may be able to segment classes according to the ESP context. In that sense, EHC does not consider a single class - which is the one with the least constraints, as ROHC does. Instead, the EHC classification intends to associate the different classes to the ESP context.</t>
+
+       <t>EHC requires these four classes, in order to classify the different header fields:
+            <list hangIndent="4" style="hanging">
+              <t hangText="STATIC-KNOWN">These fields are expected to remain constant throughout the lifetime of the flow. As a result, they can be negotiated out of band and stored in a context.</t>
+              <t hangText="INFERRED">These fields contain values that can be inferred from other values, for example the size of the frame carrying the packet, and thus do not have to be included in compressed packets. </t>
+              <t hangText="PATTERN"> These are fields that change between each packet, but change in a predictable pattern.</t>
+              <t hangText="IRREGULAR"> These are the fields for which no useful change pattern can be identified and should be transmitted uncompressed in all compressed packets.</t>
+            </list>
+          </t>
+
+        <t>This section details the classification for the currently supported protocol fields. Bbeing ESP encapsulated, a given field may end up with a different classification than without encapsulation. In order to point out these differences, this section also provides for information the classification provided by ROHC. In addition, given the context associated to ESP, a given field may be classified differently. In that case, the multiple classifications are mentioned.</t>
+
+          <section title="ESP">
+            <t>This section provides a EHC classification for the fields of the ESP protocol.</t>
+
+            <texttable>
+              <ttcol>Field</ttcol><ttcol>EHC Class</ttcol><ttcol>ROHC class</ttcol>
+              <c>Security Policy Index</c><c>STATIC-KNOWN</c><c>STATIC-DEF</c>
+              <c>Sequence Number</c><c>PATTERN</c><c>PATTERN</c>
+              <c>Padding</c><c>INFERRED / STATIC-KNOWN</c><c/>
+              <c>Pad Length</c><c>INFERRED / STATIC-KNOWN</c><c/>
+              <c>Next Header</c><c>STATIC-KNOWN / IRREGULAR </c><c/>
+            </texttable>
+          <t>Fields Padding, Pad Length, Next Header were not classified by ROHC because, they could not be compressed by either ROHCoverIPsec or ROHC. ROHCoverIPsec compresses protocols encapsulated by ESP. These fields are part of ESP and so cannot be compressed by ROHCoverIPsec. ROHC compresses fields sent on the wire but these fields are encrypted by ESP and so cannot be compressed by ROHC.</t>
+
+            <t>In EHC, when present, Padding and Pad Length are INFERRED from the necessary protocol alignment, the cipher alignment and the ESP packet length before the encryption occurs. For packet with fixed size, these values will not changed during the session and as a result, may be classified as STATIC-KNOWN. Similarly, for some specific alignment values, such as 8 bit alignment, these fields may also have fixed values and thus may be classified as STATIC-KNOWN too. </t>
+
+          <t>Next Header is STATIC-KNOWN when it is part of the TS, in which case it has been agreed between the peers. Otherwise, NH is IRREGULAR and thus cannot be compressed.</t>
+
+          </section>
+
+          <section title="IPv6 (Inner)">
+            <t>This section provides a EHC classification for the fields of the IPv6 protocol. The IPv6 address only considers the inner IP header when used in conjunction of the tunnel mode.</t>
+            <texttable>
+              <ttcol>Field</ttcol><ttcol>EHC Class</ttcol><ttcol>ROHC class</ttcol>
+              <c>Version</c><c>STATIC-KNOWN</c><c>STATIC-KNOWN</c>
+              <c>Traffic Class</c><c>STATIC-KNOWN / INFERRED / IRREGULAR</c><c>RACH</c>
+              <c>Flow Label</c><c>STATIC-KNOWN / INFERRED / IRREGULAR</c><c>STATIC-DEF</c>
+              <c>Payload Length</c><c>INFERRED</c><c>INFERRED</c>
+              <c>Next Header</c><c>STATIC-KNOWN / IRREGULAR</c><c>STATIC-DEF</c>
+              <c>Hop Limit</c><c>STATIC-KNOWN / INFERRED</c><c>RACH</c>
+              <c>Source Address</c><c>STATIC-KNOWN</c><c>STATIC-DEF</c>
+              <c>Destination Address</c><c>STATIC-KNOWN</c><c>STATIC-DEF</c>
+            </texttable>
+
+            <t>Traffic Class, Flow Label, Hop Limit are STATIC-KNOWN when part of the TS, in which case it has been agreed between the peers in the EHC context. Alternatively, the inner IPv6 header is INFERRED from the outer IP header if the outer IP header is an IPv6 header. In any other cases, these fields are IRREGULAR.</t>
+
+          <t>Next Header is STATIC-KNOWN when it is part of the TS, in which case it has been agreed between the peers. Otherwise, NH is IRREGULAR and thus cannot be compressed.</t>
+
+          </section>
+
+          <section title="IPv4 (Inner)">
+            <t>This section provides a EHC classification for the fields of the IPv6 protocol. The IPv6 address only considers the inner IP header when used in conjunction of the tunnel mode.</t>
+            <texttable>
+              <ttcol>Field</ttcol><ttcol>EHC Class</ttcol><ttcol>ROHC class</ttcol>
+              <c>Version</c><c>STATIC-KNOWN</c><c>STATIC-KNOWN</c>
+              <c>Header Length</c><c></c><c></c>
+              <c>.  Options&nbsp;enabled</c><c>IRREGULAR</c><c>RACH</c>
+              <c>.  Options&nbsp;disabled</c><c>STATIC-KNOWN</c><c>STATIC-KNOWN</c>
+              <c>Type of Service</c><c>STATIC-KNOWN</c><c>RACH</c>
+              <c>Total Length</c><c>INFERRED</c><c>INFERRED</c>
+              <c>Identification</c><c></c><c></c>
+              <c>.        Sequential</c><c>PATTERN</c><c>PATTERN</c>
+              <c>.        Seq. swap</c><c>PATTERN</c><c>PATTERN</c>
+              <c>.        Random</c><c>IRREGULAR</c><c>IRREGULAR</c>
+              <c>.        Zero</c><c>STATIC-KNOWN</c><c>STATIC-KNOWN</c>
+              <c>Flags</c><c>STATIC-KNOWN / IRREGULAR</c><c></c>
+              <c>.    Reserved</c><c></c><c>STATIC-KNOWN</c>
+              <c>.    Don't Fragment</c><c></c><c>RACH</c>
+              <c>.    More Fragment</c><c></c><c>STATIC-KNOWN</c>
+              <c>Fragment offset</c><c>STATIC-KNOWN / IRREGULAR</c><c>STATIC-KNOWN</c>
+              <c>Time To Live</c><c>STATIC-KNOWN / INFERRED</c><c>INFERRED</c>
+              <c>Protocol</c><c>STATIC-KNOWN / IRREGULAR</c><c>STATIC-DEF</c>
+              <c>Header Checksum</c><c>INFERRED</c><c>INFERRED</c>
+              <c>Source Address</c><c>STATIC-KNOWN</c><c>STATIC-DEF</c>
+              <c>Destination&nbsp;Address</c><c>STATIC-KNOWN</c><c>STATIC-DEF</c>
+              <c>Options</c><c>IRREGULAR</c><c></c>
+              <c>Padding</c><c>IRREGULAR</c><c></c>
+            </texttable>
+
+            <t>Version, Source and Destination Address and Protocol STATIC-KNOWN when part of the TS, in which case it has been agreed between the peers in the EHC context. Otherwise, they are IRREGULAR and thus cannot be compressed.</t>
+
+            <t>Traffic Class, Flow Label, Time To Live and Flags are STATIC-KNOWN if agreed between the two peers. Otherwise the inner IPv4 header may also be inferred from the outer IP header if the outer IP header is an IPv4 header. In any other cases, these fields are IRREGULAR.</t>
+
+            <t>Header Length depends on the options, thus when peers agree on disabling options, the Header Length becomes STATIC-KNOWN and IRREGULAR otherwise.</t>
+            <t>Type of Service (DSCP and ECN) are optional and may be disabled in which case they can be classified as STATIC-KNOWN.</t>
+
+            <t>Identification, Flags and Fragment Offset are used to deal with fragmentation. When fragmentation is disabled, these fields may be classified as STATIC-KNOWN. When fragmentation is actived, Identification may be classified as PATTERN or IRREGULAR. Flags or Fragment offset may be classified as IRREGULAR.</t>
+
+            <t>Type of Service, Options and Padding cannot be compressed in a static way without in-band signalling, thus they are classified as IRREGULAR.</t>
+
+          </section>
+
+          <section anchor="sec:ehc-description-udp" title="UDP">
+            <t>This section provides an EHC classification for the fields of the UDP header.</t>
+            <texttable>
+              <ttcol>Field</ttcol><ttcol>EHC Class</ttcol><ttcol>ROHC class</ttcol>
+              <c>Source Port</c><c>STATIC-KNOWN / IRREGULAR</c><c>STATIC-DEF</c>
+              <c>Destination Port</c><c>STATIC-KNOWN / IRREGULAR</c><c>STATIC-DEF</c>
+              <c>Length</c><c>INFERRED</c><c>INFERRED</c>
+              <c>Checksum</c><c>STATIC-KNOWN / INFERRED</c><c>STATIC, IRREGULAR</c>
+            </texttable>
+          <t>Source and Destination Port are STATIC-KNOWN when part of the TS, in which case it has been agreed between the peers. Otherwise, they are IRREGULAR and thus cannot be compressed.</t>
+
+          <t>When peers have agreed to disable UDP checksum, the checksum is always zero and so its value is STATIC-KNOWN. Otherwise the checksum needs to be computed once the packet has been decompressed. UDP checksum can be computed as ESP provides an integrity check, thus the received packet is believed to be unchanged. Note also that integrity check does not enable error correction which CRC does, but in case of a bit error encryption will fail, thus this case is considered as irrelevant.</t>
+
+          </section>
+
+          <section title="UDP-Lite">
+            <t>This section provides an EHC classification for the fields of the UDP-Lite header.</t>
+            <texttable>
+              <ttcol>Field</ttcol><ttcol>EHC Class</ttcol><ttcol>ROHC class</ttcol>
+              <c>Source Port</c><c>STATIC-KNOWN</c><c>STATIC-DEF</c>
+              <c>Destination Port</c><c>STATIC-KNOWN</c><c>STATIC-DEF</c>
+              <c>Checksum Coverage</c><c>STATIC-KNOWN / INFERRED / IRREGULAR</c><c>IRREGULAR</c>
+              <c>Checksum</c><c>INFERRED</c><c>IRREGULAR</c>
+            </texttable>
+
+            <t>See <xref target="sec:ehc-description-udp"/> for classification of Source and Destination Port.</t>
+
+            <t>The Checksum Coverage is the part of the UDP-Lite packet, and indicates the number of bytes covered by the checksum. The minimal value is 8, which is the UDP-Lite Header. The maximum value is the size of the UDP-Lite packet, which means that the checksum is the same as in UDP. The Coverage can be agreed to be a fixed value or a value that is function of the total length o fthe UDP packet. In these cases, Coverage can be classified as STATIC-KNOWN or INFERRED. Otherwise it is classified as IRREGULAR.</t>
+
+            <t>In UDP-Lite the checksum cannot be disabled, but its coverage changes. Thus it will never appear as zero, but it can be INFERRED in every case, according to the value of Checksum Coverage.</t>
+
+          </section>
+
+          <section title="TCP">
+            <t>This section provides an EHC classification for the fields of the TCP header.</t>
+            <texttable>
+              <ttcol>Field</ttcol><ttcol>EHC Class</ttcol><ttcol>ROHC class RFC4413 </ttcol>
+              <c>Source Port</c><c>STATIC-KNOWN</c><c>STATIC-DEF</c>
+              <c>Destination Port</c><c>STATIC-KNOWN</c><c>STATIC-DEF</c>
+              <c>Sequence Number</c><c>PATTERN</c><c>CHANGING</c>
+              <c>Acknowledgement Number</c><c>PATTERN</c><c>CHANGING</c>
+              <c>Data Offset</c><c></c><c>INFERRED</c>
+              <c>.     Options&nbsp;enabled</c><c>IRREGULAR</c><c></c>
+              <c>.     Options&nbsp;disabled</c><c>STATIC-KNOWN</c><c></c>
+              <c>Reserved Bits</c><c>IRREGULAR</c><c>CHANGING</c>
+              <c>Flags</c><c>IRREGULAR</c><c>CHANGING</c>
+              <c>Window</c><c>IRREGULAR</c><c>CHANGING</c>
+              <c>Checksum</c><c></c><c></c>
+              <c>.        Disabled</c><c>STATIC-KNOWN</c><c>STATIC</c>
+              <c>.        Enabled</c><c>INFERRED</c><c>IRREGULAR</c>
+              <c>Urgent Pointer</c><c>IRREGULAR</c><c>CHANGING</c>
+              <c>Options</c><c>IRREGULAR</c><c>CHANGING</c>
+            </texttable>
+
+            <t>See <xref target="sec:ehc-description-udp"/> for classification of Source and Destination Port.</t>
+
+            <t>The TCP Sequence and Acknowledgement Number increase in a PATTERN but caused by the different TCP-Flags the increase is not performed in every packet.</t>
+
+            <t>Data Offset contains the length of the TCP header including the options. If options are agreed to be disabled it is STATIC-KNOWN. If Options are enabled it cannot be decompressed without in-band signalling, thus it is classified as IRREGULAR in that case.</t>
+
+           <t>See <xref target="sec:ehc-description-udp"/> for the checksum classification.</t>
+
+           <t>Flags, Windows, Urgent Pointer and Options cannot be compressed without in-band signalling, thus classified as IRREGULAR in every case.</t>
+          </section>
+
+      </section>
+-->
+
+
+<!--
+        <section title="Document Change Log">
+            <t>[draft-mglt-6lo-diet-esp-00.txt]:
+               <vspace blankLines="0"/>
+               Changing affiliation
+            </t>
+            <t>[draft-mglt-6lo-diet-esp-00.txt]:
+               <vspace blankLines="0"/>
+               Updating references
+            </t>
+            <t>[draft-mglt-ipsecme-diet-esp-01.txt]:
+                <vspace blankLines="0"/>
+                Diet ESP described in the ROHC framework
+                <vspace blankLines="0"/>
+                ESP is not modified.
+            </t>
+            <t>[draft-mglt-ipsecme-diet-esp-00.txt]:
+                <vspace blankLines="0"/>
+                NAT consideration added.
+                <vspace blankLines="0"/>
+                Comparison actualized to new Version of 6LoWPAN ESP.
+            </t>
+            <t>[draft-mglt-dice-diet-esp-00.txt]: First version published.</t>
+        </section>
+-->
+    </back>
+</rfc>
