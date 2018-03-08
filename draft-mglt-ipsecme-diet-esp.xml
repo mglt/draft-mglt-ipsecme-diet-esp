@@ -37,7 +37,7 @@
  
  
  
-<rfc category="std" docName="draft-mglt-ipsecme-diet-esp-05" ipr="trust200902">
+<rfc category="std" docName="draft-mglt-ipsecme-diet-esp-06" ipr="trust200902">
     <front>
         <title abbrev="Diet-ESP">ESP Header Compression and Diet-ESP</title>
         <author fullname="Daniel Migault" initials="D." surname="Migault">
@@ -84,7 +84,23 @@
                 <uri/>
             </address>
         </author>
- 
+
+
+	<author fullname="David Schinazi" initials="D." surname="Schinazi">
+		<organization>Apple Inc.</organization>
+		<address>
+			<postal>
+				<street>1 Infinite Loop</street>
+				<city>Cupertino</city>
+				<region>California</region>
+				<code>95014</code>
+				<country>US</country>
+			</postal>
+			<phone></phone>
+			<email>dschinazi@apple.com</email>
+		</address>
+	</author>
+
         <date/>
         <area>Security</area>
  
@@ -109,9 +125,11 @@ session.</t>
       <section title="Requirements notation">
  
 <t>The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
-"SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
-document are to be interpreted as described in <xref target="RFC2119"/>.
-</t>
+"SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+"OPTIONAL" in this document are to be interpreted as described in BCP 14
+<xref target="RFC2119"/> <xref target="RFC8174"/> when, and only when,
+they appear in all capitals, as shown here.</t>
+
  
       </section>
  
@@ -454,7 +472,7 @@ Unspecified.</t>
             <ttcol>Possible Values</ttcol>
             <c>udplite_coverage </c>
             <c>No</c>
-            <c>8-16535, "Length", "uncompressed"</c>
+            <c>8-6535, "Length", "uncompressed"</c>
  
           </texttable>
  
