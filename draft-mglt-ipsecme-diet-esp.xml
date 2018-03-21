@@ -272,7 +272,25 @@ current ESP stack.</t>
 <t>The set of EHC rules described in this document as well as the EHC
 Strategies may be extended in the future. Nothing prevents such EHC
 Rules and Strategies to be updated.</t>
- 
+
+</section>
+
+<section title="IPsec Compression Mode">
+    <t>
+    Signalling the compression of a certain ESP packet is crucial for correct decompression at the sender.
+    Situation where decompression may fail unforeseen are various, such as IP fragmentation, UDP options <xref target="I-D.ietf-tsvwg-udp-options"/> just to name a few.
+    </t>
+    <t>
+    With EHC, the agreement of the level or occurrence of compression is left the negotiation protocol (e.g. IKEv2), contradicting the signalization of the level of compression for a certain packet send over the wire.
+    In order to achieve per-packet signalization of the compression level, this document proposes new IPsec modes "Compressed Transport" and "Compressed Tunnel", which are meant to be agreed during the negotiation of the EHC Contex and EHC Strategy.
+    This leads to multiple SAs, and thus, multiple SPIs for different levels of compression agreed with the EHC Context.
+    The receiver can detect the level of compression of an incoming packet by looking up the used EHC Context and EHC strategy in the corresponding SA.
+    </t>
+    <t>
+    If the sender detects the de-compression can not be guaranteed with a given EHC Context and EHC Strategy, it MUST NOT apply compression.
+    If an SA with IPsec Mode "Tunnel"/"Transport" is available, the sender SHOULD send the packet uncompressed, rather than discard the packet.
+    When there is no uncompressed SA available, the packet MUST be dropped.
+    </t>
 </section>
  
 <section  title="EHC Context">
@@ -2052,6 +2070,7 @@ Chakrabarti, Michael Richarson, Tero Kivinen.</t> </section>
              <?rfc include="reference.RFC.5857.xml"?>
              -->
              <?rfc include="reference.RFC.5858.xml"?>
+             <?rfc include="reference.RFC.8174.xml"?>
              <!--
              <?rfc include="reference.RFC.7252.xml"?>
              <?rfc include="reference.RFC.7296.xml"?>
@@ -2069,6 +2088,8 @@ Chakrabarti, Michael Richarson, Tero Kivinen.</t> </section>
           <?rfc include="reference.I-D.raza-6lowpan-ipsec.xml"?>
           -->
           <?rfc include="reference.I-D.mglt-ipsecme-implicit-iv.xml"?>
+          <?rfc include="reference.I-D.ietf-tsvwg-udp-options.xml"?>
+
           <!--
           <?rfc include="reference.I-D.mglt-6lo-diet-esp-requirements.xml"?>
           <?rfc include="reference.I-D.mglt-ipsecme-rfc7321bis.xml"?>
