@@ -1940,7 +1940,6 @@ apply the IP4_DST to decompress the IPv4 Destination Address.</t>
       <section title="IANA Considerations">
             <t>There are no IANA consideration for this document.</t>
             
-            <t>TODO: we need to specify the new compressed modes.</t>
         </section>
  
         <section anchor="sec-security-considerations" title="Security Considerations">
