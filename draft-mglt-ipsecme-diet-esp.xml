@@ -157,25 +157,42 @@ communications, sending extra bytes can significantly impact the battery
 life of devices and thus the life time of the device. The document
 describes a framework that optimizes the networking overhead associated
 to IPsec/ESP for these devices. </t>
- 
+
+<t>Most compression mechanisms work with dynamic compression contexts.
+Some mechanisms, such as ROHC, agree and dynamically change the context
+over a dedicated channel. Others, such as 6LowPAN, send the context
+together with the actual protocol information in a separate compression
+header. Those mechanism fail when it comes to compress encrypted payloads
+as appearing in ESP. This is found to be a major reason, why IPsec and
+in particular ESP is not widely developed in environments where bandwidth
+saving is a critical task, such as in IoT scenarios.</t>
+
+<t>ESP Header Compression (EHC) chooses another form of context agreement, which is similar to the
+one defined by Static Context Header Compression (SCHC). It works with
+a static compression context agreed for a specific Security Association.
+The context itself can be negotiated during the key agreement, which
+allows only minimal the changes to the actual ESP implementation.</t>
        
-<t>ESP Header Compression (EHC) is a framework that compresses ESP
+<t>EHC itself is defined as a framework that specifically compresses ESP
 protected communications. EHC is highly flexible to address any use case
 where compression is necessary. EHC takes advantage of the negotiation
 between the communication endpoint to agree on the cryptographic
-parameters. In some cases, the agreement already includes parameters
+parameters, which in some cases already includes parameters
 that remain constant during the communications (like layer 4 ports, or
-IP addresses). EHC takes advantage of these already agreed parameters
-and defines additional parameters that could be agreed for the purpose
-of compression. Similarly, EHC also defines EHC Rules which define how
+IP addresses) and can thus be used as part of the compression context.
+Only additional, EHC specific parameters need to be agreed for the purpose
+of compression. In addition EHC Rules define how
 fields may be compressed and decompressed given the provided parameters.
 Finally, EHC defines EHC Strategy which defines how a set of EHC Rule is
 coordinated.</t>
  
-             
-<t>The document specifies the Diet-ESP EHC Strategy and associated EHC
-Rules. Diet-ESP compresses up to 32 bytes per packet for traditional VPN
-and up to 66 bytes for VPN set over a single TCP or UDP session.</t>
+<t>This document specifies EHC Context parameters for the most common Layer 3 and 4
+protocols and the associated EHC Rules. Additionally, an EHC Strategy called Diet-ESP is
+defined, which compresses up to 32 bytes per packet for traditional VPN
+and up to 66 bytes for VPN set over a single TCP or UDP session.
+Its main purpose is a maximum level of compression with a minimum
+of additional agreement. This is achieved by defining a default usage
+of existing IPsec SA parameters wherever possible.</t>
    
       </section>
  
