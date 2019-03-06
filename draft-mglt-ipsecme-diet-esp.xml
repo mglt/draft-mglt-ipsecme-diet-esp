@@ -307,21 +307,26 @@ Rules and Strategies to be updated.</t>
  
 <t>The EHC Context provides the necessary information so the two peers
 can proceed to the appropriated compression and decompression defined by
-the EHC Strategy. As this document is limited to the Diet-ESP strategy,
-the EHC Context in this section is also designated as Diet-ESP Context
-and is used by the Diet-ESP Strategy to activate specific EHC Rules as
-well as to execute the EHC Rule by providing the necessary parameters..
+the EHC Strategy.</t>
+
+<t>The EHC Context is defined on a per-SA basis.
+A context can be defined for any protocol encapsulated
+with ESP and for ESP itself. For each header field, a context
+attribute is provided to the EHC Context in order to allow
+compression and decompression. Most power of EHC lies in the
+fact, that the attributes for some protocols are already available
+in the IPsec SA (e.g. IP addresses in the Traffic Selector).
+Such attributes are designated by "Yes" in the "In SA" column.
+All others need to be negotiated separately in order to allow EHC
+to work properly.</t>
+
+<t>As this document is limited to the Diet-ESP strategy,
+the EHC Context in this section used by the Diet-ESP Strategy to activate specific EHC Rules as
+well as to execute the EHC Rules by providing the necessary parameters..
 </t>
+
  
-<t>The Diet-ESP Context is defined on a per-SA basis. It is composed of
-attributes that are not Diet-ESP specific, as well as attributes that
-are Diet-ESP specific. Attributes that are not Diet-ESP specific are
-already stored in some form in the SA (e.g. IP addresses in the Traffic Selector). Such attributes are designated by
-"Yes" in the "In SA" column. Diet-ESP specific attributes may need to be
-specified so Diet-ESP can be executed properly.</t>
- 
- 
-    <section title="Diet-ESP Context Parameters for ESP" anchor="sec-context-esp">
+    <section title="EHC Context Parameters for ESP" anchor="sec-context-esp">
           <texttable>
             <ttcol>Context Attribute</ttcol>
             <ttcol>In SA</ttcol>
