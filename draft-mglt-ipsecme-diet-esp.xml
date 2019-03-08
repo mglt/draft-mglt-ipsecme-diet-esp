@@ -228,45 +228,57 @@ of existing IPsec SA parameters wherever possible.</t>
 reducing the size of the packet sent on the wire, while carrying an
 equivalent level of information with an equivalent level of security.
 </t>
-      
-<t>The primarily motivation for payload size reduction were IoT related
-use cases, were the cost of sending extra bytes largely overcomes
-additional computations and thus considerably reduces the life time of
-battery powered devices. As a result, IoT communication rather favors
-expensive compression over additional bandwidth. Standard IPsec VPN may
-also consider reduction of their bandwidth, but on the other hand, the
-acceptable computation overhead must remain very low. The ESP Header
-Compression designated in this document together with the EHC Strategy
-named Diet-ESP attempts to reach both of these two goals.</t>
- 
-      
-<t>ESP Header Compression compresses the standard ESP payload by
-compressing different fields with specific compression rules performed
-in the ESP stack. Concerned fields include those of the ESP protocol, as
+
+<t>EHC is able to compress any protocol encapsulated in ESP and ESP itself.
+Concerned fields include those of the ESP protocol, as
 well as other protocols in the ESP payload such as the IP header when
-the tunnel mode is used, the UDP or the TCP header. In fact non ESP
-fields may be compressed by ESP under certain circumstances and ESP
-Header Compression is not intended to provide a generic way outside of
-ESP to compress these protocols. Further compression of the ESP payload
-may be performed by generic mechanism and outside ESP with more generic
-mechanisms such as for example ROHCoverIPsec <xref target="RFC5858"/> or
-SCHC <xref target="I-D.toutain-6lpwa-ipv6-static-context-hc"/> which are
-orthogonal to ESP Header Compression.</t>
- 
-<t>As depicted in <xref target="fig:overview"/>, in order to compress
-the ESP packets, the two peers are expected to agree on the EHC Strategy
-- Diet-ESP in our case - as well as some extra parameters needed to
-derive the EHC Rules and EHC Context.</t>
- 
+the tunnel mode is used, but also upper layer protocols, such as
+the UDP or the TCP header. Non ESP
+fields may be compressed by ESP under certain circumstances, but EHC
+is not intended to provide a generic way outside of
+ESP to compress these protocols.
+Compression of the unprotected IP header and the unencrypted ESP header
+may be performed by mechanism such as 6LoWPAN <xref target="RFC4994"/>,
+SCHC <xref target="I-D.toutain-6lpwa-ipv6-static-context-hc"/>,
+ROHC <xref target="RFC5795"/> or 6LoWPAN-GHC <xref target="RFC7400"/>.
+</t>
+
+<t>EHC is based on a static compression context, EHC Rules coordinated
+by an EHC Strategy:
+  <list style="hanging" hangIndent="4">
+      <t hangText="EHC Context:">Stores the information of a specific
+      header field which can be compressed by EHC. This can be specific
+      header values such as IP addresses or L4 ports do not have to be
+      send on the wire at all, or compression information for fields
+      which can be partially compressed, such as sequence numbers.</t>
+      <t hangText="EHC Rules:">Defines how the information of the EHC
+      Context is used to compress a specific field. It defines
+      compression functions, such as "elided", "least significant
+      byte" and others, being applied on the header field.</t>
+      <t hangText="EHC Strategy:">Is applied to efficiently
+      coordinate EHC Context and EHC Strategy. The EHC Strategy
+      "Diet-ESP" defined in this document utilizes the information
+      in the IPsec SA to pre-define the EHC Context without
+      explicitly exchanging the EHC Context. </t>
+  </list>
+</t>
+
+
+<t>As depicted in <xref target="fig:overview"/>, the EHC Strategy
+- Diet-ESP in our case - as well as EHC Context is agreed between
+the two peers, e.g. during key exchange. The EHC Rules are to
+be implemented on the peers and do not require further agreement.
+</t>
+
           <figure anchor="fig:overview" title="ESP Header Compression Overview">
             <artwork align="center"><![CDATA[
         EHC Strategy,                       EHC Strategy,
         EHC Context    <==================> EHC Context
              |                                    |
-EHC Rules    |                          EHC Rules | 
+EHC Rules    |                          EHC Rules |
      |       |                           |        |
      v       v                           v        v
-    +====================+              +====================+ 
+    +====================+              +====================+
     |        ESP         |              |         ESP        |
     +====================+              +====================+
     | < pre-esp >        |              | < pre-esp >        |
@@ -279,23 +291,37 @@ EHC Rules    |                          EHC Rules |
     +--------------------+              +--------------------+]]>
 </artwork>
 </figure>
- 
+
 <t>In <xref target="fig:overview"/>, the ESP stack is represented by
-various sub layers describing the packet processing inside the ESP. The
-"pre-esp" layer represents treatment performed to a non ESP packet, i.e.
-before ESP encapsulation or decapsulation is being proceeded. "clear
-text esp" designates the ESP encapsulation / decapsulation processing
-performed on an non encrypted ESP packet. "encryption" designates the
-encryption/decryption phase and "post-esp" the processing performed on
-an ESP encrypted packet. EHC Rules may be processed at any of these
-layers - except for "encryption" layer, and thus impact differently the
+various sub layers describing the packet processing inside the ESP:
+    <list style="hanging" hangIndent="4">
+        <t hangText="pre-esp:"> represents treatment performed to a
+        non ESP packet, i.e. before ESP encapsulation or decapsulation
+        is being proceeded. Any compression of protocols not specific to
+        but encrypted by ESP, such as L4 and higher protocols, is performed here.
+        </t>
+        <t hangText="clear text esp:"> designates the ESP encapsulation /
+        decapsulation processing performed on an non encrypted ESP packet.
+        This layer includes compression for fields which are included during
+        the ESP encapsulation. A typical example is the later encrypted
+        Tunnel IP header and the fields of the ESP trailer.</t>
+        <t hangText="encryption:">designates the encryption/decryption phase
+        This layer could include compression of encryption information
+        (e.g. Initialization Vector, etc.), but this is currently out
+        of scope of this document.</t>
+        <t hangText="post-esp"> the processing performed onan ESP encrypted
+        packet. This layer includes compression of the ESP header.
+        </t>
+    </list>
+EHC Rules may be processed at any of these layers and thus impact differently the
 standard ESP. More specifically, EHC Rules performed at the "pre-esp" or
 "post-esp" layer do not require the current ESP stack to be updated
 and can simply be appended to the current ESP stack. On the other hand,
 EHC Rules at the "clear text esp" may require modification of the
-current ESP stack.</t>
- 
- 
+current ESP stack.
+</t>
+
+
 <t>The set of EHC rules described in this document as well as the EHC
 Strategies may be extended in the future. Nothing prevents such EHC
 Rules and Strategies to be updated.</t>
