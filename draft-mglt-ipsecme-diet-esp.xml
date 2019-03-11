@@ -264,8 +264,8 @@ by an EHC Strategy:
 </t>
 
 
-<t>As depicted in <xref target="fig:overview"/>, the EHC Strategy
-- Diet-ESP in our case - as well as EHC Context is agreed between
+<t>As depicted in <xref target="fig:overview"/>, the EHC Strategy -
+Diet-ESP in our case - and the EHC Context are agreed upon between
 the two peers, e.g. during key exchange. The EHC Rules are to
 be implemented on the peers and do not require further agreement.
 </t>
@@ -297,7 +297,7 @@ various sub layers describing the packet processing inside the ESP:
     <list style="hanging" hangIndent="4">
         <t hangText="pre-esp:"> represents treatment performed to a
         non ESP packet, i.e. before ESP encapsulation or decapsulation
-        is being proceeded. Any compression of protocols not specific to
+        is being performed. Any compression of protocols not specific to
         but encrypted by ESP, such as L4 and higher protocols, is performed here.
         </t>
         <t hangText="clear text esp:"> designates the ESP encapsulation /
@@ -309,7 +309,7 @@ various sub layers describing the packet processing inside the ESP:
         This layer could include compression of encryption information
         (e.g. Initialization Vector, etc.), but this is currently out
         of scope of this document.</t>
-        <t hangText="post-esp"> the processing performed onan ESP encrypted
+        <t hangText="post-esp"> the processing performed on an ESP encrypted
         packet. This layer includes compression of the ESP header.
         </t>
     </list>
