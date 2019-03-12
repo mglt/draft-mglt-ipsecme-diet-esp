@@ -37,7 +37,7 @@
  
  
  
-<rfc category="std" docName="draft-mglt-ipsecme-diet-esp-06" ipr="trust200902">
+<rfc category="std" docName="draft-mglt-ipsecme-diet-esp-07" ipr="trust200902">
     <front>
         <title abbrev="Diet-ESP">ESP Header Compression and Diet-ESP</title>
         <author fullname="Daniel Migault" initials="D." surname="Migault">
@@ -238,7 +238,7 @@ fields may be compressed by ESP under certain circumstances, but EHC
 is not intended to provide a generic way outside of
 ESP to compress these protocols.
 Compression of the unprotected IP header and the unencrypted ESP header
-may be performed by mechanism such as 6LoWPAN <xref target="RFC4994"/>,
+may be performed by mechanism such as 6LoWPAN <xref target="RFC4944"/>,
 SCHC <xref target="I-D.toutain-6lpwa-ipv6-static-context-hc"/>,
 ROHC <xref target="RFC5795"/> or 6LoWPAN-GHC <xref target="RFC7400"/>.
 </t>
@@ -2128,7 +2128,10 @@ Chakrabarti, Michael Richarson, Tero Kivinen.</t> </section>
              <?rfc include="reference.RFC.5225.xml"?>
              <?rfc include="reference.RFC.5857.xml"?>
              -->
+             <?rfc include="reference.RFC.4944.xml"?>
+             <?rfc include="reference.RFC.5795.xml"?>
              <?rfc include="reference.RFC.5858.xml"?>
+             <?rfc include="reference.RFC.7400.xml"?>
              <?rfc include="reference.RFC.8174.xml"?>
              <!--
              <?rfc include="reference.RFC.7252.xml"?>
