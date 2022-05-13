@@ -37,7 +37,7 @@
  
  
  
-<rfc category="std" docName="draft-mglt-ipsecme-diet-esp-07" ipr="trust200902">
+<rfc category="std" docName="draft-mglt-ipsecme-diet-esp-08" ipr="trust200902">
     <front>
         <title abbrev="Diet-ESP">ESP Header Compression and Diet-ESP</title>
         <author fullname="Daniel Migault" initials="D." surname="Migault">
@@ -59,7 +59,6 @@
                 <postal>
                     <street>Oettingenstr. 67</street>
                     <city>80538 Munchen</city>
-                    <region>Bavaria</region>
                     <country>Germany</country>
                 </postal>
                 <phone/>
@@ -159,7 +158,7 @@ describes a framework that optimizes the networking overhead associated
 to IPsec/ESP for these devices. </t>
 
 <t>Most compression mechanisms work with dynamic compression contexts.
-Some mechanisms, such as ROHC, agree and dynamically change the context
+Some mechanisms, such as ROHC <xref target="RFC5858"/>, agree and dynamically change the context
 over a dedicated channel. Others, such as 6LowPAN, send the context
 together with the actual protocol information in a separate compression
 header. Those mechanism fail when it comes to compress encrypted payloads
@@ -239,7 +238,7 @@ is not intended to provide a generic way outside of
 ESP to compress these protocols.
 Compression of the unprotected IP header and the unencrypted ESP header
 may be performed by mechanism such as 6LoWPAN <xref target="RFC4944"/>,
-SCHC <xref target="I-D.toutain-6lpwa-ipv6-static-context-hc"/>,
+SCHC <xref target="RFC8724"/>,
 ROHC <xref target="RFC5795"/> or 6LoWPAN-GHC <xref target="RFC7400"/>.
 </t>
 
@@ -334,13 +333,14 @@ Rules and Strategies to be updated.</t>
     Situation where decompression may fail unforeseen are various, such as IP fragmentation, UDP options <xref target="I-D.ietf-tsvwg-udp-options"/> just to name a few.
     </t>
     <t>
-    With EHC, the agreement of the level or occurrence of compression is left the negotiation protocol (e.g. IKEv2), contradicting the signalization of the level of compression for a certain packet send over the wire.
+    With EHC, the agreement of the level or occurrence of compression is left the negotiation protocol (e.g. IKEv2). 
+<!--, contradicting the signalization of the level of compression for a certain packet send over the wire.-->
     In order to achieve per-packet signalization of the compression level, this document proposes new IPsec modes "Compressed Transport" and "Compressed Tunnel", which are meant to be agreed during the negotiation of the EHC Contex and EHC Strategy.
-    This leads to multiple SAs, and thus, multiple SPIs for different levels of compression agreed with the EHC Context.
+    This can lead to multiple SAs, and thus, multiple SPIs for different levels of compression agreed with the EHC Context.
     The receiver can detect the level of compression of an incoming packet by looking up the used EHC Context and EHC strategy in the corresponding SA.
     </t>
     <t>
-    If the sender detects the de-compression can not be guaranteed with a given EHC Context and EHC Strategy, it MUST NOT apply compression.
+    If the sender detects that the de-compression can not be guaranteed with a given EHC Context and EHC Strategy, it MUST NOT apply compression.
     If an SA with IPsec Mode "Tunnel"/"Transport" is available, the sender SHOULD send the packet uncompressed, rather than discard the packet.
     When there is no uncompressed SA available, the packet MUST be dropped.
     </t>
@@ -2065,7 +2065,7 @@ the size of the compressed SN.</t>
                     <list style="hanging" hangIndent="3">
                         
 <t hangText="Security Parameter Index (SPI):"> <vspace blankLines="0"/>
-Until Diet-ESP is not deployed outside the scope of IoT and small
+Until Diet-ESP is deployed outside the scope of IoT and small
 devices, the use of a compressed SPI may provide an indication that one
 of the endpoint is a sensor. Such information may be used, for example,
 to evaluate the number of appliances deployed, or -  in addition with
@@ -2085,7 +2085,7 @@ incremented by one for each packet it just has to be an increasing
 function. Using a function such as a TIME may prevent characterizing the
 age or the use of the sensor. Note that the use of such function may
 also impact the compression efficiency and result in larger compressed
-SN.</t> </list> </t>
+SN. Another possibility may also consists in compressing the SN to the low order bytes to reduce the information related to the age or the number of packets being exchanged.  </t> </list> </t>
  
         </section>
  
@@ -2145,11 +2145,11 @@ Chakrabarti, Michael Richarson, Tero Kivinen.</t> </section>
           <!--
           <?rfc include="reference.RFC.5856.xml"?>
           -->
-          <?rfc include="reference.I-D.toutain-6lpwa-ipv6-static-context-hc"?>
+          <?rfc include="reference.RFC.8724.xml"?>
           <!--
           <?rfc include="reference.I-D.raza-6lowpan-ipsec.xml"?>
           -->
-          <?rfc include="reference.I-D.mglt-ipsecme-implicit-iv.xml"?>
+          <?rfc include="reference.RFC.8750.xml"?>
           <?rfc include="reference.I-D.ietf-tsvwg-udp-options.xml"?>
 
           <!--
@@ -2194,7 +2194,7 @@ in a reduction of 61 bytes overhead. With IPv4 inner IP addressed
 Diet-ESP results in an 45 byte overhead reduction.</t>
  
 <t>Further compression may be done for example by using an implicit IV
-<xref target="I-D.mglt-ipsecme-implicit-iv"/> and by compressing the
+<xref target="RFC8750"/> and by compressing the
 outer IP addresses (not represented) on the figure. In addition,
 application data may also be compressed with mechanisms outside of the
 scope of Diet-ESP.</t>
