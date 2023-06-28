@@ -89,7 +89,7 @@ The CTE C/D and EE C/D are expressed via the Generic Framework for Static Contex
 The SCHC rules are derived from the ESP Compression Header Context which includes the Security Association (SA) as well as an additional parameters.
 This is the main content of this document. 
  
-It is expected that all necessary arguments are agreed via IKEv2 {{?I-D.mglt-ipsecme-diet-esp-context-ikev2-extension}}.
+It is expected that all necessary arguments are agreed via IKEv2 {{?I-D.mglt-ipsecme-ikev2-diet-esp-extension}}.
 
 In some case, additional compression may occur on the inner IP packet before being processed by IPsec/ESP as well as over the Outer IP packet.
 Such compression, decompression are outside the scope of this document.    
@@ -120,7 +120,7 @@ Such compression, decompression are outside the scope of this document.
 
 The EHC Context provides the necessary information to generate the SCHC Rules.
 Most pieces of information are already available from the negotiated SA {{!RFC4301}}.
-Other pieces of information needs to be specifically configured or agreed via other mechanisms like for example {{?I-D.mglt-ipsecme-diet-esp-context-ikev2-extension}}.  
+Other pieces of information needs to be specifically configured or agreed via other mechanisms like for example {{?I-D.mglt-ipsecme-ikev2-diet-esp-extension}}.  
 The reference column of {{tab-ehc-ctx-esp}} indicates how the information is defined. 
 
 
@@ -187,7 +187,7 @@ This specification limits the expression of the Traffic Selector to be of the fo
 This limits the original flexibility of the expression of TS, but we believe that provides sufficient flexibility.  
 
 ts_flow_label:
-: indicates the Flow Label field of the inner IPv6 or the Identification field of the IPv4 is copied from the outer IP address.
+: indicates the Flow Label field of the inner IPv6 or the Identification field of the IPv4 is copied from the outer IP address. 
 ts_ip_version:
 : designates the IP version of the Traffic Selectors and its values is set to 4 when only IPv4 IP addresses are considered and to 6 when only IPv6 addresses are considered.
 Practically, when IKEv2 is used, it means that the agreed TSi or TSr results only in a mutually exclusive combination of TS_IPv4_ADDR_RANGE or TS_IPV6_ADDR_RANGE payloads.
@@ -316,18 +316,21 @@ FL is set to 16 bits, TV is not set, MO is set to "ignore" and CDA is set to "lo
 
 DSP, ECN are either retrieved from the SA or from the outer IP header. 
 Fl is set to 8.
-When the DSP, ECN are defined by the SA via {{!I-D.mglt-ipsecme-ts-dsc}} and ts_dsp_list contains a single element, TV is set to that element MO is set to "equal" and CDA is set to "not-sent".
-When the DSP, ECN are defined by the SA via {{!I-D.mglt-ipsecme-ts-dsc}} and ts_dsp_list contains more than one element, TV is set to the list, MO is set to "match-mapping" and CDA is set to "mapping-sent". 
+When the DSP, ECN are defined by the SA via {{!I-D.mglt-ipsecme-ts-dscp}} and ts_dsp_list contains a single element, TV is set to that element MO is set to "equal" and CDA is set to "not-sent".
+When the DSP, ECN are defined by the SA via {{!I-D.mglt-ipsecme-ts-dscp}} and ts_dsp_list contains more than one element, TV is set to the list, MO is set to "match-mapping" and CDA is set to "mapping-sent". 
 When the DSP, ECN are not defined by the SA, MO is set to "ignore" and the CDA is set to "lower". 
 
 When ts_ip_version can be inferred from the ts, the IP version is elided.
 FL is set to 4 bits, the TV is set to ts_ip_version, MO is set to "equal" and CDA to "not-sent".
 
-When the inner IP address has the same version as the outer_ip and ts_traffic_flow is defined and set to True, the Identification field of the IPv4 is elided and read from the outer IP address field. 
-FL is set to 16 bits, TV is ignored, MO is set to "ignore" and CDA is set to "lower".
+When the inner IP address has the same version as the outer_ip and ts_traffic_flow is defined and set to True, the Identification field of the IPv4 inner packet or the Traffic Flow field of the IPv6 packet is elided and read from the outer IP address field.
+For IPv4, FL is set to 16 bits, TV is ignored, MO is set to "ignore" and CDA is set to "lower".
+For IPv6, FL is set to 20 bits, TV is ignored, MO is set to "ignore" and CDA is set to "lower".
+
 When the inner is IPv4 and the outer IP is IPv6 and ts_traffic_flow is set to True, the LSB 16 bits of the outer IP address are considered. This results in a lossless compression. 
-When the inner is IPv6 and the outer IP is IPv4 and ts_traffic_flow is set to True, the LSB 16 bits of inner Traffic Flow fields are set to the outer Identification field and the remaining 4 MSB bytes are set to 0.
-Such compression is not lossless and needs to be considered cautiously. 
+When the inner is IPv6 and the outer IP is IPv4 and ts_traffic_flow is set to True, the LSB 16 bits of inner Traffic Flow fields are set to the outer Identification field and the remaining 4 MSB bits are set to 0.
+Such compression is not lossless and needs to be considered cautiously.
+Note that the Flow Label of the inner packet arriving at the destination may have another value than the initial Flow Label. However, the Flow Label value set at the source ends up with the same value at the destination, with of course a lower entropy.  
 
 ## Inner IPv6 Compression {#sec-inner-ip6}  
 
@@ -373,9 +376,11 @@ The IPv6 Next Header field or the IPv4 Protocol that contains the "ESP" value is
 
 # IANA Considerations
 
+There is no IANA parameters to be registered.
 
 # Security Considerations
 
+There is no specific considerations associated to the profile other than the security considerations of ESP {{!RFC4303}} and those of SCHC {{!RFC8724}}.
 
 # Acknowledgements
 
@@ -605,7 +610,7 @@ While this results in better performances for EHC, it is not an optimal choice a
 
 ###  IPv6 in IPv6
 
-{{fig-std-vpn-tunnel}} represents the original ESP TCP packet with IPv6 inner IP addresses and {{fig-comp-vpn-tunnel}} represents the corresponding packet compressed with EHC.
+{{fig-std-vpn-tunnel-66}} represents the original ESP TCP packet with IPv6 inner IP addresses and {{fig-comp-vpn-tunnel-66}} represents the corresponding packet compressed with EHC.
 
 The compression with Diet-ESP results in a reduction of 32 bytes.
 
@@ -658,7 +663,7 @@ The compression with Diet-ESP results in a reduction of 32 bytes.
     |                                                               |
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ~~~
-{: #fig-std-vpn-tunnel artwork-align="center" title="Standard ESP packet for VPN traffic mode with AES-GCM_16" }
+{: #fig-std-vpn-tunnel-66 artwork-align="center" title="Standard ESP packet for VPN traffic mode with AES-GCM_16" }
 
 
 ~~~
@@ -698,20 +703,58 @@ The compression with Diet-ESP results in a reduction of 32 bytes.
    |                                               |                              
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ~~~
-{: #fig-comp-vpn-tunnel artwork-align="center" title="Standard ESP packet for VPN traffic mode with AES-GCM_16" }
+{: #fig-comp-vpn-tunnel-66 artwork-align="center" title="Compressed IPv6 in IPv6 ESP packet for VPN traffic mode with AES-GCM_16" }
 
 
 ###  IPv6 in IPv4
 
 For IPv6 in IPv4, the compression is similar when ts_traffic_flow is set, otherwise these 20 bits needs to be provided explicitly. 
 
+When ts_traffic_flow is set to True, the resulting decompressed IPv6 packet will be as follows (see the flow label field):
+
+~~~
+  0                   1                   2                   3
+  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+I|version| traffic class |0 0 0 0        flow label              |
+P+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+v|         payload length        |  next header  |   hop limit   |
+6+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ |                                                               |
+ |                      inner source IP                          |
+ |                                                               |
+ |                                                               |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ |                                                               |
+ |                    inner destination IP                       |
+ |                                                               |
+ |                                                               |
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+T|          source port          |           dest port           |
+C+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+P|                      Sequence Number (SN)                     |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ |                     ACK Sequence Number                       |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ |Off. | Rserv |      Flags      |         Window Size           |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ |             Checksum          |      Urgent Pointer           |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ |                                                               |
+ ~                        APPLICATION DATA                       ~
+ |                                                               |
+ |                                               +-+-+-+-+-+-+-+-+
+ |                                               | 
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+~~~
+{: #fig-resulting-ip6 artwork-align="center" title="Decompressed IPv6 encapsulated in IPv4 ESP packet" }
+
+
 ###  IPv4 in IPv4
 
-   TBD
-   Figure 9 represents the original TCP packet with IPv4 inner IP
-   addresses and Figure 10 represents the corresponding packet
-   compressed with Diet-ESP.  The compression with Diet-ESP results in a
-   reduction of 24 bytes.
+{{fig-std-vpn-tunnel-44}} represents the original ESP TCP packet with IPv6 inner IP addresses and {{fig-comp-vpn-tunnel-44}} represents the corresponding packet compressed with EHC.
+  
+The compression with Diet-ESP results in a reduction of 24 bytes.
 
 
 ~~~
@@ -761,6 +804,7 @@ For IPv6 in IPv4, the compression is similar when ts_traffic_flow is set, otherw
     |                                                               |
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ~~~
+{: #fig-std-vpn-tunnel-44 artwork-align="center" title="Standard IPv4 in IPv4 ESP packet for VPN traffic mode with AES-GCM_16" }
 
 
 ~~~
@@ -772,31 +816,31 @@ For IPv6 in IPv4, the compression is similar when ts_traffic_flow is set, otherw
    |                                                               |  |
    |                             IV                                |  |
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+--|
-   |Type of Service|    Protocol   |     inner destination IP      ~^ |
+   |    Protocol   |     inner destination IP                      ~^ |
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-|| |
-   ~  (continue)                   |            source port        || |a
+   ~  (continue)   |            source port        |  destination  ~| |a
    |-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |u
-   |        destination port       |     TCP Sequence Number (SN)  ~|e|t
+   |     port      |         TCP Sequence Number (SN)              ~|e|t
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|n|h
-   ~  (continue)                   |     ACK Sequence Number       ~|c|e
+   ~  (continue)   |     ACK Sequence Number                       ~|c|e
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|r|n
-   ~  (continue)                   |Off. | Rserv |      Flags      ||y|t
+   ~  (continue)   |Off. | Rserv |      Flags      |   Window       ~y|t
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|p|i
-   |          Window Size          |        Urgent Pointer          |t|c
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|e|a
+   |         Size  |        Urgent Pointer         |               ||t|c
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+               ||e|a
    |                                                               ||d|t
    |                        APPLICATION DATA                       || |e
    ~                                                               || |d
-   |                                               +-+-+-+-+-+-+-+-+| |
-   |                                               |    Padding    |v v
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
+   |                             +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+   |                             |    Padding    |                 |v v
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                 |
    |                                                               |
    |                                                               |
-   |         Integrity Check Value-ICV   (variable)                |
-   |                                                               |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+   |       Integrity Check Value-ICV  (variable) +-+-+-+-+-+-+-+-+-+ 
+   |                                             |                 
+   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ~~~
-                 Figure 10: Diet-ESP VPN Packet Description
+{: #fig-comp-vpn-tunnel-44 artwork-align="center" title="Compressed IPv4 in IPv4 ESP packet for VPN traffic mode with AES-GCM_16" }
 
 
 ###  IPv4 in IPv6
