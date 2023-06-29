@@ -1,7 +1,7 @@
 ---
 title: ESP Header Compression Profile
 abbrev: EHCP
-docname: draft-mglt-ipsecme-diet-esp-09
+docname: draft-mglt-ipsecme-diet-esp-10
 ipr: trust200902
 area: Security
 wg: IPsecme
@@ -164,21 +164,28 @@ Implementations may consider different expression of the parameters but their be
 
 alignment:
 : indicates the byte alignement supported by the OS for the ESP extension. By default, the alignement is 32 bit for IPv6, but some systems may also support a 8 bit alignement. Note that when a block cipher such as AES-CCM is used, an 8 bit alignment is overwritten by the block size. 
+
 ipsec_mode:
 : designates the IPsec mode defined in {{!RFC4301}}. In this document, the possible values are "tunnel" for the Tunnel mode and "transport" for the Transport mode. 
+
 tunnel_ip:
 : designates the IP address of the tunnel defined in {{!RFC4301}}.
 This field is only applicable when the Tunnel mode is used.
 That IP address can be and IPv4 or IPv6 address. 
+
 esp_spi:
 : designates the Security Policy Index defined in {{!RFC4301}}. 
+
 esp_spi_lsb: 
 : designates the LSB to be considered for the compressed SPI. This parameter is defined by this specification and can take the following values 0, 1, 2, 4 respectively meaning that the compressed SPI will consist of the esp_spi_lsb LSB bytes of the original SPI.
 A value esp_spi_lsb will let the SPI unchanged.
+
 esp_sn:
 : designates the Sequence Number (SN) field defined in {{!RFC4301}}.
+
 esp_sn_lsb:
 : designates the LSB to be considered for the compressed SN and is defined by this specification. It works similarly to esp_spi_lsb. 
+
 esp_encr:
 : designates the encryption algorithm used. For the purpose of compression is is RECOMMENDED to use {{!RFC8750}}.
 
@@ -188,23 +195,30 @@ This limits the original flexibility of the expression of TS, but we believe tha
 
 ts_flow_label:
 : indicates the Flow Label field of the inner IPv6 or the Identification field of the IPv4 is copied from the outer IP address. 
+
 ts_ip_version:
 : designates the IP version of the Traffic Selectors and its values is set to 4 when only IPv4 IP addresses are considered and to 6 when only IPv6 addresses are considered.
 Practically, when IKEv2 is used, it means that the agreed TSi or TSr results only in a mutually exclusive combination of TS_IPv4_ADDR_RANGE or TS_IPV6_ADDR_RANGE payloads.
 When the traffic selectors result in a combination of IPv4 and IPv6 addresses, ts_ip_version is undefined. 
+
 ts_ip_src_start:
 : designates the starting value range of source IP addresses of the inner packet and has the same meaning as the Starting Address field of the Traffic Selector payload defined in {{!RFC7296, Section 3.13}}.
 Note however that in this specification, ts_ip_src_start applies for all agreed Traffic Selector payloads.
 When the IP addresses cannot be expressed as a range, that exactly expressed as [ ts_ip_src_start, ts_ip_src_end ], ts_ip_src_start is undefined.  
+
 ts_ip_src_end:
 : designates the high end value range of source IP addresses of the inner packet and has the same meaning as the Ending Address field of the Traffic Selector payload defined in {{!RFC7296, Section 3.13}}.
 Similarly to ts_ip_src_end, when the IP addresses cannot be expressed as a range, ts_ip_src_end is undefined.  
+
 ts_port_src_start:
 : designates the starting value of the port range of the inner packet and has the same meaning as the Start Port field of the Traffic Selector payload defined in {{!RFC7296, Section 3.13}}.
+
 ts_port_src_end:
 : designates the starting value of the port range of the inner packet and has the same meaning as the End Port field of the Traffic Selector payload defined in {{!RFC7296, Section 3.13}}.
+
 ts_proto_list:
 : designates the list of Protocol ID field whose meaning is defined in {{!RFC7296, Section 3.13}}. 
+
 ts_dscp_list:
 : designates the list of DSCP values used by the Traffic Selector and have the same meaning as the List of DSCP Values defined in {{!I-D.mglt-ipsecme-ts-dscp}}.  
 
@@ -215,6 +229,7 @@ Similarly, let define lsb( start, end ) the function that returns the LSB that c
 Fnally, let's consider len( x ) the function that returns the number of bits of the bit array x.
 
 We note for convenience:
+
 * msb( ip_src ) = msb( ts_ip_src_start, ts_ip_src_end ) the MSB bits of the IP address range.
 * msb( ip_dst ) = msb( ts_ip_dst_start, ts_ip_dst_end ) the MSB bits of the IP address range.
 * lsb( ip_src ) = msb( ts_ip_src_start, ts_ip_src_end ) the LSB bits of the IP address range.
@@ -252,11 +267,13 @@ lower:
 :  designates an action where the compression consists in eliding the field.
 The decompression consists in retrieving the field from the lower layers of the packet.
 A typical example is when both IP and UDP carry the length of the payload, then the length of the UDP payload can be inferred from the one of the IP layer.
+
 checksum:
 : designates an action where the compression consists in eliding a checksum field.
 The decompression consists in re-computing the checksum.
 ESP provides an integrity-check based on signature of the ESP payload (ICV).
 This makes removing checksum possible, without harming the checksum mechanism.
+
 padding:
 : designates an action where the compression consists in eliding the padding field.
 The decompression consists in re-computing the padding field as described in ESP {{!RFC4303}}. 
@@ -289,7 +306,8 @@ If the inner packet is an UDP or UDP-Lite the length field is elided.
 FL is set to 16, TV is not set, MO is set to "ignore" and CDA is set to "lower" as the length field of the decompressed UDP packet is expressed in bytes and is  derived from the length of the compressed UDP packet by adding the 16 bit UDP Checksum, the 16 bit UDP Length field as well as the respective length of the respective source MSB port and destination MSB ports. 
 
 ~~~
-UDP.Length = ( len( compressed UDP) + 16 + 16 + len( lsb( port_src ) ) + len( lsb( port_src ) ) ) / 8
+UDP.Length = ( len( compressed UDP) + 16 + 16 + len( lsb( port_src ) ) \
+               + len( lsb( port_src ) ) ) / 8
 ~~~
 
 Note that for each SA, LSB and MSB are of fixed length.
@@ -384,6 +402,7 @@ There is no specific considerations associated to the profile other than the sec
 
 # Acknowledgements
 
+We would like to thank Laurent Toutain for its guidance on SCHC. Robert Moskowitz for 
 
 --- back 
 
@@ -425,42 +444,42 @@ This packet is compressed as depicted in {{fig-comp-udp-tunnel}}.
 EHC reduces the packet size by 53 bytes.
 
 ~~~
-   0                   1                   2                   3
-   0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
- -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
- E|               Security Parameters Index (SPI)                 |  ^
- S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
- P|                      Sequence Number (SN)                     |  |
-  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
- I|version| traffic class |               flow label              |^ |
- P+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
- v|         payload length        |  next header  |   hop limit   || |
- 6+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-  |                                                               || a
-  |                      inner source IP                          || u
-  |                                                               |e t
-  |                                                               |n h
-  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+c e
-  |                                                               |r n
-  |                    inner destination IP                       |y t
-  |                                                               |p i
-  |                                                               |t c
- -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+e a
- U|          source port          |           dest port           |d t
- D+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| e
- P|             length            |            checksum           || d
-  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-  |                                                               || |
-  ~                        APPLICATION DATA                       ~| |
-  |                                                               || |
- -|                                               +-+-+-+-+-+-+-+-+| |
- E|                                               |    Padding    || |
- S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
- P|     Padding (continue)        |  Pad Length   | Next Header   |v v
- -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
-  |         Integrity Check Value-ICV   (variable)                |
-  |                                                               |
-  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  0                   1                   2                   3
+  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
+E|               Security Parameters Index (SPI)                 |  ^
+S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+P|                      Sequence Number (SN)                     |  |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+I|version| traffic class |               flow label              |^ |
+P+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+v|         payload length        |  next header  |   hop limit   || |
+6+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |                                                               || a
+ |                      inner source IP                          || u
+ |                                                               |e t
+ |                                                               |n h
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+c e
+ |                                                               |r n
+ |                    inner destination IP                       |y t
+ |                                                               |p i
+ |                                                               |t c
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+e a
+U|          source port          |           dest port           |d t
+D+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| e
+P|             length            |            checksum           || d
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |                                                               || |
+ ~                        APPLICATION DATA                       ~| |
+ |                                                               || |
+-|                                               +-+-+-+-+-+-+-+-+| |
+E|                                               |    Padding    || |
+S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+P|     Padding (continue)        |  Pad Length   | Next Header   |v v
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
+ |         Integrity Check Value-ICV   (variable)                |
+ |                                                               |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ~~~
 {: #fig-std-udp-tunnel artwork-align="center" title="Standard ESP packet for IoT UDP in Tunnel mode more with AES-CCM_8_IIV" }
 
@@ -496,75 +515,75 @@ The ESP encapsulated TCP packet described in {{fig-std-tcp-tunnel}} is compresse
 
 
 ~~~
-     0                   1                   2                   3
-     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-   -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
-   E|               Security Parameters Index (SPI)                 |  ^
-   S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
-   P|                      Sequence Number (SN)                     |  |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
-   I|version| traffic class |               flow label              |^ |
-   P+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-   v|         payload length        |  next header  |   hop limit   || |
-   6+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-    |                                                               || a
-    |                      inner source IP                          || u
-    |                                                               |e t
-    |                                                               |n h
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+c e
-    |                                                               |r n
-    |                    inner destination IP                       |y t
-    |                                                               |p i
-    |                                                               |t c
-   -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+e a
-   T|          source port          |           dest port           |d t
-   C+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| e
-   P|                      Sequence Number (SN)                     || d
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-    |                     ACK Sequence Number                       || |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-    |Off. | Rserv |      Flags      |         Window Size           || |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-    |             Checksum          |      Urgent Pointer           || |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-    |                                                               || |
-    ~                        APPLICATION DATA                       ~| |
-    |                                                               || |
-    |                                               +-+-+-+-+-+-+-+-+| |
-   E|                                               |    Padding    || |
-   S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-   P|     Padding (continue)        |  Pad Length   | Next Header   |V V
-   -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
-    |         Integrity Check Value-ICV   (variable)                |
-    |                                                               |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  0                   1                   2                   3
+  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
+E|               Security Parameters Index (SPI)                 |  ^
+S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+P|                      Sequence Number (SN)                     |  |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+I|version| traffic class |               flow label              |^ |
+P+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+v|         payload length        |  next header  |   hop limit   || |
+6+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |                                                               || a
+ |                      inner source IP                          || u
+ |                                                               |e t
+ |                                                               |n h
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+c e
+ |                                                               |r n
+ |                    inner destination IP                       |y t
+ |                                                               |p i
+ |                                                               |t c
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+e a
+T|          source port          |           dest port           |d t
+C+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| e
+P|                      Sequence Number (SN)                     || d
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |                     ACK Sequence Number                       || |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |Off. | Rserv |      Flags      |         Window Size           || |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |             Checksum          |      Urgent Pointer           || |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |                                                               || |
+ ~                        APPLICATION DATA                       ~| |
+ |                                                               || |
+ |                                               +-+-+-+-+-+-+-+-+| |
+E|                                               |    Padding    || |
+S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+P|     Padding (continue)        |  Pad Length   | Next Header   |V V
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
+ |         Integrity Check Value-ICV   (variable)                |
+ |                                                               |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ~~~
 {: #fig-std-tcp-tunnel artwork-align="center" title="Standard ESP packet for IoT TCP in Tunnel mode more with AES-CCM_8_IIV" }
 
 ~~~
-    0                   1                   2                   3
-    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
-   |  Sequence Number (SN) (ESP)   |          Sequence Number      ~   ^
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+- |
-   ~       (SN) (TCP)              |                ACK            ~^ | 
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| a
-   ~      Sequence Number          |Off. | Rserv |      Flags      || u
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+e t
-   |         Window Size           |      Urgent Pointer           |n h
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+c |
-   |      Urgent Pointer           |                               |r |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                               |y |
-   |                                                               ~p |
-   ~                        APPLICATION DATA                       |t | 
-   |                                                               || |
-   |               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-   |               |                                               |v v
-   +-+-+-+-+-+-+-+-+                                               |---
-   |         Integrity Check Value-ICV   (variable)                |
-   |               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |               |
-   +-+-+-+-+-+-+-+-+
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
+|  Sequence Number (SN) (ESP)   |          Sequence Number      ~   ^
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+- |
+~       (SN) (TCP)              |                ACK            ~^ | 
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| a
+~      Sequence Number          |Off. | Rserv |      Flags      || u
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+e t
+|         Window Size           |      Urgent Pointer           |n h
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+c |
+|      Urgent Pointer           |                               |r |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                               |y |
+|                                                               ~p |
+~                        APPLICATION DATA                       |t | 
+|                                                               || |
+|               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+|               |                                               |v v
++-+-+-+-+-+-+-+-+                                               |---
+|         Integrity Check Value-ICV   (variable)                |
+|               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|               |
++-+-+-+-+-+-+-+-+
 ~~~
 {: #fig-comp-tcp-tunnel artwork-align="center" title="EHC ESP packet for IoT TCP in Tunnel mode more with AES-CCM_8_IIV" }
 
@@ -615,93 +634,93 @@ While this results in better performances for EHC, it is not an optimal choice a
 The compression with Diet-ESP results in a reduction of 32 bytes.
 
 ~~~
-     0                   1                   2                   3
-     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-   -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
-   E|               Security Parameters Index (SPI)                 |  ^
-   S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
-   P|                      Sequence Number (SN)                     |  |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
-    |                                                               |  |
-    |                             IV                                |  |
-   -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+- |
-   I|version| traffic class |               flow label              |^ |
-   P+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-   v|         payload length        |  next header  |   hop limit   || |
-   6+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-    |                                                               || a
-    |                      inner source IP                          || u
-    |                                                               |e t
-    |                                                               |n h
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+c e
-    |                                                               |r n
-    |                    inner destination IP                       |y t
-    |                                                               |p i
-    |                                                               |t c
-   -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+e a
-   T|          source port          |           dest port           |d t
-   C+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| e
-   P|                      Sequence Number (SN)                     || d
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-    |                     ACK Sequence Number                       || |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-    |Off. | Rserv |      Flags      |         Window Size           || |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-    |             Checksum          |      Urgent Pointer           || |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-    |                                                               || |
-    ~                        APPLICATION DATA                       ~| |
-    |                                                               || |
-   -|                                               +-+-+-+-+-+-+-+-+| |
-   E|                                               |    Padding    || |
-   S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-   P|     Padding (continue)        |  Pad Length   | Next Header   |V V
-   -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
-    |                                                               |
-    |         Integrity Check Value-ICV   (variable)                |
-    |                                                               |
-    |                                                               |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  0                   1                   2                   3
+  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
+E|               Security Parameters Index (SPI)                 |  ^
+S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+P|                      Sequence Number (SN)                     |  |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+ |                                                               |  |
+ |                             IV                                |  |
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+- |
+I|version| traffic class |               flow label              |^ |
+P+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+v|         payload length        |  next header  |   hop limit   || |
+6+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |                                                               || a
+ |                      inner source IP                          || u
+ |                                                               |e t
+ |                                                               |n h
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+c e
+ |                                                               |r n
+ |                    inner destination IP                       |y t
+ |                                                               |p i
+ |                                                               |t c
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+e a
+T|          source port          |           dest port           |d t
+C+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| e
+P|                      Sequence Number (SN)                     || d
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |                     ACK Sequence Number                       || |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |Off. | Rserv |      Flags      |         Window Size           || |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |             Checksum          |      Urgent Pointer           || |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |                                                               || |
+ ~                        APPLICATION DATA                       ~| |
+ |                                                               || |
+-|                                               +-+-+-+-+-+-+-+-+| |
+E|                                               |    Padding    || |
+S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+P|     Padding (continue)        |  Pad Length   | Next Header   |V V
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
+ |                                                               |
+ |         Integrity Check Value-ICV   (variable)                |
+ |                                                               |
+ |                                                               |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ~~~
 {: #fig-std-vpn-tunnel-66 artwork-align="center" title="Standard ESP packet for VPN traffic mode with AES-GCM_16" }
 
 
 ~~~
-    0                   1                   2                   3
-    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
-   |             SPI               |              SN               |  ^
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
-   |                                                               |  |
-   |                             IV                                |  |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+--|
-   |  Next Header  |                                               |^ |
-   +-+-+-+-+-+-+-+-+                                               || |
-   |                                                               || |
-   |                    inner destination IP                       || |
-   |                                                               || |a
-   |               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |u
-   |               |          source port          |  destination  ~|e|t
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|n|h
-   ~ port          |     TCP Sequence Number (SN)                  ~|c|e
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|r|n
-   ~  (continue)   |    ACK Sequence Number (SN)                   ~|y|t
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|p|i
-   ~  (continue)   |Off. | Rserv |      Flags      |    Window     ~|t|c
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|e|a
-   ~   Size        |   Urgent   Pointer            |               ~|d|t
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |e
-   |                                                               || |d
-   ~                        APPLICATION DATA                       ~| |
-   |                                                               || |
-   |                             +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ || |
-   |                             |  Next Header    | Integrity     ~v v
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+               +---
-   |                                                               |
-   |         Integrity Check Value-ICV   (variable)                |
-   |                                               +-+-+-+-+-+-+-+-+
-   |                                               |                              
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
+|             SPI               |              SN               |  ^
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+|                                                               |  |
+|                             IV                                |  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+--|
+|  Next Header  |                                               |^ |
++-+-+-+-+-+-+-+-+                                               || |
+|                                                               || |
+|                    inner destination IP                       || |
+|                                                               || |a
+|               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |u
+|               |          source port          |  destination  ~|e|t
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|n|h
+~ port          |     TCP Sequence Number (SN)                  ~|c|e
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|r|n
+~  (continue)   |    ACK Sequence Number (SN)                   ~|y|t
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|p|i
+~  (continue)   |Off. | Rserv |      Flags      |    Window     ~|t|c
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|e|a
+~   Size        |   Urgent   Pointer            |               ~|d|t
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |e
+|                                                               || |d
+~                        APPLICATION DATA                       ~| |
+|                                                               || |
+|                             +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ || |
+|                             |  Next Header    | Integrity     ~v v
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+               +---
+|                                                               |
+|         Integrity Check Value-ICV   (variable)                |
+|                                               +-+-+-+-+-+-+-+-+
+|                                               |                              
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ~~~
 {: #fig-comp-vpn-tunnel-66 artwork-align="center" title="Compressed IPv6 in IPv6 ESP packet for VPN traffic mode with AES-GCM_16" }
 
@@ -758,87 +777,87 @@ The compression with Diet-ESP results in a reduction of 24 bytes.
 
 
 ~~~
-       0                   1                   2                   3
-       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-   -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
-   E|               Security Parameters Index (SPI)                 |  ^
-   S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
-   P|                      Sequence Number (SN)                     |  |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
-    |                                                               |  |
-    |                             IV                                |  |
-   -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+- |
-   I|Version|  IHL  |Type of Service|          Total Length         |^ |
-   P+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-   v|         Identification        |Flags|      Fragment Offset    || a
-   4+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| u
-    |  Time to Live |    Protocol   |         Header Checksum       |e t
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+n h
-    |                       Source Address                          |c e
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+r n
-    |                    Destination Address                        |y t
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+p i
-    |                    Options                    |    Padding    |t c
-   -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+e a
-   T|          source port          |           dest port           |d t
-   C+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| e
-   P|                      Sequence Number (SN)                     || d
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-    |                     ACK Sequence Number                       || |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-    |Off. | Rserv |      Flags      |         Window Size           || |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-    |             Checksum          |      Urgent Pointer           || |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-    |                                                               || |
-    ~                        APPLICATION DATA                       ~| |
-    |                                                               || |
-   -|                                               +-+-+-+-+-+-+-+-+| |
-   E|                                               |    Padding    || |
-   S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-   P|     Padding (continue)        |  Pad Length   | Next Header   |V V
-   -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
-    |                                                               |
-    |                                                               |
-    |         Integrity Check Value-ICV   (variable)                |
-    |                                                               |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
+E|               Security Parameters Index (SPI)                 |  ^
+S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+P|                      Sequence Number (SN)                     |  |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+ |                                                               |  |
+ |                             IV                                |  |
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+- |
+I|Version|  IHL  |Type of Service|          Total Length         |^ |
+P+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+v|         Identification        |Flags|      Fragment Offset    || a
+4+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| u
+ |  Time to Live |    Protocol   |         Header Checksum       |e t
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+n h
+ |                       Source Address                          |c e
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+r n
+ |                    Destination Address                        |y t
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+p i
+ |                    Options                    |    Padding    |t c
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+e a
+T|          source port          |           dest port           |d t
+C+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| e
+P|                      Sequence Number (SN)                     || d
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |                     ACK Sequence Number                       || |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |Off. | Rserv |      Flags      |         Window Size           || |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |             Checksum          |      Urgent Pointer           || |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |                                                               || |
+ ~                        APPLICATION DATA                       ~| |
+ |                                                               || |
+-|                                               +-+-+-+-+-+-+-+-+| |
+E|                                               |    Padding    || |
+S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+P|     Padding (continue)        |  Pad Length   | Next Header   |V V
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
+ |                                                               |
+ |                                                               |
+ |         Integrity Check Value-ICV   (variable)                |
+ |                                                               |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ~~~
 {: #fig-std-vpn-tunnel-44 artwork-align="center" title="Standard IPv4 in IPv4 ESP packet for VPN traffic mode with AES-GCM_16" }
 
 
 ~~~
-    0                   1                   2                   3
-    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
-   |             SPI               |              SN               |  ^
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
-   |                                                               |  |
-   |                             IV                                |  |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+--|
-   |    Protocol   |     inner destination IP                      ~^ |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-|| |
-   ~  (continue)   |            source port        |  destination  ~| |a
-   |-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |u
-   |     port      |         TCP Sequence Number (SN)              ~|e|t
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|n|h
-   ~  (continue)   |     ACK Sequence Number                       ~|c|e
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|r|n
-   ~  (continue)   |Off. | Rserv |      Flags      |   Window       ~y|t
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|p|i
-   |         Size  |        Urgent Pointer         |               ||t|c
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+               ||e|a
-   |                                                               ||d|t
-   |                        APPLICATION DATA                       || |e
-   ~                                                               || |d
-   |                             +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-   |                             |    Padding    |                 |v v
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                 |
-   |                                                               |
-   |                                                               |
-   |       Integrity Check Value-ICV  (variable) +-+-+-+-+-+-+-+-+-+ 
-   |                                             |                 
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
+|             SPI               |              SN               |  ^
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+|                                                               |  |
+|                             IV                                |  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+--|
+|    Protocol   |     inner destination IP                      ~^ |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-|| |
+~  (continue)   |            source port        |  destination  ~| |a
+|-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |u
+|     port      |         TCP Sequence Number (SN)              ~|e|t
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|n|h
+~  (continue)   |     ACK Sequence Number                       ~|c|e
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|r|n
+~  (continue)   |Off. | Rserv |      Flags      |   Window       ~y|t
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|p|i
+|         Size  |        Urgent Pointer         |               ||t|c
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+               ||e|a
+|                                                               ||d|t
+|                        APPLICATION DATA                       || |e
+~                                                               || |d
+|                             +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+|                             |    Padding    |                 |v v
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                 |
+|                                                               |
+|                                                               |
+|       Integrity Check Value-ICV  (variable) +-+-+-+-+-+-+-+-+-+ 
+|                                             |                 
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ~~~
 {: #fig-comp-vpn-tunnel-44 artwork-align="center" title="Compressed IPv4 in IPv4 ESP packet for VPN traffic mode with AES-GCM_16" }
 

@@ -22,7 +22,7 @@
 ]>
 
 
-<rfc ipr="trust200902" docName="draft-mglt-ipsecme-diet-esp-09" category="std" consensus="true" submissionType="IETF" tocInclude="true" sortRefs="true" symRefs="true">
+<rfc ipr="trust200902" docName="draft-mglt-ipsecme-diet-esp-10" category="std" consensus="true" submissionType="IETF" tocInclude="true" sortRefs="true" symRefs="true">
   <front>
     <title abbrev="EHCP">ESP Header Compression Profile</title>
 
@@ -51,7 +51,7 @@
       </address>
     </author>
 
-    <date year="2023" month="June" day="28"/>
+    <date year="2023" month="June" day="29"/>
 
     <area>Security</area>
     <workgroup>IPsecme</workgroup>
@@ -194,43 +194,36 @@ Implementations may consider different expression of the parameters but their be
 <dl>
   <dt>alignment:</dt>
   <dd>
-    <t>indicates the byte alignement supported by the OS for the ESP extension. By default, the alignement is 32 bit for IPv6, but some systems may also support a 8 bit alignement. Note that when a block cipher such as AES-CCM is used, an 8 bit alignment is overwritten by the block size. 
-ipsec_mode:</t>
+    <t>indicates the byte alignement supported by the OS for the ESP extension. By default, the alignement is 32 bit for IPv6, but some systems may also support a 8 bit alignement. Note that when a block cipher such as AES-CCM is used, an 8 bit alignment is overwritten by the block size.</t>
   </dd>
-  <dt/>
+  <dt>ipsec_mode:</dt>
   <dd>
-    <t>designates the IPsec mode defined in <xref target="RFC4301"/>. In this document, the possible values are "tunnel" for the Tunnel mode and "transport" for the Transport mode. 
-tunnel_ip:</t>
+    <t>designates the IPsec mode defined in <xref target="RFC4301"/>. In this document, the possible values are "tunnel" for the Tunnel mode and "transport" for the Transport mode.</t>
   </dd>
-  <dt/>
+  <dt>tunnel_ip:</dt>
   <dd>
     <t>designates the IP address of the tunnel defined in <xref target="RFC4301"/>.
 This field is only applicable when the Tunnel mode is used.
-That IP address can be and IPv4 or IPv6 address. 
-esp_spi:</t>
+That IP address can be and IPv4 or IPv6 address.</t>
   </dd>
-  <dt/>
+  <dt>esp_spi:</dt>
   <dd>
-    <t>designates the Security Policy Index defined in <xref target="RFC4301"/>. 
-esp_spi_lsb:</t>
+    <t>designates the Security Policy Index defined in <xref target="RFC4301"/>.</t>
   </dd>
-  <dt/>
+  <dt>esp_spi_lsb:</dt>
   <dd>
     <t>designates the LSB to be considered for the compressed SPI. This parameter is defined by this specification and can take the following values 0, 1, 2, 4 respectively meaning that the compressed SPI will consist of the esp_spi_lsb LSB bytes of the original SPI.
-A value esp_spi_lsb will let the SPI unchanged.
-esp_sn:</t>
+A value esp_spi_lsb will let the SPI unchanged.</t>
   </dd>
-  <dt/>
+  <dt>esp_sn:</dt>
   <dd>
-    <t>designates the Sequence Number (SN) field defined in <xref target="RFC4301"/>.
-esp_sn_lsb:</t>
+    <t>designates the Sequence Number (SN) field defined in <xref target="RFC4301"/>.</t>
   </dd>
-  <dt/>
+  <dt>esp_sn_lsb:</dt>
   <dd>
-    <t>designates the LSB to be considered for the compressed SN and is defined by this specification. It works similarly to esp_spi_lsb. 
-esp_encr:</t>
+    <t>designates the LSB to be considered for the compressed SN and is defined by this specification. It works similarly to esp_spi_lsb.</t>
   </dd>
-  <dt/>
+  <dt>esp_encr:</dt>
   <dd>
     <t>designates the encryption algorithm used. For the purpose of compression is is RECOMMENDED to use <xref target="RFC8750"/>.</t>
   </dd>
@@ -243,45 +236,38 @@ This limits the original flexibility of the expression of TS, but we believe tha
 <dl>
   <dt>ts_flow_label:</dt>
   <dd>
-    <t>indicates the Flow Label field of the inner IPv6 or the Identification field of the IPv4 is copied from the outer IP address. 
-ts_ip_version:</t>
+    <t>indicates the Flow Label field of the inner IPv6 or the Identification field of the IPv4 is copied from the outer IP address.</t>
   </dd>
-  <dt/>
+  <dt>ts_ip_version:</dt>
   <dd>
     <t>designates the IP version of the Traffic Selectors and its values is set to 4 when only IPv4 IP addresses are considered and to 6 when only IPv6 addresses are considered.
 Practically, when IKEv2 is used, it means that the agreed TSi or TSr results only in a mutually exclusive combination of TS_IPv4_ADDR_RANGE or TS_IPV6_ADDR_RANGE payloads.
-When the traffic selectors result in a combination of IPv4 and IPv6 addresses, ts_ip_version is undefined. 
-ts_ip_src_start:</t>
+When the traffic selectors result in a combination of IPv4 and IPv6 addresses, ts_ip_version is undefined.</t>
   </dd>
-  <dt/>
+  <dt>ts_ip_src_start:</dt>
   <dd>
     <t>designates the starting value range of source IP addresses of the inner packet and has the same meaning as the Starting Address field of the Traffic Selector payload defined in <xref section="3.13" sectionFormat="comma" target="RFC7296"/>.
 Note however that in this specification, ts_ip_src_start applies for all agreed Traffic Selector payloads.
-When the IP addresses cannot be expressed as a range, that exactly expressed as [ ts_ip_src_start, ts_ip_src_end ], ts_ip_src_start is undefined.<br />
-ts_ip_src_end:</t>
+When the IP addresses cannot be expressed as a range, that exactly expressed as [ ts_ip_src_start, ts_ip_src_end ], ts_ip_src_start is undefined.</t>
   </dd>
-  <dt/>
+  <dt>ts_ip_src_end:</dt>
   <dd>
     <t>designates the high end value range of source IP addresses of the inner packet and has the same meaning as the Ending Address field of the Traffic Selector payload defined in <xref section="3.13" sectionFormat="comma" target="RFC7296"/>.
-Similarly to ts_ip_src_end, when the IP addresses cannot be expressed as a range, ts_ip_src_end is undefined.<br />
-ts_port_src_start:</t>
+Similarly to ts_ip_src_end, when the IP addresses cannot be expressed as a range, ts_ip_src_end is undefined.</t>
   </dd>
-  <dt/>
+  <dt>ts_port_src_start:</dt>
   <dd>
-    <t>designates the starting value of the port range of the inner packet and has the same meaning as the Start Port field of the Traffic Selector payload defined in <xref section="3.13" sectionFormat="comma" target="RFC7296"/>.
-ts_port_src_end:</t>
+    <t>designates the starting value of the port range of the inner packet and has the same meaning as the Start Port field of the Traffic Selector payload defined in <xref section="3.13" sectionFormat="comma" target="RFC7296"/>.</t>
   </dd>
-  <dt/>
+  <dt>ts_port_src_end:</dt>
   <dd>
-    <t>designates the starting value of the port range of the inner packet and has the same meaning as the End Port field of the Traffic Selector payload defined in <xref section="3.13" sectionFormat="comma" target="RFC7296"/>.
-ts_proto_list:</t>
+    <t>designates the starting value of the port range of the inner packet and has the same meaning as the End Port field of the Traffic Selector payload defined in <xref section="3.13" sectionFormat="comma" target="RFC7296"/>.</t>
   </dd>
-  <dt/>
+  <dt>ts_proto_list:</dt>
   <dd>
-    <t>designates the list of Protocol ID field whose meaning is defined in <xref section="3.13" sectionFormat="comma" target="RFC7296"/>. 
-ts_dscp_list:</t>
+    <t>designates the list of Protocol ID field whose meaning is defined in <xref section="3.13" sectionFormat="comma" target="RFC7296"/>.</t>
   </dd>
-  <dt/>
+  <dt>ts_dscp_list:</dt>
   <dd>
     <t>designates the list of DSCP values used by the Traffic Selector and have the same meaning as the List of DSCP Values defined in <xref target="I-D.mglt-ipsecme-ts-dscp"/>.</t>
   </dd>
@@ -292,15 +278,18 @@ For a range defined by a start and end value, let define msb( start, end ) the f
 Similarly, let define lsb( start, end ) the function that returns the LSB that change while the value evolves between start and end. 
 Fnally, let's consider len( x ) the function that returns the number of bits of the bit array x.</t>
 
-<t>We note for convenience:
-* msb( ip_src ) = msb( ts_ip_src_start, ts_ip_src_end ) the MSB bits of the IP address range.
-* msb( ip_dst ) = msb( ts_ip_dst_start, ts_ip_dst_end ) the MSB bits of the IP address range.
-* lsb( ip_src ) = msb( ts_ip_src_start, ts_ip_src_end ) the LSB bits of the IP address range.
-* lsb( ip_dst ) = msb( ts_ip_dst_start, ts_ip_dst_end ) the LSB bits of the IP address range.
-* msb( port_src ) = msb( ts_port_src_start, ts_port_src_end ) the MSB bits of the source port range.
-* msb( port_dst ) = msb( ts_port_dst_start, ts_port_dst_end ) the MSB bits of the destination port range.
-* lsb( port_src ) = msb( ts_port_src_start, ts_port_src_end ) the LSB bits of the source port range.
-* lsb( port_dst ) = msb( ts_port_dst_start, ts_port_dst_end ) the LSB bits of the destination port range.</t>
+<t>We note for convenience:</t>
+
+<t><list style="symbols">
+  <t>msb( ip_src ) = msb( ts_ip_src_start, ts_ip_src_end ) the MSB bits of the IP address range.</t>
+  <t>msb( ip_dst ) = msb( ts_ip_dst_start, ts_ip_dst_end ) the MSB bits of the IP address range.</t>
+  <t>lsb( ip_src ) = msb( ts_ip_src_start, ts_ip_src_end ) the LSB bits of the IP address range.</t>
+  <t>lsb( ip_dst ) = msb( ts_ip_dst_start, ts_ip_dst_end ) the LSB bits of the IP address range.</t>
+  <t>msb( port_src ) = msb( ts_port_src_start, ts_port_src_end ) the MSB bits of the source port range.</t>
+  <t>msb( port_dst ) = msb( ts_port_dst_start, ts_port_dst_end ) the MSB bits of the destination port range.</t>
+  <t>lsb( port_src ) = msb( ts_port_src_start, ts_port_src_end ) the LSB bits of the source port range.</t>
+  <t>lsb( port_dst ) = msb( ts_port_dst_start, ts_port_dst_end ) the LSB bits of the destination port range.</t>
+</list></t>
 
 <t>Protocol IDs and DSP are defined as list of non consecutive values. 
 A target value is defined when the list contains a single element.</t>
@@ -329,18 +318,16 @@ When more than one value is present in the list, the index needs to be sent.</t>
   <dd>
     <t>designates an action where the compression consists in eliding the field.
 The decompression consists in retrieving the field from the lower layers of the packet.
-A typical example is when both IP and UDP carry the length of the payload, then the length of the UDP payload can be inferred from the one of the IP layer.
-checksum:</t>
+A typical example is when both IP and UDP carry the length of the payload, then the length of the UDP payload can be inferred from the one of the IP layer.</t>
   </dd>
-  <dt/>
+  <dt>checksum:</dt>
   <dd>
     <t>designates an action where the compression consists in eliding a checksum field.
 The decompression consists in re-computing the checksum.
 ESP provides an integrity-check based on signature of the ESP payload (ICV).
-This makes removing checksum possible, without harming the checksum mechanism.
-padding:</t>
+This makes removing checksum possible, without harming the checksum mechanism.</t>
   </dd>
-  <dt/>
+  <dt>padding:</dt>
   <dd>
     <t>designates an action where the compression consists in eliding the padding field.
 The decompression consists in re-computing the padding field as described in ESP <xref target="RFC4303"/>.</t>
@@ -375,7 +362,8 @@ This may result is decompressing a zero-checksum UDP packet with a valid checksu
 FL is set to 16, TV is not set, MO is set to "ignore" and CDA is set to "lower" as the length field of the decompressed UDP packet is expressed in bytes and is  derived from the length of the compressed UDP packet by adding the 16 bit UDP Checksum, the 16 bit UDP Length field as well as the respective length of the respective source MSB port and destination MSB ports.</t>
 
 <figure><artwork><![CDATA[
-UDP.Length = ( len( compressed UDP) + 16 + 16 + len( lsb( port_src ) ) + len( lsb( port_src ) ) ) / 8
+UDP.Length = ( len( compressed UDP) + 16 + 16 + len( lsb( port_src ) ) \
+               + len( lsb( port_src ) ) ) / 8
 ]]></artwork></figure>
 
 <t>Note that for each SA, LSB and MSB are of fixed length.
@@ -476,6 +464,8 @@ FL is set to 32 bits, TV is not set, MO is set to "MSB( 4 - esp_spi_lsb)" and CD
 </section>
 <section anchor="acknowledgements"><name>Acknowledgements</name>
 
+<t>We would like to thank Laurent Toutain for its guidance on SCHC. Robert Moskowitz for</t>
+
 </section>
 
 
@@ -547,42 +537,42 @@ This packet is compressed as depicted in <xref target="fig-comp-udp-tunnel"/>.<b
 EHC reduces the packet size by 53 bytes.</t>
 
 <figure title="Standard ESP packet for IoT UDP in Tunnel mode more with AES-CCM_8_IIV" anchor="fig-std-udp-tunnel"><artwork align="center"><![CDATA[
-   0                   1                   2                   3
-   0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
- -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
- E|               Security Parameters Index (SPI)                 |  ^
- S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
- P|                      Sequence Number (SN)                     |  |
-  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
- I|version| traffic class |               flow label              |^ |
- P+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
- v|         payload length        |  next header  |   hop limit   || |
- 6+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-  |                                                               || a
-  |                      inner source IP                          || u
-  |                                                               |e t
-  |                                                               |n h
-  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+c e
-  |                                                               |r n
-  |                    inner destination IP                       |y t
-  |                                                               |p i
-  |                                                               |t c
- -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+e a
- U|          source port          |           dest port           |d t
- D+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| e
- P|             length            |            checksum           || d
-  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-  |                                                               || |
-  ~                        APPLICATION DATA                       ~| |
-  |                                                               || |
- -|                                               +-+-+-+-+-+-+-+-+| |
- E|                                               |    Padding    || |
- S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
- P|     Padding (continue)        |  Pad Length   | Next Header   |v v
- -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
-  |         Integrity Check Value-ICV   (variable)                |
-  |                                                               |
-  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  0                   1                   2                   3
+  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
+E|               Security Parameters Index (SPI)                 |  ^
+S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+P|                      Sequence Number (SN)                     |  |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+I|version| traffic class |               flow label              |^ |
+P+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+v|         payload length        |  next header  |   hop limit   || |
+6+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |                                                               || a
+ |                      inner source IP                          || u
+ |                                                               |e t
+ |                                                               |n h
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+c e
+ |                                                               |r n
+ |                    inner destination IP                       |y t
+ |                                                               |p i
+ |                                                               |t c
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+e a
+U|          source port          |           dest port           |d t
+D+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| e
+P|             length            |            checksum           || d
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |                                                               || |
+ ~                        APPLICATION DATA                       ~| |
+ |                                                               || |
+-|                                               +-+-+-+-+-+-+-+-+| |
+E|                                               |    Padding    || |
+S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+P|     Padding (continue)        |  Pad Length   | Next Header   |v v
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
+ |         Integrity Check Value-ICV   (variable)                |
+ |                                                               |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ]]></artwork></figure>
 
 <figure title="EHC ESP packet for IoT UDP in Tunnel mode more with AES-CCM_8_IIV" anchor="fig-comp-udp-tunnel"><artwork align="center"><![CDATA[
@@ -614,74 +604,74 @@ Additional fields such as TCP options, urgent pointers, the SN and ACK Number co
 <t>The ESP encapsulated TCP packet described in <xref target="fig-std-tcp-tunnel"/> is compressed by EHCP using th esam eEHCP context as in <xref target="sec-iot-udp"/> and EHCP reduces that packet by 55 bytes, as depicted in <xref target="fig-comp-udp-tunnel"/>.</t>
 
 <figure title="Standard ESP packet for IoT TCP in Tunnel mode more with AES-CCM_8_IIV" anchor="fig-std-tcp-tunnel"><artwork align="center"><![CDATA[
-     0                   1                   2                   3
-     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-   -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
-   E|               Security Parameters Index (SPI)                 |  ^
-   S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
-   P|                      Sequence Number (SN)                     |  |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
-   I|version| traffic class |               flow label              |^ |
-   P+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-   v|         payload length        |  next header  |   hop limit   || |
-   6+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-    |                                                               || a
-    |                      inner source IP                          || u
-    |                                                               |e t
-    |                                                               |n h
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+c e
-    |                                                               |r n
-    |                    inner destination IP                       |y t
-    |                                                               |p i
-    |                                                               |t c
-   -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+e a
-   T|          source port          |           dest port           |d t
-   C+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| e
-   P|                      Sequence Number (SN)                     || d
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-    |                     ACK Sequence Number                       || |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-    |Off. | Rserv |      Flags      |         Window Size           || |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-    |             Checksum          |      Urgent Pointer           || |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-    |                                                               || |
-    ~                        APPLICATION DATA                       ~| |
-    |                                                               || |
-    |                                               +-+-+-+-+-+-+-+-+| |
-   E|                                               |    Padding    || |
-   S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-   P|     Padding (continue)        |  Pad Length   | Next Header   |V V
-   -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
-    |         Integrity Check Value-ICV   (variable)                |
-    |                                                               |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  0                   1                   2                   3
+  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
+E|               Security Parameters Index (SPI)                 |  ^
+S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+P|                      Sequence Number (SN)                     |  |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+I|version| traffic class |               flow label              |^ |
+P+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+v|         payload length        |  next header  |   hop limit   || |
+6+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |                                                               || a
+ |                      inner source IP                          || u
+ |                                                               |e t
+ |                                                               |n h
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+c e
+ |                                                               |r n
+ |                    inner destination IP                       |y t
+ |                                                               |p i
+ |                                                               |t c
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+e a
+T|          source port          |           dest port           |d t
+C+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| e
+P|                      Sequence Number (SN)                     || d
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |                     ACK Sequence Number                       || |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |Off. | Rserv |      Flags      |         Window Size           || |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |             Checksum          |      Urgent Pointer           || |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |                                                               || |
+ ~                        APPLICATION DATA                       ~| |
+ |                                                               || |
+ |                                               +-+-+-+-+-+-+-+-+| |
+E|                                               |    Padding    || |
+S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+P|     Padding (continue)        |  Pad Length   | Next Header   |V V
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
+ |         Integrity Check Value-ICV   (variable)                |
+ |                                                               |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ]]></artwork></figure>
 
 <figure title="EHC ESP packet for IoT TCP in Tunnel mode more with AES-CCM_8_IIV" anchor="fig-comp-tcp-tunnel"><artwork align="center"><![CDATA[
-    0                   1                   2                   3
-    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
-   |  Sequence Number (SN) (ESP)   |          Sequence Number      ~   ^
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+- |
-   ~       (SN) (TCP)              |                ACK            ~^ | 
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| a
-   ~      Sequence Number          |Off. | Rserv |      Flags      || u
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+e t
-   |         Window Size           |      Urgent Pointer           |n h
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+c |
-   |      Urgent Pointer           |                               |r |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                               |y |
-   |                                                               ~p |
-   ~                        APPLICATION DATA                       |t | 
-   |                                                               || |
-   |               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-   |               |                                               |v v
-   +-+-+-+-+-+-+-+-+                                               |---
-   |         Integrity Check Value-ICV   (variable)                |
-   |               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |               |
-   +-+-+-+-+-+-+-+-+
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
+|  Sequence Number (SN) (ESP)   |          Sequence Number      ~   ^
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+- |
+~       (SN) (TCP)              |                ACK            ~^ | 
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| a
+~      Sequence Number          |Off. | Rserv |      Flags      || u
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+e t
+|         Window Size           |      Urgent Pointer           |n h
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+c |
+|      Urgent Pointer           |                               |r |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                               |y |
+|                                                               ~p |
+~                        APPLICATION DATA                       |t | 
+|                                                               || |
+|               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+|               |                                               |v v
++-+-+-+-+-+-+-+-+                                               |---
+|         Integrity Check Value-ICV   (variable)                |
+|               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|               |
++-+-+-+-+-+-+-+-+
 ]]></artwork></figure>
 
 </section>
@@ -732,91 +722,91 @@ While this results in better performances for EHC, it is not an optimal choice a
 <t>The compression with Diet-ESP results in a reduction of 32 bytes.</t>
 
 <figure title="Standard ESP packet for VPN traffic mode with AES-GCM_16" anchor="fig-std-vpn-tunnel-66"><artwork align="center"><![CDATA[
-     0                   1                   2                   3
-     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-   -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
-   E|               Security Parameters Index (SPI)                 |  ^
-   S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
-   P|                      Sequence Number (SN)                     |  |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
-    |                                                               |  |
-    |                             IV                                |  |
-   -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+- |
-   I|version| traffic class |               flow label              |^ |
-   P+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-   v|         payload length        |  next header  |   hop limit   || |
-   6+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-    |                                                               || a
-    |                      inner source IP                          || u
-    |                                                               |e t
-    |                                                               |n h
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+c e
-    |                                                               |r n
-    |                    inner destination IP                       |y t
-    |                                                               |p i
-    |                                                               |t c
-   -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+e a
-   T|          source port          |           dest port           |d t
-   C+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| e
-   P|                      Sequence Number (SN)                     || d
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-    |                     ACK Sequence Number                       || |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-    |Off. | Rserv |      Flags      |         Window Size           || |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-    |             Checksum          |      Urgent Pointer           || |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-    |                                                               || |
-    ~                        APPLICATION DATA                       ~| |
-    |                                                               || |
-   -|                                               +-+-+-+-+-+-+-+-+| |
-   E|                                               |    Padding    || |
-   S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-   P|     Padding (continue)        |  Pad Length   | Next Header   |V V
-   -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
-    |                                                               |
-    |         Integrity Check Value-ICV   (variable)                |
-    |                                                               |
-    |                                                               |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+  0                   1                   2                   3
+  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
+E|               Security Parameters Index (SPI)                 |  ^
+S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+P|                      Sequence Number (SN)                     |  |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+ |                                                               |  |
+ |                             IV                                |  |
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+- |
+I|version| traffic class |               flow label              |^ |
+P+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+v|         payload length        |  next header  |   hop limit   || |
+6+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |                                                               || a
+ |                      inner source IP                          || u
+ |                                                               |e t
+ |                                                               |n h
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+c e
+ |                                                               |r n
+ |                    inner destination IP                       |y t
+ |                                                               |p i
+ |                                                               |t c
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+e a
+T|          source port          |           dest port           |d t
+C+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| e
+P|                      Sequence Number (SN)                     || d
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |                     ACK Sequence Number                       || |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |Off. | Rserv |      Flags      |         Window Size           || |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |             Checksum          |      Urgent Pointer           || |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |                                                               || |
+ ~                        APPLICATION DATA                       ~| |
+ |                                                               || |
+-|                                               +-+-+-+-+-+-+-+-+| |
+E|                                               |    Padding    || |
+S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+P|     Padding (continue)        |  Pad Length   | Next Header   |V V
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
+ |                                                               |
+ |         Integrity Check Value-ICV   (variable)                |
+ |                                                               |
+ |                                                               |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ]]></artwork></figure>
 
 <figure title="Compressed IPv6 in IPv6 ESP packet for VPN traffic mode with AES-GCM_16" anchor="fig-comp-vpn-tunnel-66"><artwork align="center"><![CDATA[
-    0                   1                   2                   3
-    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
-   |             SPI               |              SN               |  ^
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
-   |                                                               |  |
-   |                             IV                                |  |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+--|
-   |  Next Header  |                                               |^ |
-   +-+-+-+-+-+-+-+-+                                               || |
-   |                                                               || |
-   |                    inner destination IP                       || |
-   |                                                               || |a
-   |               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |u
-   |               |          source port          |  destination  ~|e|t
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|n|h
-   ~ port          |     TCP Sequence Number (SN)                  ~|c|e
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|r|n
-   ~  (continue)   |    ACK Sequence Number (SN)                   ~|y|t
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|p|i
-   ~  (continue)   |Off. | Rserv |      Flags      |    Window     ~|t|c
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|e|a
-   ~   Size        |   Urgent   Pointer            |               ~|d|t
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |e
-   |                                                               || |d
-   ~                        APPLICATION DATA                       ~| |
-   |                                                               || |
-   |                             +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ || |
-   |                             |  Next Header    | Integrity     ~v v
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+               +---
-   |                                                               |
-   |         Integrity Check Value-ICV   (variable)                |
-   |                                               +-+-+-+-+-+-+-+-+
-   |                                               |                              
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
+|             SPI               |              SN               |  ^
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+|                                                               |  |
+|                             IV                                |  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+--|
+|  Next Header  |                                               |^ |
++-+-+-+-+-+-+-+-+                                               || |
+|                                                               || |
+|                    inner destination IP                       || |
+|                                                               || |a
+|               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |u
+|               |          source port          |  destination  ~|e|t
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|n|h
+~ port          |     TCP Sequence Number (SN)                  ~|c|e
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|r|n
+~  (continue)   |    ACK Sequence Number (SN)                   ~|y|t
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|p|i
+~  (continue)   |Off. | Rserv |      Flags      |    Window     ~|t|c
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|e|a
+~   Size        |   Urgent   Pointer            |               ~|d|t
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |e
+|                                                               || |d
+~                        APPLICATION DATA                       ~| |
+|                                                               || |
+|                             +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ || |
+|                             |  Next Header    | Integrity     ~v v
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+               +---
+|                                                               |
+|         Integrity Check Value-ICV   (variable)                |
+|                                               +-+-+-+-+-+-+-+-+
+|                                               |                              
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ]]></artwork></figure>
 
 </section>
@@ -870,85 +860,85 @@ P|                      Sequence Number (SN)                     |
 <t>The compression with Diet-ESP results in a reduction of 24 bytes.</t>
 
 <figure title="Standard IPv4 in IPv4 ESP packet for VPN traffic mode with AES-GCM_16" anchor="fig-std-vpn-tunnel-44"><artwork align="center"><![CDATA[
-       0                   1                   2                   3
-       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-   -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
-   E|               Security Parameters Index (SPI)                 |  ^
-   S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
-   P|                      Sequence Number (SN)                     |  |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
-    |                                                               |  |
-    |                             IV                                |  |
-   -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+- |
-   I|Version|  IHL  |Type of Service|          Total Length         |^ |
-   P+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-   v|         Identification        |Flags|      Fragment Offset    || a
-   4+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| u
-    |  Time to Live |    Protocol   |         Header Checksum       |e t
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+n h
-    |                       Source Address                          |c e
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+r n
-    |                    Destination Address                        |y t
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+p i
-    |                    Options                    |    Padding    |t c
-   -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+e a
-   T|          source port          |           dest port           |d t
-   C+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| e
-   P|                      Sequence Number (SN)                     || d
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-    |                     ACK Sequence Number                       || |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-    |Off. | Rserv |      Flags      |         Window Size           || |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-    |             Checksum          |      Urgent Pointer           || |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-    |                                                               || |
-    ~                        APPLICATION DATA                       ~| |
-    |                                                               || |
-   -|                                               +-+-+-+-+-+-+-+-+| |
-   E|                                               |    Padding    || |
-   S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-   P|     Padding (continue)        |  Pad Length   | Next Header   |V V
-   -+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
-    |                                                               |
-    |                                                               |
-    |         Integrity Check Value-ICV   (variable)                |
-    |                                                               |
-    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    0                   1                   2                   3
+    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
+E|               Security Parameters Index (SPI)                 |  ^
+S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+P|                      Sequence Number (SN)                     |  |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+ |                                                               |  |
+ |                             IV                                |  |
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+- |
+I|Version|  IHL  |Type of Service|          Total Length         |^ |
+P+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+v|         Identification        |Flags|      Fragment Offset    || a
+4+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| u
+ |  Time to Live |    Protocol   |         Header Checksum       |e t
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+n h
+ |                       Source Address                          |c e
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+r n
+ |                    Destination Address                        |y t
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+p i
+ |                    Options                    |    Padding    |t c
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+e a
+T|          source port          |           dest port           |d t
+C+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| e
+P|                      Sequence Number (SN)                     || d
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |                     ACK Sequence Number                       || |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |Off. | Rserv |      Flags      |         Window Size           || |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |             Checksum          |      Urgent Pointer           || |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+ |                                                               || |
+ ~                        APPLICATION DATA                       ~| |
+ |                                                               || |
+-|                                               +-+-+-+-+-+-+-+-+| |
+E|                                               |    Padding    || |
+S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+P|     Padding (continue)        |  Pad Length   | Next Header   |V V
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
+ |                                                               |
+ |                                                               |
+ |         Integrity Check Value-ICV   (variable)                |
+ |                                                               |
+ +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ]]></artwork></figure>
 
 <figure title="Compressed IPv4 in IPv4 ESP packet for VPN traffic mode with AES-GCM_16" anchor="fig-comp-vpn-tunnel-44"><artwork align="center"><![CDATA[
-    0                   1                   2                   3
-    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
-   |             SPI               |              SN               |  ^
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
-   |                                                               |  |
-   |                             IV                                |  |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+--|
-   |    Protocol   |     inner destination IP                      ~^ |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-|| |
-   ~  (continue)   |            source port        |  destination  ~| |a
-   |-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |u
-   |     port      |         TCP Sequence Number (SN)              ~|e|t
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|n|h
-   ~  (continue)   |     ACK Sequence Number                       ~|c|e
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|r|n
-   ~  (continue)   |Off. | Rserv |      Flags      |   Window       ~y|t
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|p|i
-   |         Size  |        Urgent Pointer         |               ||t|c
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+               ||e|a
-   |                                                               ||d|t
-   |                        APPLICATION DATA                       || |e
-   ~                                                               || |d
-   |                             +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-   |                             |    Padding    |                 |v v
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                 |
-   |                                                               |
-   |                                                               |
-   |       Integrity Check Value-ICV  (variable) +-+-+-+-+-+-+-+-+-+ 
-   |                                             |                 
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
+|             SPI               |              SN               |  ^
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
+|                                                               |  |
+|                             IV                                |  |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+--|
+|    Protocol   |     inner destination IP                      ~^ |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-|| |
+~  (continue)   |            source port        |  destination  ~| |a
+|-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |u
+|     port      |         TCP Sequence Number (SN)              ~|e|t
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|n|h
+~  (continue)   |     ACK Sequence Number                       ~|c|e
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|r|n
+~  (continue)   |Off. | Rserv |      Flags      |   Window       ~y|t
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|p|i
+|         Size  |        Urgent Pointer         |               ||t|c
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+               ||e|a
+|                                                               ||d|t
+|                        APPLICATION DATA                       || |e
+~                                                               || |d
+|                             +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
+|                             |    Padding    |                 |v v
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                 |
+|                                                               |
+|                                                               |
+|       Integrity Check Value-ICV  (variable) +-+-+-+-+-+-+-+-+-+ 
+|                                             |                 
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ]]></artwork></figure>
 
 </section>
@@ -964,245 +954,243 @@ P|                      Sequence Number (SN)                     |
   </back>
 
 <!-- ##markdown-source:
-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
-zn1K0b388YTvhv/+Cxzmdsb21wAA
+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
 
 -->
 
