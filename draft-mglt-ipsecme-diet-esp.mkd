@@ -1,7 +1,7 @@
 ---
 title: ESP Header Compression Profile
 abbrev: EHCP
-docname: draft-mglt-ipsecme-diet-esp-10
+docname: draft-mglt-ipsecme-diet-esp-11
 ipr: trust200902
 area: Security
 wg: IPsecme
