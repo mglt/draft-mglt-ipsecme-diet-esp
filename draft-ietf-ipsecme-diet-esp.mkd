@@ -235,33 +235,37 @@ The compression of the Inner IP Packet is based on the attributes that are deriv
 The ability to derive the EHCP Context for the IIPC from the agreed Traffic Selectors is indicated by a variable iipc_profile. 
  
 ~~~
-+===================+==========================+===========+=======+
-| EHC Context       | Possible Values          | Reference | C / D |
-+===================+==========================+===========+=======+
-| ts_ip_version     | 4, 6, 0                  | ThisRFC   | IIPC  |
-| ts_ip_src_start   | IP4 or IPv6 address      | ThisRFC   | IIPC  |
-| ts_ip_src_end     | IP4 or IPv6 address      | ThisRFC   | IIPC  |
-| ts_ip_dst_start   | IPv4 or IPv6 address     | ThisRFC   | IIPC  |
-| ts_ip_dst_end     | IPv4 or IPv6 address     | ThisRFC   | IIPC  |
-| ts_proto          | TCP, UDP, ..., 0         | ThisRFC   | IIPC  |
-| ts_port_src_start | Port number              | ThisRFC   | IIPC  |
-| ts_port_src_end   | Port number              | ThisRFC   | IIPC  |
-| ts_port_dst_start | Port number              | ThisRFC   | IIPC  |
-| ts_port_dst_end   | Port number              | ThisRFC   | IIPC  |
-| dscp_list         | list of DSCP numbers     | RFCYYYY   | IIPC  |
-| flow_label        | True, False              | ThisRFC   | IIPC  | 
-| iipc_profile      | "diet-esp", "uncompress" | ThisRFC   | IIPC  |
-+-------------------+--------------------------+-----------+-------+
-| alignment         | "8 bit", "32 bit"        | ThisRFC   | CTEC  |
-| ipsec_mode        | "Tunnel", "Transport"    | RFC4301   | CTEC  | 
-| tunnel_ip         | IPv4, IPv6 address       | RFC4301   | CTEC  |
-| esp_encr          | ESP Encryption Algorithm | RFC4301   | CTEC  |
-+-------------------+--------------------------+-----------+-------+
-| esp_spi           | ESP SPI                  | RFC4301   | EEC   |
-| esp_spi_lsb       | 0, 1, 2, 3, 4*           | ThisRFC   | EEC   |
-| esp_sn            | ESP Sequence Number      | RFC4301   | EEC   |
-| esp_sn_lsb        | 0, 1, 2, 3, 4*           | ThisRFC   | EEC   |
-+-------------------+--------------------------+-----------+-------+
++===================+=============================+===========+=======+
+| EHC Context       | Possible Values             | Reference | C / D |
++===================+=============================+===========+=======+
+| iipc_profile      | "diet-esp", "uncompress"    | ThisRFC   | N/A   |
+| dscp_cda          | "uncompress", "lower", "sa" | ThisRFC   | IIPC  | 
+| ecn_cda           | "uncompress", "lower"       | ThisRFC   | IIPC  | 
+| flow_label_cda    | "uncompress", "lower",      | ThisRFC   | IIPC  |
+|                   | "generated", "zero"         |           |       | 
+| ts_ip_version     | "IPv4-only", "IPv6-only"    | ThisRFC   | IIPC  |
+| ts_ip_src_start   | IP4 or IPv6 address         | ThisRFC   | IIPC  |
+| ts_ip_src_end     | IP4 or IPv6 address         | ThisRFC   | IIPC  |
+| ts_ip_dst_start   | IPv4 or IPv6 address        | ThisRFC   | IIPC  |
+| ts_ip_dst_end     | IPv4 or IPv6 address        | ThisRFC   | IIPC  |
+| ts_proto          | TCP, UDP, UDP-Lite, SCTP,   | ThisRFC   | IIPC  |  
+|                   | ANY,                        |           |       |
+| ts_port_src_start | Port number                 | ThisRFC   | IIPC  |
+| ts_port_src_end   | Port number                 | ThisRFC   | IIPC  |
+| ts_port_dst_start | Port number                 | ThisRFC   | IIPC  |
+| ts_port_dst_end   | Port number                 | ThisRFC   | IIPC  |
+| dscp_list         | list of DSCP numbers        | RFCYYYY   | IIPC  |
++-------------------+-----------------------------+-----------+-------+
+| alignment         | "8 bit", "32 bit"           | ThisRFC   | CTEC  |
+| ipsec_mode        | "Tunnel", "Transport"       | RFC4301   | CTEC  | 
+| tunnel_ip         | IPv4, IPv6 address          | RFC4301   | CTEC  |
+| esp_encr          | ESP Encryption Algorithm    | RFC4301   | CTEC  |
++-------------------+-----------------------------+-----------+-------+
+| esp_spi           | ESP SPI                     | RFC4301   | EEC   |
+| esp_spi_lsb       | 0, 1, 2, 3, 4*              | ThisRFC   | EEC   |
+| esp_sn            | ESP Sequence Number         | RFC4301   | EEC   |
+| esp_sn_lsb        | 0, 1, 2, 3, 4*              | ThisRFC   | EEC   |
++-------------------+-----------------------------+-----------+-------+
 ~~~
 {: #tab-ehc-ctx-esp artwork-align="center" title="EHCP related parameters"}
 
@@ -269,10 +273,21 @@ Any parameter starting with "ts_". These parameters are associated with the Traf
 This specification limits the expression of the Traffic Selector to be of the form (IP source range, IP destination range, Port source range, Port destination range, Protocol ID list, DSCP list).
 This limits the original flexibility of the expression of TS, but we believe that it provides sufficient flexibility. Following shows detail information of these parameters.  
 
+iipc_profile:
+: designates the profile used by IIPC. When set to "uncompress" IIPC is not performed. This draft describes IIPC that corresponds to the "diet-esp" profile.
+ 
+flow_label_cda:
+: indicates how the Flow Label field of the inner IPv6 packet or the Identification field of the inner IPv4 packet is compressed / decompressed - See {{sec-cda}} for more information. In a nutshell, "uncompress" indicates that Flow Label (resp. Identification) are not compressed. "lower" indicates the value is read from the outer IP header - eventually with some adaptations when inner IP packet and outer IP pakets have different versions. "generated" indicate s that the fields is generated by the receiving party. In that case, the decompressed value may take a different value its original value. "zero" indicates the field is set to zero.
+
+dscp_cda:
+: indicates how the DSCP values of the inner IP packet are generated. (See flow_label_cda). "sa" indicates, compression is performed according to the DSCP values agreed by the SA (dscp_list).   
+
+ecn_cda:
+: indicates how the ECN values of the inner IP packet are generated. (See flow_label_cda).   
+
 ts_ip_version:
-: designates the IP version of the Traffic Selectors and its value is set to 4 when only IPv4 IP addresses are considered and to 6 when only IPv6 addresses are considered.
+: designates the IP version of the Traffic Selectors and its value is set to "IPv4-only" when only IPv4 IP addresses are considered and to "IPv6-only" when only IPv6 addresses are considered.
 Practically, when IKEv2 is used, it means that the agreed TSi or TSr results only in a mutually exclusive combination of TS_IPv4_ADDR_RANGE or TS_IPV6_ADDR_RANGE payloads.
-When the traffic selectors result in a combination of IPv4 and IPv6 addresses, ts_ip_version is set to 0. ts_ip_version is always set even when the EHC Context cannot be set for IIPC as its value is necessary to evaluate the compression of the ESP field Next Header. 
 
 ts_ip_src_start:
 : designates the starting value range of source IP addresses of the inner packet and has the same meaning as the Starting Address field of the Traffic Selector payload defined in {{!RFC7296, Section 3.13}}.
@@ -295,16 +310,11 @@ Similarly, lsb( start, end ) is defined as the function that returns the LSB tha
 Finally, len( x ) is defined as the function that returns the number of bits of the bit array x.
 
 ts_proto:
-: designates the list of Protocol ID field, whose meaning is defined in {{!RFC7296, Section 3.13}}. 
+: designates the list of Protocol ID field, whose meaning is defined in {{!RFC7296, Section 3.13}}. This profile considers the specific protocols values "TCP", "UDP", "UDP-Lite", "SCTP", "OTHER" and "ANY". "OTHER" designates any protocol values that are not in :"TCP", "UDP", "UDP-Lite", "SCTP. "ANY" as defined in {{!RFC5996, Section 3.13}} and designates any possible values.  
 
 dscp_list:
 : designates the list of DSCP values with the same meaning as the List of DSCP Values defined in {{!I-D.mglt-ipsecme-dscp-np}}. These are not Traffic Selector, but the compression mandates the packets takes one of these listed DSCP value.  
 
-flow_label:
-: indicates the Flow Label field of the inner IPv6 packet or the Identification field of the inner IPv4 packet is copied from the outer IP address. 
-
-iipc_profile:
-: indicates whether IIPC is expected to proceed. IIPC requires the IIPC parameters of the EHC Context to be derived from the agreed Traffic Selectors. When this is not possible, the iipc_profile is set to "uncompress". Otherwise, it is set to "diet-esp". The other peer needs to be aware of each other's values.
 
 alignment:
 : indicates the byte alignement supported by the OS for the ESP extension. By default, the alignement is 32 bit for IPv6, but some systems may also support an 8 bit alignement. Note that when a block cipher such as AES-CCM is used, an 8 bit alignment is overwritten by the block size. 
@@ -334,25 +344,28 @@ esp_sn_lsb:
 : designates the LSB to be considered for the compressed SN and is defined by this specification. It works similarly to esp_spi_lsb. 
 
 
-## New SCHC CDA 
+## New SCHC CDA {#sec-cda}
 
 In addition to the Compression / Decompression Actions defined in {{!RFC8724, Section 7.4}}, this specification uses the CDA as presented in {{tab-cda}}.
 These CDA are either a refinement of the compute- * CDA or the result of combined CDA. 
 
 ~~~ 
-+=================+=====================+=============================+
-| Action          | Compression         | Decompression               |
-+=================+=====================+=============================+
-| lower           | elided              | Get from lower layer        |
-| checksum        | elided              | Compute checksum            |
-| padding         | elided              | Compute padding             |
-| flow_label      | elided              | Compute flow label          |
-+-----------------+---------------------+-----------------------------+
++========================+=============+======================+
+| Action                 | Compression | Decompression        |
++========================+=============+======================+
+| lower                  | elided      | Get from lower layer |
+| generated (Flow Label) | elided      | Compute flow label   |
+| checksum               | elided      | Compute checksum     |
+| padding                | elided      | Compute padding      |
++------------------------+-------------+----------------------+
 ~~~
 {: #tab-cda artwork-align="center" title="EHCP ESP related parameter"}
 
 lower:
-: is used in a Tunnel mode and indicates that the fields of the inner IP packet header are generated from the corresponding fields of the Tunnel IP header fields. 
+: is only used in a Tunnel mode and indicates that the fields of the inner IP packet header are generated from the corresponding fields of the Tunnel IP header fields. This CDA can be used for the DSCP, ECN, and IPv6 Flow Label (resp. IPv4 Identification) field. When the outer IP header is an IPv6 Header and the inner IP header is in IPv4 header the 16 LSB are copied. When the outer IP header is an IPv4 Header and the inner IP Header is an IPv6 Header, the 4 MSB bits are set to 0.   
+
+generated: 
+: indicates that a brand new Flow Label/Identification field is generated following {{!RFC6437}}, {{!RFC6864}}.  
 
 checksum:
 : indicates that a checksum is computed accordingly. Typically, the checksum CDA has a different implementation for IPv4, UDP, TCP,...
@@ -360,21 +373,20 @@ checksum:
 padding:
 : indicates that padding bytes are generated accordingly. 
 
-flow_label: 
-: indicates that a brand new Flow Label/Identification field is generated following {{!RFC6437}}, {{!RFC6864}}.  
 
 # Inner IP Compression (IIPC)
 
 When iipc_profile is set to "uncompress", the packet is uncompressed. 
-When it is set to "diet-esp", IIPC proceeds to the compression of the inner IP Packet composed of an IP Header and an IP Payload.
+When iipc_profile is set to "diet-esp", IIPC proceeds to the compression of the inner IP Packet composed of an IP Header and an IP Payload.
 The compression of the inner IP Payload is described in {{sec-payload}}.  
 The IP Header is compressed when ipsec_mode is set to "Tunnel" and left uncompressed otherwise. ts_ip_version determines how the IPv6 Header (resp. the IPv4 Header) is compressed - see {{sec-inner-ip6}} (resp. {{sec-inner-ip4}}). 
 
+
 ## Inner IP Payload Compression {#sec-payload}
 
-The compression only affects UDP, UDP-Lite or TCP packets and the type of packet is determined by the IP header.
+The compression only affects UDP, UDP-Lite, TCP or SCTP packets and the type of packet is determined by the IP header.
 
-For UDP, UDP-Lite and TCP packets, source ports destination ports and checksums are compressed. 
+For UDP, UDP-Lite, TCP and SCTP packets, source ports destination ports and checksums are compressed. 
 For source port (resp. destination port) only the least significant bits are sent. FL is set to 16 bits,  TV is set to msb( ts_port_src_start, ts_port_src_end ) ( resp. ts_port_dst_start, ts_port_dst_end ) ), MO is set to "MSB" and CDA to "LSB". 
 The checksum is elided, FL is set to 16 bits, TV is not set, MO is set to "ignore" and CDA is set to "checksum". 
 This may result in decompressing a zero-checksum UDP packet with a valid checksum, but this has no impact as a valid checksum is universally accepted.
@@ -385,21 +397,42 @@ For UDP or UDP-Lite the length field is elided. FL is set to 16, TV is not set, 
 
 The version field is elided, FL is set to 3, TV is set to ts_ipversion, MO is set to"equal" and CDA is set to "not-sent". 
 
-Traffic Class is composed of the 6 bit DSCP and 2 bit ECN and only the DSCP bits are subject to compression. If dscp_list is empty, DSCP are copied from the Tunnel IP header and FL is set to 6 bits, TV is not set, MO is set to "ignore", CDA is set to "lower".
-If dscp_list contains a single element, the DSCP is elided, FL is set to 6 bits, TV is set to dscp_list[0], MO is set to "equal" and CDA is set to "not-sent". If dscp_list contains more than one DSCP value, FL is set to 6 bits, TV is set to dscp_list, MO is set to "match-mapping" and the CDA is set to "mapping-sent". 
+Traffic Class is composed of the 6 bit DSCP and 2 bit ECN and only the DSCP bits are subject to compression. 
+The compression of DSCP and ECN are defined independently. 
+
+DSCP values are compressed according to the dscp_cda value:
+* If dscp_cda is set to "uncompress", the DSCP values are included in the inner IP header. FL is set to 6 bits, TV is not set, MO is set to "ignore", CDA is set to "sent-value".
+* If dscp_cda is set to "lower", the DSCP field is elided and its value is copied from the Tunnel IP header. FL is set to 6 bits, TV is not set, MO is set to "ignore", CDA is set to "lower".
+* If dscp_cda is set to "sa", DSCP is compressed according to the DSCP values of the SA. If dscp_list contains a single element, the DSCP is elided, FL is set to 6 bits, TV is set to dscp_list[0], MO is set to "equal" and CDA is set to "not-sent". If dscp_list contains more than one DSCP value, FL is set to 6 bits, TV is set to dscp_list, MO is set to "match-mapping" and the CDA is set to "mapping-sent". 
 For ECN, FL is set to 2 bits, TV is not set, MO is set to ignore and CDA is set to "value-sent".
- 
-Flow Label can be elided or uncompressed. When flow_label is set to "elided", the Flow Label is elided, FL is set to 20 bits, TV is not set, MO is set to "ignore" and CDA is set to "flow_label".
-When flow_label is set to uncompress, FL is set to 20 bits, TV is not set, MO is set to ignore and CDA is set to "value-sent". 
+
+ECN values are compressed according to the ecn_cda value:
+* If ecn_cda is set to "uncompress", the ECN field included in the inner IP header. FL is set to 2 bits, TV is not set, MO is set to "ignore", CDA is set to "sent-value".
+* If ecn_cda is set to "lower", the ECN value is elided and the ECN value is copied in the outer IP header. FL is set to 2 bits, TV is not set, MO is set to "ignore", CDA is set to "lower".
+
+Flow label is compressed according to the flow_label_cda value: 
+* If flow_label_cda is set to "uncompress", the Flow label is included in the IPv6 Header. FL is set to 20 bits, TV is not set MO is set to "ignore" and CDA is set to "sent-value".
+* If flow_label_cda is set to "lower", the Flow Label is elided and read from the outer IP Header (See {{sec-cda}}). FL is set to 20 bits, TV is not set, MO is set to "ignore" and CDA is set to "lower". If the outer IP header is an IPv4 Header, only the 16 LSB of the Flow Label are inserted into the IPv4 Header. At the decompression, the 4 MSB of the Flow Label are set to 0. 
+* If flow_label_cda is set to "generated", the Flow Label elided and the Flow Label is then re-generated at the decompression (See {{sec-cda}}). The resulting Flow Label is expected result in a different value. FL is set to 20, TV is not set, MO is set to "ignore" and CDA is set to "generated". 
+* If flow_label_cda is set to "zero", the Flow Label is elided and set to 0 at decompression. A 0 value indicates no flow label is present. Fl is set to 20 bits, TV is set to 0, MO is set to "equal" and CDA is set to "not-sent". 
+
 
 Payload Length is elided and determined from the Tunnel IP Header Payload Length as well as the decompressed Payload. FL is set to 16 bits, TV is not set, MO is set to "ignore", CDA is set to "lower". 
 
-The last Next Header determine the transport being used. If proto_id is set to 0, the Next Header field is not compressed. Otherwise, if it is set to a different value than 0 (UDP or TCP for example), FL is set to 8 bits. If ts_proto contains the value 0, TV is not set, MO is set to "ignore," and CDA is set to "value-sent."
-If "proto_id" does not contain 0 and the list contains one or fewer values, TV is set to that value, MO is set to "equal," and CDA is set to "not-sent."
-In any other case, TV is set to the proto_list, MO is set to "match-mapping," and CDA is set to "mapping-sent."
+NOTE TO COAUTHORS: I DO NOT THINK WE CAN COMPRESS THE LAST NEXT HEADER AS WE ONLY KNOW IT IS THE LAST ONCE WE HAVE READ IT. TO DETERMINE THAT THIS IS THE LAST WE NEED TO MAKE SOME ASSUMPTIONS THAT THERE ARE NO IPV6 EXTENSION HEADER. I AM NOT SURE WE CAN MAKE SUCH ASSUMPTION AS THIS IS NOT SOMETHING AGREED BETWEEN THE TWO PEERS. IF THAT IS CORRECT, THE SECTION BELOW NEEDS TO BE REMOVED. 
+The last Next Header determine the transport being used and for convenience we refer it as the Transport Next Header. 
+* If the ts_proto contains a single non-zero value specified by the SA, ts_proto, is elided and decompressed according to the SA. FL is set to 8, TV is set to that value, MO is set to "equal," and CDA is set to "not-sent."
+* If ts_proto is a list of non zero values, values are ordered in increasing order to form proto_list. Next Header is then replaced by the corresponding index of the list. FL is set to 8 bits, TV is set to the proto_list, MO is set to "match-mapping," and CDA is set to "mapping-sent".
+* If ts_proto is the single value 0, Next Header is not compressed. FL is set to 8 bits, TV is not set, MO is set to "ignore", CDA is set to "sent-value".
+* If ts_proto is a list non zero values are ordered in increasing number, 0 ("OTHER") is appended. Next Header is then replaced by the corresponding index except for the "OTHER" in which case, the complete Next Header is sent. 
 
+NOTE TO COAUTHORS: I AM NOT SURE WE CAN USE STANDARD RULES TO IMPLEMENT THE LIST WITH 0. wE HAVE TWO ALTERNATIVES. EITHER WE ASSUME THAT THERE IS NO COMPRESSION WHEN A ZERO IS THERE OR WE CREATE A NEW CDA.  
+ 
+This profiles considers a list of values "TCP", "UDP", "UDP-Lite", "SCTP", "OTHER".   
  
 The IPv6 Hop Limit is read from the Tunnel IP Header Hop Limit. FL is set to 8 bits, TV is not set, MO is set to "ignore" and CDA is set to "lower."
+
+NOTE TO COAUTHORS: WE MAY NEED TO DEFINE A hop_limit_cda FOR CONSISTENCY. 
 
 The source and destination IPv6 addresses are compressed using MSB. 
 In both cases, FL is set to 128, TV is respectively set to  msb(ts_ip_src_start, ts_ip_src_ed) or msb(ts_ip_dst_start, ts_ip_dst_end)), the MO is set to "MSB," and the CDA is set to "LSB."
@@ -408,7 +441,7 @@ In both cases, FL is set to 128, TV is respectively set to  msb(ts_ip_src_start,
 ##  Inner IPv4 Compression {#sec-inner-ip4}
 
 The fields Version, DSCP, ECN, Source Address and Destination Address are compressed as described for IPv6 in {{sec-inner-ip6}}.
-The field Total Length (16 bits) is compressed similarly to the IPv6 field Payload Length. The field Identification (16 bits) is compressed similarly to the IPv6 field Flow Label. The field Time to Live is compressed similarly to the IPv6 Hop Limit field. The Protocol field is compressed similarly to the last IPv6 Next Header field.
+The field Total Length (16 bits) is compressed similarly to the IPv6 field Payload Length. The field Identification (16 bits) is compressed similarly to the IPv6 field Flow Label. If the IP Header is an IPv6 Header, the Identification are placed as the LSB of the IPv6 Header and the 4 remaining MSB are set to 0.  The field Time to Live is compressed similarly to the IPv6 Hop Limit field. The Protocol field is compressed similarly to the last IPv6 Next Header field.
 
 
 IHL is uncompressed, FL is set to 4 bits, TV is not set, MO is set to ignore and CDA is set to "value-sent".
@@ -421,15 +454,37 @@ FL is set to 16, TV is omitted, MO is set to "ignore," and CDA is set to "checks
     
 The Clear Text ESP Compression is performed on the ESP fields not yet encrypted, that is the ESP Payload Data, the ESP padding field, the Pad Length field as well as the Next Header field, which indicates the type of the inner packet. 
 
-When ipsec_mode is set to "Transport" and the ts_ip_version is set to 4, the Next Header contains the Protocol. 
-If ts_proto is set to 0, the Next Header is uncompressed, FL is set to 8 bits, TV is not set, MO is set to "ignore" and CDA is set to "sent-value".
-Otherwise, if ts_proto is not set to 0, then the Next Header is elided, FL is set to 8 bits, TV is set to ts_proto, MO is set "equal" and CDA is set to "not-sent".    
 
+NOTE TO COAUTHORS: THE TWO FOLLOWING PARAGRAPHS NEED TO BE REMOVED, UNLESS WE CAN COMPRESS THE NEXT HEADER TRANSPORT.
+
+When ipsec_mode is set to "Transport" and the ts_ip_version is set to 4, the Next Header in the ESP necessarily contains the Protocol ID and the Next Header can be compressed as described in sec-nh.
+ 
 When ipsec_mode is set to "Transport" and the ts_ip_version is set to 6, the Next Header does not necessarily designates the Protocol ID, but instead it may contain an IPv6 Header extension. As result, the Next Header cannot be compressed. 
 
-When ipsec_mode is set to "Tunnel", the Next Header Field indicates whether the inner packet is an IPv6 or IPv4 packet. If ts_ip_version is set 0, the Next Header uses a map and FL is set to 8 bits, TV is set to the list [ "IPv4", "IPv6"], MO is set to "match-mapping" and CDA is set to "mapping-sent".
+When ipsec_mode is set to "Tunnel", the Next Header Field indicates whether the inner packet is an IPv6 or IPv4 packet. 
+
+END OF REMOVED PARAGRAPH
+
+NOTE TO COAUTHORS: AS WE ASSUMES THAT WE HAVE A SINGLE TYPE IP ADDRESS WE CAN REMOVE THE FOLLOWING PARAGRAPH.
+
+If ts_ip_version is set 0, the Next Header uses a map and FL is set to 8 bits, TV is set to the list [ "IPv4", "IPv6"], MO is set to "match-mapping" and CDA is set to "mapping-sent".
 If ts_ip_version is set to IPv4 or IPv6, the Next Header is elided, FL is set to 8 bits, TV is set to ts_ip_version, MO is set to "equal" and CDA is set to "not-sent".   
- 
+
+END OF PARAGRAPH TO BE REMOVED. 
+
+
+NOTE TO COAUTHORS: IN THE TUNNEL MODE, WE ONLY CONSIDER ip PACKETS SO THE INNER DATA END SUP IN: 
+
+BITS( PAYLOAD DATA ) + BITS(PADDING FOR ALIGNMENT)
+
+IN SCHC, WE USUALLY DETERMINE PAYLOAD DATA AND IGNORE THE REMAINDER. I AM NOT SURE THIS IS SOMETHING WE CAN DO HERE AS WE HAVE NO WAYS TO DETERMINE THE END OF THE PAYLOAD DATA FROM READING THE PAYLOAD DATA (LENGTH HAVE BEEN REMOVED). I AM UNDER THE IMPRESSION THAT WE MUST IMPLEMENT A BIT_PADDING AT THE END THAT IS COMPOSED OF PADDING_BITS AND A PAD_LEN FIELD. WHEN ALIGNMENT IS 8 BITS, PAD_LEN FOLLOWS THE FOLLOWING RULES:
+
+ALIGNMENT PAD_LEN  
+8 BITS    3 BITS
+16 BITS   4 BITS
+32 BITS   5 BITS
+64 BITS   6 BITS
+
 
 If the esp_encr does not require a specific block size, Padding and Pad Length are elided.
 FL is defined by the type that is to (Pad Length + 1 ) * 8 bits, TV is unset, MO is set to "ignore" and CDA is set to padding.
@@ -437,7 +492,7 @@ FL is defined by the type that is to (Pad Length + 1 ) * 8 bits, TV is unset, MO
 Encryption may require require the clear text to respect a given size block.
 In addition, IP networking may also require a special alignment which is 32 bits by default for IPv6 Extensions, but may also be overwritten by the EHC Context.
 The Padding is defined by pad_value and pad_size appended to the clear text payload - similarly to what ESP does with Padding and Pad Len. 
-An 8 bit alignment is interpreted by SCHC as a Word of 8 bits, and a 32 bit alignment is interpreted as a Word of 32 bits. 
+An 8 (resp. 16, 32 or 64) bit alignment is interpreted by SCHC as a Word of 8 (resp. 16, 32 or 64) bits.
 The padding size pad_size is defined by the alignment and set to 3 bits for an 8 bit alignment (23) and 5 bits for 32 bit alignment (2**5).
 If pad designates the number of bits to be padded, the pad value is set to pad_value = ( pad + len( pad_size ) % Word.
 This results in an additional pad_value + pad_size bits.
@@ -462,12 +517,58 @@ The IPv6 Next Header field or the IPv4 Protocol that contains the "ESP" value is
 We request the IANA to create a new registry for the IIPC Profile
 
 ~~~
-
-| IIPC Profile value |   Reference |
-+--------------------+-------------+
-| "diet-esp"         | ThisRFC     |
-| "uncompress"       | ThisRFC     |
+| IIPC Profile value | Reference |
++--------------------+-----------+
+| "uncompress"       | ThisRFC   |
+| "diet-esp"         | ThisRFC   |
 ~~~
+
+We request IANA to create the following registried for the "diet-esp" IIPC Profile. 
+
+~~~
+| Flow Label CDA Value | Reference |
++----------------------+-----------+
+| "uncompress"         | ThisRFC   |
+| "generated"          | ThisRFC   |
+~~~
+
+~~~
+| DSCP CDA Value       | Reference |
++----------------------+-----------+
+| "uncompress"         | ThisRFC   |
+| "lower"              | ThisRFC   |
+~~~
+ 
+~~~
+| DSCP CDA Value       | Reference |
++----------------------+-----------+
+| "uncompress"         | ThisRFC   |
+| "lower"              | ThisRFC   |
+~~~
+
+~~~
+| TS IP Version Value  | Reference |
++----------------------+-----------+
+| "IPv4-only"          | ThisRFC   |
+| "IPv6-only"          | ThisRFC   |
+~~~
+
+~~~
+| Alignment            | Reference |
++----------------------+-----------+
+| "8 bit"              | ThisRFC   |
+| "16 bit"             | ThisRFC   |
+| "32 bit"             | ThisRFC   |
+| "64 bit"             | ThisRFC   |
+~~~
+
+~~~
+| IPsec mode Value     | Reference |
++----------------------+-----------+
+| "Tunnel"             | ThisRFC   |
+| "Transport"          | ThisRFC   |
+~~~
+
 
 # Security Considerations
 

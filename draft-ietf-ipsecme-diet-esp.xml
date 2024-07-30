@@ -17,6 +17,7 @@
 <!ENTITY RFC8376 SYSTEM "https://bib.ietf.org/public/rfc/bibxml/reference.RFC.8376.xml">
 <!ENTITY RFC7296 SYSTEM "https://bib.ietf.org/public/rfc/bibxml/reference.RFC.7296.xml">
 <!ENTITY I-D.mglt-ipsecme-ikev2-diet-esp-extension SYSTEM "https://bib.ietf.org/public/rfc/bibxml3/reference.I-D.mglt-ipsecme-ikev2-diet-esp-extension.xml">
+<!ENTITY RFC5996 SYSTEM "https://bib.ietf.org/public/rfc/bibxml/reference.RFC.5996.xml">
 <!ENTITY I-D.mglt-ipsecme-dscp-np SYSTEM "https://bib.ietf.org/public/rfc/bibxml3/reference.I-D.mglt-ipsecme-dscp-np.xml">
 <!ENTITY RFC8750 SYSTEM "https://bib.ietf.org/public/rfc/bibxml/reference.RFC.8750.xml">
 <!ENTITY RFC6437 SYSTEM "https://bib.ietf.org/public/rfc/bibxml/reference.RFC.6437.xml">
@@ -73,7 +74,7 @@
       </address>
     </author>
 
-    <date year="2024" month="July" day="09"/>
+    <date year="2024" month="July" day="29"/>
 
     <area>Security</area>
     <workgroup>IPsecme</workgroup>
@@ -297,33 +298,37 @@ The attributes can be derived from the agreed SA or being explicitly agreed or c
 The ability to derive the EHCP Context for the IIPC from the agreed Traffic Selectors is indicated by a variable iipc_profile.</t>
 
 <figure title="EHCP related parameters" anchor="tab-ehc-ctx-esp"><artwork align="center"><![CDATA[
-+===================+==========================+===========+=======+
-| EHC Context       | Possible Values          | Reference | C / D |
-+===================+==========================+===========+=======+
-| ts_ip_version     | 4, 6, 0                  | ThisRFC   | IIPC  |
-| ts_ip_src_start   | IP4 or IPv6 address      | ThisRFC   | IIPC  |
-| ts_ip_src_end     | IP4 or IPv6 address      | ThisRFC   | IIPC  |
-| ts_ip_dst_start   | IPv4 or IPv6 address     | ThisRFC   | IIPC  |
-| ts_ip_dst_end     | IPv4 or IPv6 address     | ThisRFC   | IIPC  |
-| ts_proto          | TCP, UDP, ..., 0         | ThisRFC   | IIPC  |
-| ts_port_src_start | Port number              | ThisRFC   | IIPC  |
-| ts_port_src_end   | Port number              | ThisRFC   | IIPC  |
-| ts_port_dst_start | Port number              | ThisRFC   | IIPC  |
-| ts_port_dst_end   | Port number              | ThisRFC   | IIPC  |
-| dscp_list         | list of DSCP numbers     | RFCYYYY   | IIPC  |
-| flow_label        | True, False              | ThisRFC   | IIPC  | 
-| iipc_profile      | "diet-esp", "uncompress" | ThisRFC   | IIPC  |
-+-------------------+--------------------------+-----------+-------+
-| alignment         | "8 bit", "32 bit"        | ThisRFC   | CTEC  |
-| ipsec_mode        | "Tunnel", "Transport"    | RFC4301   | CTEC  | 
-| tunnel_ip         | IPv4, IPv6 address       | RFC4301   | CTEC  |
-| esp_encr          | ESP Encryption Algorithm | RFC4301   | CTEC  |
-+-------------------+--------------------------+-----------+-------+
-| esp_spi           | ESP SPI                  | RFC4301   | EEC   |
-| esp_spi_lsb       | 0, 1, 2, 3, 4*           | ThisRFC   | EEC   |
-| esp_sn            | ESP Sequence Number      | RFC4301   | EEC   |
-| esp_sn_lsb        | 0, 1, 2, 3, 4*           | ThisRFC   | EEC   |
-+-------------------+--------------------------+-----------+-------+
++===================+=============================+===========+=======+
+| EHC Context       | Possible Values             | Reference | C / D |
++===================+=============================+===========+=======+
+| iipc_profile      | "diet-esp", "uncompress"    | ThisRFC   | N/A   |
+| dscp_cda          | "uncompress", "lower", "sa" | ThisRFC   | IIPC  | 
+| ecn_cda           | "uncompress", "lower"       | ThisRFC   | IIPC  | 
+| flow_label_cda    | "uncompress", "lower",      | ThisRFC   | IIPC  |
+|                   | "generated", "zero"         |           |       | 
+| ts_ip_version     | "IPv4-only", "IPv6-only"    | ThisRFC   | IIPC  |
+| ts_ip_src_start   | IP4 or IPv6 address         | ThisRFC   | IIPC  |
+| ts_ip_src_end     | IP4 or IPv6 address         | ThisRFC   | IIPC  |
+| ts_ip_dst_start   | IPv4 or IPv6 address        | ThisRFC   | IIPC  |
+| ts_ip_dst_end     | IPv4 or IPv6 address        | ThisRFC   | IIPC  |
+| ts_proto          | TCP, UDP, UDP-Lite, SCTP,   | ThisRFC   | IIPC  |  
+|                   | ANY,                        |           |       |
+| ts_port_src_start | Port number                 | ThisRFC   | IIPC  |
+| ts_port_src_end   | Port number                 | ThisRFC   | IIPC  |
+| ts_port_dst_start | Port number                 | ThisRFC   | IIPC  |
+| ts_port_dst_end   | Port number                 | ThisRFC   | IIPC  |
+| dscp_list         | list of DSCP numbers        | RFCYYYY   | IIPC  |
++-------------------+-----------------------------+-----------+-------+
+| alignment         | "8 bit", "32 bit"           | ThisRFC   | CTEC  |
+| ipsec_mode        | "Tunnel", "Transport"       | RFC4301   | CTEC  | 
+| tunnel_ip         | IPv4, IPv6 address          | RFC4301   | CTEC  |
+| esp_encr          | ESP Encryption Algorithm    | RFC4301   | CTEC  |
++-------------------+-----------------------------+-----------+-------+
+| esp_spi           | ESP SPI                     | RFC4301   | EEC   |
+| esp_spi_lsb       | 0, 1, 2, 3, 4*              | ThisRFC   | EEC   |
+| esp_sn            | ESP Sequence Number         | RFC4301   | EEC   |
+| esp_sn_lsb        | 0, 1, 2, 3, 4*              | ThisRFC   | EEC   |
++-------------------+-----------------------------+-----------+-------+
 ]]></artwork></figure>
 
 <t>Any parameter starting with "ts_". These parameters are associated with the Traffic Selectors of the SA and are introduced by this specification.
@@ -331,11 +336,26 @@ This specification limits the expression of the Traffic Selector to be of the fo
 This limits the original flexibility of the expression of TS, but we believe that it provides sufficient flexibility. Following shows detail information of these parameters.</t>
 
 <dl>
+  <dt>iipc_profile:</dt>
+  <dd>
+    <t>designates the profile used by IIPC. When set to "uncompress" IIPC is not performed. This draft describes IIPC that corresponds to the "diet-esp" profile.</t>
+  </dd>
+  <dt>flow_label_cda:</dt>
+  <dd>
+    <t>indicates how the Flow Label field of the inner IPv6 packet or the Identification field of the inner IPv4 packet is compressed / decompressed - See <xref target="sec-cda"/> for more information. In a nutshell, "uncompress" indicates that Flow Label (resp. Identification) are not compressed. "lower" indicates the value is read from the outer IP header - eventually with some adaptations when inner IP packet and outer IP pakets have different versions. "generated" indicate s that the fields is generated by the receiving party. In that case, the decompressed value may take a different value its original value. "zero" indicates the field is set to zero.</t>
+  </dd>
+  <dt>dscp_cda:</dt>
+  <dd>
+    <t>indicates how the DSCP values of the inner IP packet are generated. (See flow_label_cda). "sa" indicates, compression is performed according to the DSCP values agreed by the SA (dscp_list).</t>
+  </dd>
+  <dt>ecn_cda:</dt>
+  <dd>
+    <t>indicates how the ECN values of the inner IP packet are generated. (See flow_label_cda).</t>
+  </dd>
   <dt>ts_ip_version:</dt>
   <dd>
-    <t>designates the IP version of the Traffic Selectors and its value is set to 4 when only IPv4 IP addresses are considered and to 6 when only IPv6 addresses are considered.
-Practically, when IKEv2 is used, it means that the agreed TSi or TSr results only in a mutually exclusive combination of TS_IPv4_ADDR_RANGE or TS_IPV6_ADDR_RANGE payloads.
-When the traffic selectors result in a combination of IPv4 and IPv6 addresses, ts_ip_version is set to 0. ts_ip_version is always set even when the EHC Context cannot be set for IIPC as its value is necessary to evaluate the compression of the ESP field Next Header.</t>
+    <t>designates the IP version of the Traffic Selectors and its value is set to "IPv4-only" when only IPv4 IP addresses are considered and to "IPv6-only" when only IPv6 addresses are considered.
+Practically, when IKEv2 is used, it means that the agreed TSi or TSr results only in a mutually exclusive combination of TS_IPv4_ADDR_RANGE or TS_IPV6_ADDR_RANGE payloads.</t>
   </dd>
   <dt>ts_ip_src_start:</dt>
   <dd>
@@ -366,19 +386,11 @@ Finally, len( x ) is defined as the function that returns the number of bits of 
 <dl>
   <dt>ts_proto:</dt>
   <dd>
-    <t>designates the list of Protocol ID field, whose meaning is defined in <xref section="3.13" sectionFormat="comma" target="RFC7296"/>.</t>
+    <t>designates the list of Protocol ID field, whose meaning is defined in <xref section="3.13" sectionFormat="comma" target="RFC7296"/>. This profile considers the specific protocols values "TCP", "UDP", "UDP-Lite", "SCTP", "OTHER" and "ANY". "OTHER" designates any protocol values that are not in :"TCP", "UDP", "UDP-Lite", "SCTP. "ANY" as defined in <xref section="3.13" sectionFormat="comma" target="RFC5996"/> and designates any possible values.</t>
   </dd>
   <dt>dscp_list:</dt>
   <dd>
     <t>designates the list of DSCP values with the same meaning as the List of DSCP Values defined in <xref target="I-D.mglt-ipsecme-dscp-np"/>. These are not Traffic Selector, but the compression mandates the packets takes one of these listed DSCP value.</t>
-  </dd>
-  <dt>flow_label:</dt>
-  <dd>
-    <t>indicates the Flow Label field of the inner IPv6 packet or the Identification field of the inner IPv4 packet is copied from the outer IP address.</t>
-  </dd>
-  <dt>iipc_profile:</dt>
-  <dd>
-    <t>indicates whether IIPC is expected to proceed. IIPC requires the IIPC parameters of the EHC Context to be derived from the agreed Traffic Selectors. When this is not possible, the iipc_profile is set to "uncompress". Otherwise, it is set to "diet-esp". The other peer needs to be aware of each other's values.</t>
   </dd>
   <dt>alignment:</dt>
   <dd>
@@ -418,26 +430,30 @@ A value of 4 for esp_spi_lsb will leave the SPI unchanged.</t>
 </dl>
 
 </section>
-<section anchor="new-schc-cda"><name>New SCHC CDA</name>
+<section anchor="sec-cda"><name>New SCHC CDA</name>
 
 <t>In addition to the Compression / Decompression Actions defined in <xref section="7.4" sectionFormat="comma" target="RFC8724"/>, this specification uses the CDA as presented in <xref target="tab-cda"/>.
 These CDA are either a refinement of the compute- * CDA or the result of combined CDA.</t>
 
 <figure title="EHCP ESP related parameter" anchor="tab-cda"><artwork align="center"><![CDATA[
-+=================+=====================+=============================+
-| Action          | Compression         | Decompression               |
-+=================+=====================+=============================+
-| lower           | elided              | Get from lower layer        |
-| checksum        | elided              | Compute checksum            |
-| padding         | elided              | Compute padding             |
-| flow_label      | elided              | Compute flow label          |
-+-----------------+---------------------+-----------------------------+
++========================+=============+======================+
+| Action                 | Compression | Decompression        |
++========================+=============+======================+
+| lower                  | elided      | Get from lower layer |
+| generated (Flow Label) | elided      | Compute flow label   |
+| checksum               | elided      | Compute checksum     |
+| padding                | elided      | Compute padding      |
++------------------------+-------------+----------------------+
 ]]></artwork></figure>
 
 <dl>
   <dt>lower:</dt>
   <dd>
-    <t>is used in a Tunnel mode and indicates that the fields of the inner IP packet header are generated from the corresponding fields of the Tunnel IP header fields.</t>
+    <t>is only used in a Tunnel mode and indicates that the fields of the inner IP packet header are generated from the corresponding fields of the Tunnel IP header fields. This CDA can be used for the DSCP, ECN, and IPv6 Flow Label (resp. IPv4 Identification) field. When the outer IP header is an IPv6 Header and the inner IP header is in IPv4 header the 16 LSB are copied. When the outer IP header is an IPv4 Header and the inner IP Header is an IPv6 Header, the 4 MSB bits are set to 0.</t>
+  </dd>
+  <dt>generated:</dt>
+  <dd>
+    <t>indicates that a brand new Flow Label/Identification field is generated following <xref target="RFC6437"/>, <xref target="RFC6864"/>.</t>
   </dd>
   <dt>checksum:</dt>
   <dd>
@@ -447,10 +463,6 @@ These CDA are either a refinement of the compute- * CDA or the result of combine
   <dd>
     <t>indicates that padding bytes are generated accordingly.</t>
   </dd>
-  <dt>flow_label:</dt>
-  <dd>
-    <t>indicates that a brand new Flow Label/Identification field is generated following <xref target="RFC6437"/>, <xref target="RFC6864"/>.</t>
-  </dd>
 </dl>
 
 </section>
@@ -458,15 +470,15 @@ These CDA are either a refinement of the compute- * CDA or the result of combine
 <section anchor="inner-ip-compression-iipc"><name>Inner IP Compression (IIPC)</name>
 
 <t>When iipc_profile is set to "uncompress", the packet is uncompressed. 
-When it is set to "diet-esp", IIPC proceeds to the compression of the inner IP Packet composed of an IP Header and an IP Payload.
+When iipc_profile is set to "diet-esp", IIPC proceeds to the compression of the inner IP Packet composed of an IP Header and an IP Payload.
 The compression of the inner IP Payload is described in <xref target="sec-payload"/>.<br />
 The IP Header is compressed when ipsec_mode is set to "Tunnel" and left uncompressed otherwise. ts_ip_version determines how the IPv6 Header (resp. the IPv4 Header) is compressed - see <xref target="sec-inner-ip6"/> (resp. <xref target="sec-inner-ip4"/>).</t>
 
 <section anchor="sec-payload"><name>Inner IP Payload Compression</name>
 
-<t>The compression only affects UDP, UDP-Lite or TCP packets and the type of packet is determined by the IP header.</t>
+<t>The compression only affects UDP, UDP-Lite, TCP or SCTP packets and the type of packet is determined by the IP header.</t>
 
-<t>For UDP, UDP-Lite and TCP packets, source ports destination ports and checksums are compressed. 
+<t>For UDP, UDP-Lite, TCP and SCTP packets, source ports destination ports and checksums are compressed. 
 For source port (resp. destination port) only the least significant bits are sent. FL is set to 16 bits,  TV is set to msb( ts_port_src_start, ts_port_src_end ) ( resp. ts_port_dst_start, ts_port_dst_end ) ), MO is set to "MSB" and CDA to "LSB". 
 The checksum is elided, FL is set to 16 bits, TV is not set, MO is set to "ignore" and CDA is set to "checksum". 
 This may result in decompressing a zero-checksum UDP packet with a valid checksum, but this has no impact as a valid checksum is universally accepted.</t>
@@ -478,20 +490,41 @@ This may result in decompressing a zero-checksum UDP packet with a valid checksu
 
 <t>The version field is elided, FL is set to 3, TV is set to ts_ipversion, MO is set to"equal" and CDA is set to "not-sent".</t>
 
-<t>Traffic Class is composed of the 6 bit DSCP and 2 bit ECN and only the DSCP bits are subject to compression. If dscp_list is empty, DSCP are copied from the Tunnel IP header and FL is set to 6 bits, TV is not set, MO is set to "ignore", CDA is set to "lower".
-If dscp_list contains a single element, the DSCP is elided, FL is set to 6 bits, TV is set to dscp_list[0], MO is set to "equal" and CDA is set to "not-sent". If dscp_list contains more than one DSCP value, FL is set to 6 bits, TV is set to dscp_list, MO is set to "match-mapping" and the CDA is set to "mapping-sent". 
+<t>Traffic Class is composed of the 6 bit DSCP and 2 bit ECN and only the DSCP bits are subject to compression. 
+The compression of DSCP and ECN are defined independently.</t>
+
+<t>DSCP values are compressed according to the dscp_cda value:
+* If dscp_cda is set to "uncompress", the DSCP values are included in the inner IP header. FL is set to 6 bits, TV is not set, MO is set to "ignore", CDA is set to "sent-value".
+* If dscp_cda is set to "lower", the DSCP field is elided and its value is copied from the Tunnel IP header. FL is set to 6 bits, TV is not set, MO is set to "ignore", CDA is set to "lower".
+* If dscp_cda is set to "sa", DSCP is compressed according to the DSCP values of the SA. If dscp_list contains a single element, the DSCP is elided, FL is set to 6 bits, TV is set to dscp_list[0], MO is set to "equal" and CDA is set to "not-sent". If dscp_list contains more than one DSCP value, FL is set to 6 bits, TV is set to dscp_list, MO is set to "match-mapping" and the CDA is set to "mapping-sent". 
 For ECN, FL is set to 2 bits, TV is not set, MO is set to ignore and CDA is set to "value-sent".</t>
 
-<t>Flow Label can be elided or uncompressed. When flow_label is set to "elided", the Flow Label is elided, FL is set to 20 bits, TV is not set, MO is set to "ignore" and CDA is set to "flow_label".
-When flow_label is set to uncompress, FL is set to 20 bits, TV is not set, MO is set to ignore and CDA is set to "value-sent".</t>
+<t>ECN values are compressed according to the ecn_cda value:
+* If ecn_cda is set to "uncompress", the ECN field included in the inner IP header. FL is set to 2 bits, TV is not set, MO is set to "ignore", CDA is set to "sent-value".
+* If ecn_cda is set to "lower", the ECN value is elided and the ECN value is copied in the outer IP header. FL is set to 2 bits, TV is not set, MO is set to "ignore", CDA is set to "lower".</t>
+
+<t>Flow label is compressed according to the flow_label_cda value: 
+* If flow_label_cda is set to "uncompress", the Flow label is included in the IPv6 Header. FL is set to 20 bits, TV is not set MO is set to "ignore" and CDA is set to "sent-value".
+* If flow_label_cda is set to "lower", the Flow Label is elided and read from the outer IP Header (See <xref target="sec-cda"/>). FL is set to 20 bits, TV is not set, MO is set to "ignore" and CDA is set to "lower". If the outer IP header is an IPv4 Header, only the 16 LSB of the Flow Label are inserted into the IPv4 Header. At the decompression, the 4 MSB of the Flow Label are set to 0. 
+* If flow_label_cda is set to "generated", the Flow Label elided and the Flow Label is then re-generated at the decompression (See <xref target="sec-cda"/>). The resulting Flow Label is expected result in a different value. FL is set to 20, TV is not set, MO is set to "ignore" and CDA is set to "generated". 
+* If flow_label_cda is set to "zero", the Flow Label is elided and set to 0 at decompression. A 0 value indicates no flow label is present. Fl is set to 20 bits, TV is set to 0, MO is set to "equal" and CDA is set to "not-sent".</t>
 
 <t>Payload Length is elided and determined from the Tunnel IP Header Payload Length as well as the decompressed Payload. FL is set to 16 bits, TV is not set, MO is set to "ignore", CDA is set to "lower".</t>
 
-<t>The last Next Header determine the transport being used. If proto_id is set to 0, the Next Header field is not compressed. Otherwise, if it is set to a different value than 0 (UDP or TCP for example), FL is set to 8 bits. If ts_proto contains the value 0, TV is not set, MO is set to "ignore," and CDA is set to "value-sent."
-If "proto_id" does not contain 0 and the list contains one or fewer values, TV is set to that value, MO is set to "equal," and CDA is set to "not-sent."
-In any other case, TV is set to the proto_list, MO is set to "match-mapping," and CDA is set to "mapping-sent."</t>
+<t>NOTE TO COAUTHORS: I DO NOT THINK WE CAN COMPRESS THE LAST NEXT HEADER AS WE ONLY KNOW IT IS THE LAST ONCE WE HAVE READ IT. TO DETERMINE THAT THIS IS THE LAST WE NEED TO MAKE SOME ASSUMPTIONS THAT THERE ARE NO IPV6 EXTENSION HEADER. I AM NOT SURE WE CAN MAKE SUCH ASSUMPTION AS THIS IS NOT SOMETHING AGREED BETWEEN THE TWO PEERS. IF THAT IS CORRECT, THE SECTION BELOW NEEDS TO BE REMOVED. 
+The last Next Header determine the transport being used and for convenience we refer it as the Transport Next Header. 
+* If the ts_proto contains a single non-zero value specified by the SA, ts_proto, is elided and decompressed according to the SA. FL is set to 8, TV is set to that value, MO is set to "equal," and CDA is set to "not-sent."
+* If ts_proto is a list of non zero values, values are ordered in increasing order to form proto_list. Next Header is then replaced by the corresponding index of the list. FL is set to 8 bits, TV is set to the proto_list, MO is set to "match-mapping," and CDA is set to "mapping-sent".
+* If ts_proto is the single value 0, Next Header is not compressed. FL is set to 8 bits, TV is not set, MO is set to "ignore", CDA is set to "sent-value".
+* If ts_proto is a list non zero values are ordered in increasing number, 0 ("OTHER") is appended. Next Header is then replaced by the corresponding index except for the "OTHER" in which case, the complete Next Header is sent.</t>
+
+<t>NOTE TO COAUTHORS: I AM NOT SURE WE CAN USE STANDARD RULES TO IMPLEMENT THE LIST WITH 0. wE HAVE TWO ALTERNATIVES. EITHER WE ASSUME THAT THERE IS NO COMPRESSION WHEN A ZERO IS THERE OR WE CREATE A NEW CDA.</t>
+
+<t>This profiles considers a list of values "TCP", "UDP", "UDP-Lite", "SCTP", "OTHER".</t>
 
 <t>The IPv6 Hop Limit is read from the Tunnel IP Header Hop Limit. FL is set to 8 bits, TV is not set, MO is set to "ignore" and CDA is set to "lower."</t>
+
+<t>NOTE TO COAUTHORS: WE MAY NEED TO DEFINE A hop_limit_cda FOR CONSISTENCY.</t>
 
 <t>The source and destination IPv6 addresses are compressed using MSB. 
 In both cases, FL is set to 128, TV is respectively set to  msb(ts_ip_src_start, ts_ip_src_ed) or msb(ts_ip_dst_start, ts_ip_dst_end)), the MO is set to "MSB," and the CDA is set to "LSB."</t>
@@ -500,7 +533,7 @@ In both cases, FL is set to 128, TV is respectively set to  msb(ts_ip_src_start,
 <section anchor="sec-inner-ip4"><name>Inner IPv4 Compression</name>
 
 <t>The fields Version, DSCP, ECN, Source Address and Destination Address are compressed as described for IPv6 in <xref target="sec-inner-ip6"/>.
-The field Total Length (16 bits) is compressed similarly to the IPv6 field Payload Length. The field Identification (16 bits) is compressed similarly to the IPv6 field Flow Label. The field Time to Live is compressed similarly to the IPv6 Hop Limit field. The Protocol field is compressed similarly to the last IPv6 Next Header field.</t>
+The field Total Length (16 bits) is compressed similarly to the IPv6 field Payload Length. The field Identification (16 bits) is compressed similarly to the IPv6 field Flow Label. If the IP Header is an IPv6 Header, the Identification are placed as the LSB of the IPv6 Header and the 4 remaining MSB are set to 0.  The field Time to Live is compressed similarly to the IPv6 Hop Limit field. The Protocol field is compressed similarly to the last IPv6 Next Header field.</t>
 
 <t>IHL is uncompressed, FL is set to 4 bits, TV is not set, MO is set to ignore and CDA is set to "value-sent".</t>
 
@@ -513,14 +546,34 @@ FL is set to 16, TV is omitted, MO is set to "ignore," and CDA is set to "checks
 
 <t>The Clear Text ESP Compression is performed on the ESP fields not yet encrypted, that is the ESP Payload Data, the ESP padding field, the Pad Length field as well as the Next Header field, which indicates the type of the inner packet.</t>
 
-<t>When ipsec_mode is set to "Transport" and the ts_ip_version is set to 4, the Next Header contains the Protocol. 
-If ts_proto is set to 0, the Next Header is uncompressed, FL is set to 8 bits, TV is not set, MO is set to "ignore" and CDA is set to "sent-value".
-Otherwise, if ts_proto is not set to 0, then the Next Header is elided, FL is set to 8 bits, TV is set to ts_proto, MO is set "equal" and CDA is set to "not-sent".</t>
+<t>NOTE TO COAUTHORS: THE TWO FOLLOWING PARAGRAPHS NEED TO BE REMOVED, UNLESS WE CAN COMPRESS THE NEXT HEADER TRANSPORT.</t>
+
+<t>When ipsec_mode is set to "Transport" and the ts_ip_version is set to 4, the Next Header in the ESP necessarily contains the Protocol ID and the Next Header can be compressed as described in sec-nh.</t>
 
 <t>When ipsec_mode is set to "Transport" and the ts_ip_version is set to 6, the Next Header does not necessarily designates the Protocol ID, but instead it may contain an IPv6 Header extension. As result, the Next Header cannot be compressed.</t>
 
-<t>When ipsec_mode is set to "Tunnel", the Next Header Field indicates whether the inner packet is an IPv6 or IPv4 packet. If ts_ip_version is set 0, the Next Header uses a map and FL is set to 8 bits, TV is set to the list [ "IPv4", "IPv6"], MO is set to "match-mapping" and CDA is set to "mapping-sent".
+<t>When ipsec_mode is set to "Tunnel", the Next Header Field indicates whether the inner packet is an IPv6 or IPv4 packet.</t>
+
+<t>END OF REMOVED PARAGRAPH</t>
+
+<t>NOTE TO COAUTHORS: AS WE ASSUMES THAT WE HAVE A SINGLE TYPE IP ADDRESS WE CAN REMOVE THE FOLLOWING PARAGRAPH.</t>
+
+<t>If ts_ip_version is set 0, the Next Header uses a map and FL is set to 8 bits, TV is set to the list [ "IPv4", "IPv6"], MO is set to "match-mapping" and CDA is set to "mapping-sent".
 If ts_ip_version is set to IPv4 or IPv6, the Next Header is elided, FL is set to 8 bits, TV is set to ts_ip_version, MO is set to "equal" and CDA is set to "not-sent".</t>
+
+<t>END OF PARAGRAPH TO BE REMOVED.</t>
+
+<t>NOTE TO COAUTHORS: IN THE TUNNEL MODE, WE ONLY CONSIDER ip PACKETS SO THE INNER DATA END SUP IN:</t>
+
+<t>BITS( PAYLOAD DATA ) + BITS(PADDING FOR ALIGNMENT)</t>
+
+<t>IN SCHC, WE USUALLY DETERMINE PAYLOAD DATA AND IGNORE THE REMAINDER. I AM NOT SURE THIS IS SOMETHING WE CAN DO HERE AS WE HAVE NO WAYS TO DETERMINE THE END OF THE PAYLOAD DATA FROM READING THE PAYLOAD DATA (LENGTH HAVE BEEN REMOVED). I AM UNDER THE IMPRESSION THAT WE MUST IMPLEMENT A BIT_PADDING AT THE END THAT IS COMPOSED OF PADDING_BITS AND A PAD_LEN FIELD. WHEN ALIGNMENT IS 8 BITS, PAD_LEN FOLLOWS THE FOLLOWING RULES:</t>
+
+<t>ALIGNMENT PAD_LEN<br />
+8 BITS    3 BITS
+16 BITS   4 BITS
+32 BITS   5 BITS
+64 BITS   6 BITS</t>
 
 <t>If the esp_encr does not require a specific block size, Padding and Pad Length are elided.
 FL is defined by the type that is to (Pad Length + 1 ) * 8 bits, TV is unset, MO is set to "ignore" and CDA is set to padding.</t>
@@ -528,7 +581,7 @@ FL is defined by the type that is to (Pad Length + 1 ) * 8 bits, TV is unset, MO
 <t>Encryption may require require the clear text to respect a given size block.
 In addition, IP networking may also require a special alignment which is 32 bits by default for IPv6 Extensions, but may also be overwritten by the EHC Context.
 The Padding is defined by pad_value and pad_size appended to the clear text payload - similarly to what ESP does with Padding and Pad Len. 
-An 8 bit alignment is interpreted by SCHC as a Word of 8 bits, and a 32 bit alignment is interpreted as a Word of 32 bits. 
+An 8 (resp. 16, 32 or 64) bit alignment is interpreted by SCHC as a Word of 8 (resp. 16, 32 or 64) bits.
 The padding size pad_size is defined by the alignment and set to 3 bits for an 8 bit alignment (23) and 5 bits for 32 bit alignment (2**5).
 If pad designates the number of bits to be padded, the pad value is set to pad_value = ( pad + len( pad_size ) % Word.
 This results in an additional pad_value + pad_size bits.</t>
@@ -552,10 +605,56 @@ FL is set to 32 bits, TV is not set, MO is set to "MSB( 4 - esp_spi_lsb)" and CD
 <t>We request the IANA to create a new registry for the IIPC Profile</t>
 
 <figure><artwork><![CDATA[
-| IIPC Profile value |   Reference |
-+--------------------+-------------+
-| "diet-esp"         | ThisRFC     |
-| "uncompress"       | ThisRFC     |
+| IIPC Profile value | Reference |
++--------------------+-----------+
+| "uncompress"       | ThisRFC   |
+| "diet-esp"         | ThisRFC   |
+]]></artwork></figure>
+
+<t>We request IANA to create the following registried for the "diet-esp" IIPC Profile.</t>
+
+<figure><artwork><![CDATA[
+| Flow Label CDA Value | Reference |
++----------------------+-----------+
+| "uncompress"         | ThisRFC   |
+| "generated"          | ThisRFC   |
+]]></artwork></figure>
+
+<figure><artwork><![CDATA[
+| DSCP CDA Value       | Reference |
++----------------------+-----------+
+| "uncompress"         | ThisRFC   |
+| "lower"              | ThisRFC   |
+]]></artwork></figure>
+
+<figure><artwork><![CDATA[
+| DSCP CDA Value       | Reference |
++----------------------+-----------+
+| "uncompress"         | ThisRFC   |
+| "lower"              | ThisRFC   |
+]]></artwork></figure>
+
+<figure><artwork><![CDATA[
+| TS IP Version Value  | Reference |
++----------------------+-----------+
+| "IPv4-only"          | ThisRFC   |
+| "IPv6-only"          | ThisRFC   |
+]]></artwork></figure>
+
+<figure><artwork><![CDATA[
+| Alignment            | Reference |
++----------------------+-----------+
+| "8 bit"              | ThisRFC   |
+| "16 bit"             | ThisRFC   |
+| "32 bit"             | ThisRFC   |
+| "64 bit"             | ThisRFC   |
+]]></artwork></figure>
+
+<figure><artwork><![CDATA[
+| IPsec mode Value     | Reference |
++----------------------+-----------+
+| "Tunnel"             | ThisRFC   |
+| "Transport"          | ThisRFC   |
 ]]></artwork></figure>
 
 </section>
@@ -586,6 +685,7 @@ FL is set to 32 bits, TV is not set, MO is set to "MSB( 4 - esp_spi_lsb)" and CD
 &RFC8376;
 &RFC7296;
 &I-D.mglt-ipsecme-ikev2-diet-esp-extension;
+&RFC5996;
 &I-D.mglt-ipsecme-dscp-np;
 &RFC8750;
 &RFC6437;
@@ -603,7 +703,7 @@ FL is set to 32 bits, TV is not set, MO is set to "MSB( 4 - esp_spi_lsb)" and CD
     </references>
 
 
-<?line 486?>
+<?line 587?>
 
 <section anchor="illustrative-example"><name>Illustrative Example</name>
 
@@ -1159,331 +1259,370 @@ len(Padding) = Pad Length = ALIGN - len(Payload Data) - 1 - len(Next Header) mod
   </back>
 
 <!-- ##markdown-source:
-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
-L221+KxpyU6MzuxJbEJbX35CjlHi9nNymMXyk9r+p03K/P3XJJhmbFNvLt7U
-C63bd9jTx0f9KA63Qqpe4RaO26CjKEXN8PYEElisbzHB1ezlqBl6qfndjla2
-FtPKdUbm39sRgFrgH/MQWPHMfg/HwIqn9Hs5CP4x07rd9t5evL0XGdjvsLWN
-FfNLi3Zrk3qwzreJW2zR8M+Vnge+MfNLi3h6fqO6ufP8bkcwj5YkmFWdBqsn
-mYXb8A9DNDfO8MuQTaK/fUwkj518/h8YcNuq9fcAAA==
+H4sIAAAAAAAAA+19a3fbyLHgd/6KXs3Zs9IMST8ke2Z0NpvQEj3mjV4r0vad
+5CQOREISrkmAFwAlK5b9W/br/o3dP7b16icAirLo3LlZKydjCWh0V1dXV9er
+qzqdTqtMymm8q/rDE/UqjiZxrvay2TyPiyLJUnWSZ+fJNG5FZ2d5fAXNXu2d
+tCbZOI1m8NEkj87LThKX551kXsTjWdyZwF+duJh3Hj9tJfN8V5X5oiifPn78
+MzyI8jjaVcN4vMiT8qZ1fbGrBif0Xev9NfyelnGewvf72G9rHJW7qignraKE
+72bwvj962WrNk92WUmU23lU3cQG/FlkODc4L8/fNzP7ZihblZZbjJ/jTkX+V
+SlJosd9Vh8lFtJiW5jnPbD9Kk3haeZnlAHI/T8ZFkaXmaTyLkilgg77pzvib
+P8TSrDvOZq364Q+76lVURrMkGP0wym+iWfiOBt/L0nGWT5JIvU6TqzgvEJEB
+IDP6vHtJn/8BnwEM8ll3HNXDMuyqvf/7v4t5PCEkuuAMoxRWWu3FwduVASqo
+g+5YOvhDHTRK+fCot13VK6+zbBJA8y9d9TaZThNAUPB+ZXiu+ftuRN/XguMD
+M+qqXxYXF/EsC3Ezys6SqKi+JVgODl+HQ19Iwz+ks25ynnSns0V3Eqv6Yfe6
+6kWWz6I0DUbdi/KijNPKWxrVzDuKS/Uij2fQcPSnQQjJODrL/lD+PenCR/XD
+4/YYji+TNPp7SKGwQa6SSfUtAfBLll1MY3VwsFfZIoV80EWm8YcLoU3YH51O
+R0VnsNOjcdlqjS6TQgGbWQDspZrE50kaF+oyu4Z9r8bCnx5NYv0rPpst0gRY
+BnCtQs3zrIzHZTyBpS4vmck8Qha3KJL0Qg1LaDdGUinjD2Ud3wOCVed5dIHj
+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
+09J/fWpJHjv5+X/h62GkAxABAA==
 
 -->
 
