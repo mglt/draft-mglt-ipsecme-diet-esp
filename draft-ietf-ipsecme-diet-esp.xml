@@ -9,13 +9,15 @@
   <!ENTITY nbhy   "&#8209;">
   <!ENTITY wj     "&#8288;">
 
+<!ENTITY RFC7296 SYSTEM "https://bib.ietf.org/public/rfc/bibxml/reference.RFC.7296.xml">
 <!ENTITY RFC2119 SYSTEM "https://bib.ietf.org/public/rfc/bibxml/reference.RFC.2119.xml">
 <!ENTITY RFC8174 SYSTEM "https://bib.ietf.org/public/rfc/bibxml/reference.RFC.8174.xml">
 <!ENTITY RFC4303 SYSTEM "https://bib.ietf.org/public/rfc/bibxml/reference.RFC.4303.xml">
 <!ENTITY RFC4301 SYSTEM "https://bib.ietf.org/public/rfc/bibxml/reference.RFC.4301.xml">
 <!ENTITY RFC8724 SYSTEM "https://bib.ietf.org/public/rfc/bibxml/reference.RFC.8724.xml">
+<!ENTITY I-D.ietf-ipsecme-ikev2-diet-esp-extension SYSTEM "https://bib.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-ipsecme-ikev2-diet-esp-extension.xml">
 <!ENTITY RFC8376 SYSTEM "https://bib.ietf.org/public/rfc/bibxml/reference.RFC.8376.xml">
-<!ENTITY RFC7296 SYSTEM "https://bib.ietf.org/public/rfc/bibxml/reference.RFC.7296.xml">
+<!ENTITY I-D.ietf-schc-architecture SYSTEM "https://bib.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-schc-architecture.xml">
 <!ENTITY I-D.mglt-ipsecme-ikev2-diet-esp-extension SYSTEM "https://bib.ietf.org/public/rfc/bibxml3/reference.I-D.mglt-ipsecme-ikev2-diet-esp-extension.xml">
 <!ENTITY RFC5996 SYSTEM "https://bib.ietf.org/public/rfc/bibxml/reference.RFC.5996.xml">
 <!ENTITY I-D.mglt-ipsecme-dscp-np SYSTEM "https://bib.ietf.org/public/rfc/bibxml3/reference.I-D.mglt-ipsecme-dscp-np.xml">
@@ -23,7 +25,6 @@
 <!ENTITY RFC6437 SYSTEM "https://bib.ietf.org/public/rfc/bibxml/reference.RFC.6437.xml">
 <!ENTITY RFC6864 SYSTEM "https://bib.ietf.org/public/rfc/bibxml/reference.RFC.6864.xml">
 <!ENTITY RFC9333 SYSTEM "https://bib.ietf.org/public/rfc/bibxml/reference.RFC.9333.xml">
-<!ENTITY RFC4309 SYSTEM "https://bib.ietf.org/public/rfc/bibxml/reference.RFC.4309.xml">
 ]>
 
 
@@ -43,7 +44,7 @@
         <email>maryam.hatami@mail.concordia.ca</email>
       </address>
     </author>
-    <author initials="S." surname="Céspedes" fullname="Sandra Cespedes">
+    <author initials="S." surname="Céspedes" fullname="Sandra Céspedes">
       <organization>Concordia University</organization>
       <address>
         <email>sandra.cespedes@concordia.ca</email>
@@ -53,6 +54,12 @@
       <organization>Concordia University</organization>
       <address>
         <email>william.atwood@concordia.ca</email>
+      </address>
+    </author>
+    <author initials="D." surname="Liu" fullname="Daiying Liu" role="editor">
+      <organization>Ericsson</organization>
+      <address>
+        <email>harold.liu@ericsson.com</email>
       </address>
     </author>
     <author initials="T." surname="Guggemos" fullname="Tobias Guggemos">
@@ -74,7 +81,7 @@
       </address>
     </author>
 
-    <date year="2024" month="July" day="29"/>
+    <date year="2024" month="October" day="21"/>
 
     <area>Security</area>
     <workgroup>IPsecme</workgroup>
@@ -83,9 +90,11 @@
     <abstract>
 
 
-<?line 55?>
+<?line 68?>
 
-<t>This document defines how to compress/decompress communications protected with IPsec/ESP using Static Context Header Compression and fragmentation (SCHC). SCHC uses static information from IPv6 headers to reduce redundancy and size of packets on the wire. This specification provides guidelines on the application of SCHC to compress/decompress at different levels of the ESP/IPv6 protected packets, leveraging the information already shared by the peers.</t>
+<t>The document specifies Diet-ESP, an ESP Header Compression Profile (EHCP) that compresses IPsec/ESP communications using Static Context Header Compression (SCHC).</t>
+
+<t>Diet-ESP assumes the Traffic Selectors of the Security Association (SA) can be expressed by a single IKEv2 Traffic Selector Payload <xref section="3.13.1" sectionFormat="comma" target="RFC7296"/>. More specifically, the Traffic Selectors are defined with a single type of IP addresses (IPv4 or IPv6), a single IP range, a single protocol (such as UDP, TCP, or not relevant), a single port range and multiple DSCP numbers.</t>
 
 
 
@@ -98,7 +107,7 @@
   <middle>
 
 
-<?line 59?>
+<?line 76?>
 
 <section anchor="requirements-notation"><name>Requirements notation</name>
 
@@ -112,11 +121,13 @@ appear in all capitals, as shown here.
 </section>
 <section anchor="introduction"><name>Introduction</name>
 
-<t>The Encapsulating Security Payload (ESP) <xref target="RFC4303"/> protocol can provide confidentiality, data origin authentication, integrity, anti-replay, and traffic flow confidentiality. The set of services ESP provides depends on the Security Association (SA) parameters negotiated between devices.</t>
+<t>Encapsulating Security Payload (ESP) <xref target="RFC4303"/> protocol is part of the IPsec<xref target="RFC4301"/> suite protocols and provides confidentiality, data origin authentication, integrity, anti-replay, and traffic flow confidentiality. The set of services ESP provides depends on the Security Association (SA) parameters negotiated between devices.</t>
 
-<t>ESP has two modes: Tunnel and Transport. Tunnel mode is commonly used for VPNs, with the ESP header placed after the outer IP header and before the inner IP packet headers. In Transport mode, the ESP Payload Data consists of the IP Payload, with the ESP header placed after the inner IP packet header and any IP extensions headers.</t>
+<t>An ESP packet is composed of an ESP Header, an ESP Payload and an Integrity Check Value (ICV). and ESP Trailer. The ESP Payload is encrypted and its corresponding clear text includes ESP Data and an ESP Trailer. The ESP Data contains either the original IP payload or, in tunnel mode, the full encapsulated IP packet. The ESP Trailer, placed at the end of the ESP Payload, includes fields such as Padding, Pad Length to ensure proper alignment and Next Header to indicate the protocol following the ESP Header. The ICV is calculated over the ESP Header, the ESP Payload, and trailer to maintain packet integrity. To better understand ESP, the reader might be interested in reading Minimal ESP <xref target="RFC9333"/>, a simplified version of ESP.</t>
 
-<t>This document defines the ESP Header Compression profile (EHCP) for compression/decompression (C/D) of IPsec/ESP <xref target="RFC4301"/> / <xref target="RFC4303"/> packets, represented by the structure shown in <xref target="fig-esp"/>, using Static Context Header Compression and fragmentation (SCHC) <xref target="RFC8724"/>. Compression with SCHC is based on using a set of Rules, which constitutes the Context of SCHC C/D, to compress or decompress headers. The motivation is to avoid sending information that has already been shared by the peers, thus reducing the ESP packet size on the wire. To better understand ESP, the reader might be interested in reading Minimal ESP <xref target="RFC9333"/>, a simplified version of ESP.</t>
+<t>While ESP is effective in securing traffic, further optimization can reduce packet sizes, enhancing performance in networks with limited bandwidth. In such environments, reducing the size of transmitted packets is essential to improve efficiency. This document defines the ESP Header Compression Profile (EHCP) Diet-ESP for compression/decompression (C/D) ESP packets as represented in <xref target="fig-esp"/>, using Static Context Header Compression (SCHC) <xref target="RFC8724"/>. Compression with SCHC is based on using a set of Rules (SoR), which constitutes the Context of SCHC C/D. Since we are using IPsec, this Context can be agreed via IKEv2 <xref target="RFC7296"/> and its specific extension <xref target="I-D.ietf-ipsecme-ikev2-diet-esp-extension"/>.</t>
+
+<t>As a result, any information that can be generated from the received compressed packet and the SCHC Context is not sent on the wire,  thus reducing the ESP packet size on the wire.</t>
 
 <figure title="Top-Level Format of an ESP Packet" anchor="fig-esp"><artwork align="center"><![CDATA[
  0                   1                   2                   3
@@ -124,8 +135,8 @@ appear in all capitals, as shown here.
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ----
 |               Security Parameters Index (SPI)                 | ^Int.
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ |Cov-
-|                      Sequence Number                          | |ered
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ | ----
+|                      Sequence Number (SN)                     | |ered
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ | ---
 |                    Payload Data* (variable)                   | |   ^
 ~                                                               ~ |   |
 |                                                               | |Conf.
@@ -140,17 +151,17 @@ appear in all capitals, as shown here.
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ]]></artwork></figure>
 
-<t>This document provides the ESP Header Compression profile (EHCP) architecture with the integration of SCHC into various levels of the IPsec stack. The three levels of compression are defined below:</t>
+<t>This document defines the ESP Header Compression profile (EHCP) Architecture with the application of SCHC at various layers of the IPsec stack -- also called SCHC strata -- as defined below:</t>
 
 <t><list style="numbers">
-  <t>Inner IP Compression (IIPC): This level happens directly on the inner IP packet. For example, in the case of a UDP packet with ports determined by the SA, fields such as UDP ports and checksums are typically compressed. If no compression of the inner packet is possible, the resulting SCHC packet contains the uncompressed IP packet, as per <xref section="7.2" sectionFormat="comma" target="RFC8724"/>.</t>
-  <t>Clear Text ESP Compression (CTEC): This level compresses fields of the ESP payload right before being encrypted.</t>
-  <t>Encrypted ESP Compression (EEC): This level compresses ESP fields that remain after encryption, that is, the ESP header.</t>
+  <t>Inner IP Compression (IIPC): The SoR used in this SCHC stratum apply directly to the headers of the inner IP packet. For example, in the case of a UDP packet with ports determined by the SA, fields such as UDP ports and checksums are typically compressed. If no compression of the inner packet is possible, the resulting SCHC packet contains the uncompressed IP packet, as per <xref section="7.2" sectionFormat="comma" target="RFC8724"/>.</t>
+  <t>Clear Text ESP Compression (CTEC): This SCHC stratum contains SoR that compress the fields of the ESP Payload, right before being encrypted, as the encapsulated traffic in tunnel mode.</t>
+  <t>Encrypted ESP Compression (EEC): This SCHC stratum contains SoR that compress the ESP fields that remain visible after encryption, that is, the ESP Header.</t>
 </list></t>
 
-<t>Note that the descriptions of the three levels of compression provided in this document meet the general purpose of ESP. It is possible that in some specific deployments, SCHC contexts from different levels can be merged. Typically, a specific implementation may merge IIPC and CTEC.</t>
+<t>Note that the descriptions of the three SCHC strata provided in this document meet the general purpose of ESP. It is possible that in some deployments, the SCHC instances from different SCHC layers can be merged. Typically, a specific implementation may merge the compression of IIPC and CTEC layers.</t>
 
-<t>For each compressor/decompressor level, it defines the ESP fields to be considered in the rules of its corresponding SCHC context. In addition, it defines how the SCHC contexts are initialized from the SA and provides the corresponding SCHC rules (RuleID, SCHC MAX_PACKET_SIZE, new SCHC Compression/Decompression Actions (CDA), and fragmentation). The appendix provides illustrative examples of applications of EHC using an implementation in openschc.</t>
+<t>Each SoR indicates the ESP header fields to be matched by the rules. The SCHC instances define how the SCHC Context is initialized from the SA and generate the corresponding SCHC rules (i.e., RuleID, SCHC MAX_PACKET_SIZE, new SCHC Compression/Decompression Actions (CDA), and fragmentation). The appendix provides illustrative examples of applications of EHCP implemented with the OpenSCHC <xref target="OpenSCHC"/>.</t>
 
 </section>
 <section anchor="terminology"><name>Terminology</name>
@@ -160,13 +171,21 @@ appear in all capitals, as shown here.
   <dd>
     <t>A method to reduce the size of ESP headers using predefined compression rules and contexts to improve efficiency.</t>
   </dd>
+  <dt>ESP Trailer:</dt>
+  <dd>
+    <t>A set of fields added at the end of the ESP payload, including Padding, Pad Length, and Next Header, used to ensure alignment and indicate the next protocol.</t>
+  </dd>
+  <dt>SCHC Stratum:</dt>
+  <dd>
+    <t>Refers to the specific layer in the ESP packet structure where the Set of Rules of a SCHC instance are applied for compression and decompression and applied.</t>
+  </dd>
   <dt>Inner IP C/D (IIPC):</dt>
   <dd>
     <t>Expressed via the SCHC framework, IIPC compresses/decompresses the inner IP packet headers.</t>
   </dd>
   <dt>Clear Text ESP C/D (CTEC):</dt>
   <dd>
-    <t>Expressed via the SCHC framework, CTEC compresses/decompresses all fields that will later be encrypted by ESP.</t>
+    <t>Expressed via the SCHC framework, CTEC compresses/decompresses all fields that will later be encrypted by ESP, which include the ESP Data ESP Trailer.</t>
   </dd>
   <dt>Encrypted ESP C/D (EEC):</dt>
   <dd>
@@ -194,108 +213,146 @@ appear in all capitals, as shown here.
   </dd>
   <dt>SCHC Context:</dt>
   <dd>
-    <t>The set of parameters and rules shared between communicating entities, as defined in <xref target="RFC8724"/>, Section 5.3.</t>
+    <t>The set of rules shared between communicating entities, as defined in <xref target="RFC8724"/>, Section 5.3.</t>
+  </dd>
+  <dt>SCHC Parameters:</dt>
+  <dd>
+    <t>A set of predefined values used for SCHC compression and decompression, ensuring byte alignment and proper packet formatting based on the SCHC profile.</t>
+  </dd>
+  <dt>SCHC MAX_PACKET_SIZE:</dt>
+  <dd>
+    <t>The maximum size of a SCHC-compressed packet that can be transmitted without fragmentation.</t>
+  </dd>
+  <dt>Traffic Selector (TS):</dt>
+  <dd>
+    <t>A set of parameters (e.g., IP address range, port range, and protocol) used to define which traffic should be protected by a specific Security Association (SA).</t>
   </dd>
 </dl>
 
-<t>It is assumed that the reader is familiar with other SCHC terminology defined in <xref target="RFC8376"/> and <xref target="RFC8724"/>.</t>
+<t>It is assumed that the reader is familiar with other SCHC terminology defined in <xref target="RFC8376"/>, <xref target="RFC8724"/>, and <xref target="I-D.ietf-schc-architecture"/>.</t>
 
 </section>
 <section anchor="schc-integration-into-the-ipsec-stack"><name>SCHC Integration into the IPsec Stack</name>
 
-<t>The main principle of the ESP Header Compression Profile (EHCP) is to avoid sending information that has already been shared by the peers. Different profiles and technologies, such as those defined by <xref target="RFC4301"/> and <xref target="RFC4303"/>, ensure that ESP can be tailored to various network requirements and security policies. However, ESP is not optimized for bandwidth efficiency because it has been designed as a general-purpose protocol. EHCP aims to address this by leveraging a profile, expressed via the SCHC framework, to optimize the ESP header sizes for better efficiency in constrained environments.</t>
+<t>The main principle of the ESP Header Compression Profile (EHCP) is to avoid sending information that has already been shared by the peers. Different profiles and technologies, such as those defined by <xref target="RFC4301"/> and <xref target="RFC4303"/>, ensure that ESP can be tailored to various network requirements and security policies. However, ESP is not optimized for bandwidth efficiency because it has been designed as a general-purpose protocol. EHCP aims to address this by leveraging a profile, expressed via the SCHC architecture, to optimize the ESP header sizes for better efficiency in constrained environments.</t>
 
-<t>Profiles for compression are derived from parameters associated with the Security Association (SA) and agreed upon via IKEv2 <xref target="RFC7296"/>, as well as specific compression parameters defined in IKEv2 <xref target="I-D.mglt-ipsecme-ikev2-diet-esp-extension"/>. As depicted in <xref target="fig-arch"/>, this document defines three levels of compression, as previously described: IIPC, CTEC, and EEC. The terminology of "levels" is used consistently throughout the document for clarity.</t>
+<t>Figure <xref target="fig-arch"/> illustrates the integration of SCHC into the IPsec stack, detailing the different layers and components involved in the compression and decompression processes. The diagram is divided into two entities, each representing an endpoint of a communication link.</t>
 
-<t>The <xref target="fig-arch"/> illustrates the integration of SCHC into the IPsec stack, detailing the different levels and components involved in the compression and decompression processes. The diagram is divided into two entities, each representing an endpoint of a communication link.</t>
+<t>Rules for compression are derived from parameters associated with the Security Association (SA) and agreed upon via IKEv2 <xref target="RFC7296"/>, as well as specific compression parameters defined for IKEv2 in <xref target="I-D.mglt-ipsecme-ikev2-diet-esp-extension"/>.</t>
 
-<t>While the scope of this compression profile currently does not extend beyond the transport layer (i.e., UDP), there will eventually be a need to compress the application layer as well.</t>
+<t>Upon establishing the SA, Diet-ESP uses the parameters listed in Table <xref target="tab-ehc-ctx-esp"/> for derivation of the SoR applicable to each SCHC stratum. The collection of rules are then used for the SCHC Context initialization. The reference column in Table <xref target="tab-ehc-ctx-esp"/> indicates the source where the parameter value is defined. The C/D column specifies in which of the SCHC strata the parameter is being used.</t>
 
-<t>The decompression of the inbound packet follows a reverse process. First, the Encrypted ESP C/D (EEC) decompresses the encrypted ESP header fields. After the ESP packet is decrypted, the Clear Text ESP C/D (CTEC) decompresses the Clear Text fields of the ESP packet.</t>
+<t>EHCP defines three SCHC strata for compression: IIPC, CTEC, and EEC. The compression operations for each stratum are described in <xref target="sec-iipc"/>, <xref target="sec-ctec"/>, and <xref target="sec-eec"/>.</t>
+
+<t>Note that additional compression could be performed, especially on the inner IP packet—for example, to include the TCP layer. However, this profile limits the scope of the compression to the inner IP headers and UDP headers when available. Further and more specific compression profiles may be defined in the future to cover compression of headers of different upper layer protocols.</t>
+
+<t>At the receiver endpoint, the decompression of the inbound packet follows a reverse process. First, the Encrypted ESP C/D (EEC) decompresses the encrypted ESP header fields. After the ESP packet is decrypted, the Clear Text ESP C/D (CTEC) decompresses the Clear Text fields of the ESP packet.</t>
 
 <t>Note that implementations MAY differ from the architectural description but it is assumed the outputs will be the same.</t>
 
-<figure title="SCHC Integration into the IPsec Stack. Packets are described for the tunnel mode and C designates the Compressed header for the fields inside. IIP designates the Inner IP packet, EH and ET respectively  the ESP Header and the ESP Trailer" anchor="fig-arch"><artwork align="center"><![CDATA[
-                      +--------------------------------+ 
-                      | ESP Header Compression Context |
-                      |   - Security Association       |
-                      |   - Additional Parameters      |
-                      +--------------------------------+    
-                                |        
-Endpoint                        |                    Endpoint
-                                |
-+----------------+              |                    +----------------+
-| Inner IP packet|              |                    | Inner IP packet|
-+----------------+              |                    +----------------+
-| SCHC           |+---------IIPC level--------------+| SCHC           |
-+----------------+           C {IIP}                 +----------------+
-| ESP            |              |                    | ESP            |
-| (encapsulation)|              |                    | (unwrapping)   |
-+----------------+              v                    +----------------+
-| SCHC           |+---------CTEC level--------------+| SCHC           |
-+----------------+      EH, C {C {IIP}, ET}          +----------------+
-| ESP            |              |                    | ESP            |
-| (encryption)   |              |                    | (decryption)   |
-+----------------+              v                    +----------------+ 
-| SCHC           |+-----------EEC level-------------+| SCHC           |    
-+----------------+   IP, C {EH, C {C {IIP},  ET}}    +----------------+
-| IPv6 + ESP     |                                   | IPv6 + ESP     |    
-+----------------+                                   +----------------+
-|  L2            |                                   |  L2            |
-+----------------+                                   +----------------+
+<figure title="SCHC Integration into the IPsec Stack. Packets are described for IPsec in tunnel mode. C designates the Compressed header for the fields inside. IIP refers to the Inner IP packet, EH refers to the ESP Header, and ET refers to the ESP Trailer" anchor="fig-arch"><artwork align="center"><![CDATA[
+                 +--------------------------------+ 
+                 | ESP Header Compression Context |
+                 |   - Security Association       |
+                 |   - Additional Parameters      |
+                 +--------------------------------+    
+                                 |        
+Endpoint                         |                 Endpoint
+                                 |
++-----------------+              |                +-----------------+
+| Inner IP packet |              |                | Inner IP packet |
++-----------------+              |                +-----------------+
+| SCHC(IIP + UDP  |              |                | SCHC(IIP + UDP  |
+| or ...)         |+--------IIPC layer-----------+|  or ...)        |
++-----------------+          C {IIP}              +-----------------+
+| ESP             |              |                | ESP             |
+| (Encapsulation) |              |                | (unwrapping)    |
++-----------------+              |                +-----------------+
+| SCHC            |              v                |  SCHC           |
+| (ESP Payload)   |+--------- CTEC layer --------+| (ESP Payload)   |
++-----------------+      EH, C {C {IIP}, ET}      +-----------------+
+| ESP             |              |                | ESP             |
+| (Encryption)    |              |                | (decryption)    |
++-----------------+              v                +-----------------+ 
+| SCHC(ESP Header)|+--------- EEC layer ---------+| SCHC(ESP Header)|    
++-----------------+  IP, C {EH, C {C {IIP},  ET}} +-----------------+
+| IPv6 + ESP      |                               | IPv6 + ESP      |    
++-----------------+                               +-----------------+
+|  L2             |                               |  L2             |
++-----------------+                               +-----------------+
+]]></artwork></figure>
+
+<t>The labels “SCHC (IIPC: Compress Inner IP),” “SCHC (CTEC: Compress Trailer),” and “SCHC (EEC: Compress ESP Header)” are added to indicate that different SCHC instances are applied at the IIPC, CTEC, and EEC layers, respectively.</t>
+
+<section anchor="schc-parameters-for-diet-esp"><name>SCHC parameters for Diet-ESP</name>
+
+<t>A SCHC compressed packet is always in the form:</t>
+
+<figure title="Diet-ESP Compressed Header Format" anchor="tab-diet-esp-compressed-header-format"><artwork align="center"><![CDATA[
+0 1 2 3 4 5 6 7
++-+-+-+-+-+-+-+---------...----------+~~~~~~~~~+---------------+
+|   RuleID    | Compression Residue  | Payload | SCHC padding  | 
++-+-+-+-+-+-+-+---------...----------+~~~~~~~~~+---------------+
+|-------- Compressed Header ---------|         |-- as needed --|
+]]></artwork></figure>
+
+<t>The SCHC Profile for Diet-ESP is defined as follows:</t>
+
+<dl>
+  <dt>RuleID:</dt>
+  <dd>
+    <t>The RuleID is a unique identifier for each SCHC rule. It is included in packets to ensure the receiver applies the correct decompression rule, maintaining consistency in packet processing. Note that the Rule ID does not need to be explicitly agreed upon and can be defined independently by each party. The RuleID in Diet-ESP is expressed as 1 byte.</t>
+  </dd>
+  <dt>Maximum Packet Size:</dt>
+  <dd>
+    <t>MAX_PACKET_SIZE is determined by the specific IPsec ESP configuration and the underlying transport, but it is typically aligned with the network’s MTU. The size constraints are optimized based on the available link capacity and negotiated parameters between endpoints.</t>
+  </dd>
+  <dt>SCHC Padding:</dt>
+  <dd>
+    <t>Padding in SCHC is used to align data to a specific boundary (typically byte-aligned or 8-bit aligned) to meet the requirements of the underlying link layer protocol or encryption algorithm. Padding bits are often zero or follow a pattern but do not contain significant data. In Diet-ESP, The SCHC padding is added in the CTEC strata to align the packet for encryption.</t>
+  </dd>
+</dl>
+
+<t>The resulting IP/ESP packet size is variable. In some networks, the packet will require fragmentation before transmission over the wire. Fragmentation is out of the scope of this document since it is dependent on the layer 2 technology.</t>
+
+<t>The Figure <xref target="tab-diet-esp-compressed-pck"/> illustrates how the final compressed packet looks when using SCHC compression for ESP headers in the Diet-ESP profile. In this format:</t>
+
+<figure title="Diet-ESP Compressed Packet Format with SCHC" anchor="tab-diet-esp-compressed-pck"><artwork align="center"><![CDATA[
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|                  SCHC EEC Header (EEC strata)                 |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ------
+|                 SCHC CTEC Header (CTEC strata)                | |    |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ |Conf.
+|                 SCHC IIP Header (IIPC strata)                 | |Cov-
++---------------------------------------------------------------+ |ered*
+|               Inner IP Payload Data* (variable)               | |    |
+~                                                               ~ |    |
+|                                                               | |    |
++---------------------------------------------------------------+ |    |
+|                       SCHC CTEC Padding                       | v    v
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ------
+|                                                               |
+|                             ICV                               |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ]]></artwork></figure>
 
 </section>
-<section anchor="schc-parameters"><name>SCHC parameters</name>
+<section anchor="set-of-rules-sor-for-diet-esp"><name>Set of Rules (SoR) for Diet-ESP</name>
 
-<t>If ESP incorporates SCHC, it is essential that these scenarios use the SCHC header compression <xref target="RFC8724"/> capability to optimize data transmission.</t>
+<t>SCHC SoR are predefined sets of instructions that specify how to compress and decompress the header fields of an ESP packet. The identification of a particular SoR will follow the specification in <xref target="I-D.ietf-schc-architecture"/>.</t>
 
-<t>In order to work properly, the different levels of C/D need to be configured similarly with the same SCHC Context Initialization. This involves defining variables such as SCHC MAX_PACKET_SIZE or Fragmentation that are invariants in our case, as well as SCHC Rules that are expected to be set on a per SA basis.</t>
-
-<t>The EHCP Context provides the necessary information to generate the SCHC Rules.
-Most pieces of information are already available from the negotiated SA <xref target="RFC4301"/>.
-Other pieces of information need to be specifically configured or agreed via other mechanisms, such as <xref target="I-D.mglt-ipsecme-ikev2-diet-esp-extension"/>.</t>
-
-<t>The reference column in <xref target="tab-ehc-ctx-esp"/> indicates how the information is defined. The C/D column specifies in which of the compression levels the parameter is being used.</t>
-
-<t>Note that additional Compression might be performed especially on the inner IP packet - for example, including the TCP layer.
-However, this profiles limits the scope of the compression to the inner IP header, and possibly UDP headers. We believe this is a reasonable scope for ESP to address both IoT UDP packets as well as large VPN traffic.
-Further and more specific compression profiles may be defined in the future.</t>
-
-<section anchor="schc-context-initialization"><name>SCHC Context Initialization</name>
-
-<t>SCHC Context Initialization involves setting up the initial parameters and values that will be used for compressing and decompressing ESP headers. This includes defining the static context, which contains all the rules and parameters necessary for the SCHC operations. The context is shared between the sender and receiver to ensure consistent compression and decompression processes. Initialization ensures that both ends have a common understanding of the fields, their possible values, and how to handle them during communication.</t>
+<t>Similarly to the SA, Rules are directional and the Direction Indicator (DI) is set to Up for outbound SA and Down for inbound SA. Each Rule also contains a Field Position parameter that is set to 1, unless specified otherwise.</t>
 
 </section>
-<section anchor="schc-rules"><name>SCHC Rules</name>
+<section anchor="attributes-for-rules-generation"><name>Attributes for Rules Generation</name>
 
-<t>SCHC Rules are predefined sets of instructions that specify how to compress and decompress the header fields of an ESP packet. Each rule is designed to handle specific patterns and variations in the header fields, allowing for efficient compression by eliminating redundancy and leveraging the static context. Rules are identified by RuleIDs and are crucial for mapping the fields correctly during the compression and decompression processes.</t>
+<t>The list of attributes used for the Rules generation is shown in Table <xref target="tab-ehc-ctx-esp"/>. These attributes are used to express the various compressions that operate at the IIPC, CTEC, and EEC layers.</t>
 
-<t>Similarly to SA, Rules are directional and the Direction Indicator (DI) is set to Up for outbound SA and Down for inbound SA. Each Rule also contains a Field Position parameter that is set to 1, unless specified otherwise.</t>
+<t>The compression of the Inner IP Packet is based on the attributes that are derived from the negotiated Traffic Selectors TSi/TSr, as described in <xref section="3.13" sectionFormat="comma" target="RFC7296"/>. The Traffic Selectors may result in a quite complex expression, and this specification restricts that complexity. In particular, Diet-ESP restricts the Traffic Selector to a single type of IP address (i.e., IPv4 or IPv6), a single protocol (such as UDP, TCP, or not relevant), a single port range, and multiple DSCP numbers. Such simplification corresponds to the expression of an individual Traffic Selector Payload <xref section="3.13.1" sectionFormat="comma" target="RFC7296"/>.</t>
 
-</section>
-<section anchor="rule-id"><name>Rule ID</name>
-
-<t>The RuleID is a unique identifier for each SCHC rule, included in packets to ensure the receiver applies the correct decompression rule, maintaining consistency in packet processing. Note that the Rule ID does not need to be explicitly agreed upon and can be defined independently by each party.</t>
-
-</section>
-<section anchor="schc-maxpacketsize"><name>SCHC MAX_PACKET_SIZE</name>
-
-<t>This field defines the largest size of a compressed ESP packet that can be handled. It ensures packets fit within network limits, optimizing transmission and avoiding unnecessary fragmentation. Note that the SCHC MAX_PACKET_SIZE varies based on the packet because it is not specific to any particular lower-layer (LL) technology. This flexibility allows SCHC to be adapted to various network environments and constraints.</t>
-
-</section>
-<section anchor="fragmentation"><name>Fragmentation</name>
-
-<t>The resulting IP/ESP packet size is variable. In some networks, the packet will require fragmentation before transmission over the wire. Fragmentation is out of the scope of this document since it is dependant on the layer 2 technology.</t>
-
-</section>
-<section anchor="schc-parameterization-for-esp"><name>SCHC parameterization for ESP</name>
-
-<t>This section lists in Table <xref target="tab-ehc-ctx-esp"/> and describes the attributes of the EHCP Context. These attributes will be used to express the various compressions that operate at the IIPC, CTEC, and EEC level.<br />
-The attributes can be derived from the agreed SA or being explicitly agreed or configured.</t>
-
-<t>The compression of the Inner IP Packet is based on the attributes that are derived from the negotiated Traffic Selectors TSi/TSr. The resulting Traffic Selectors negotiated as described in <xref section="3.13" sectionFormat="comma" target="RFC7296"/> may result in a quite complex expression, and this specification restricted that complexity. In particular, we restrict the Traffic Selector to a single type of IP address (IPv4 or IPv6), a single protocol (such as UDP, TCP, not relevant), a single port range and multiple DSCP numbers. Such simplification corresponds to the expression of an individual Traffic Selector Payload <xref section="3.13.1" sectionFormat="comma" target="RFC7296"/>.<br />
-The ability to derive the EHCP Context for the IIPC from the agreed Traffic Selectors is indicated by a variable iipc_profile.</t>
+<t>The ability to derive the EHCP Context for the IIPC from the agreed Traffic Selectors is indicated by the variable iipc_profile.</t>
 
 <figure title="EHCP related parameters" anchor="tab-ehc-ctx-esp"><artwork align="center"><![CDATA[
 +===================+=============================+===========+=======+
@@ -306,43 +363,46 @@ The ability to derive the EHCP Context for the IIPC from the agreed Traffic Sele
 | ecn_cda           | "uncompress", "lower"       | ThisRFC   | IIPC  | 
 | flow_label_cda    | "uncompress", "lower",      | ThisRFC   | IIPC  |
 |                   | "generated", "zero"         |           |       | 
-| ts_ip_version     | "IPv4-only", "IPv6-only"    | ThisRFC   | IIPC  |
-| ts_ip_src_start   | IP4 or IPv6 address         | ThisRFC   | IIPC  |
-| ts_ip_src_end     | IP4 or IPv6 address         | ThisRFC   | IIPC  |
-| ts_ip_dst_start   | IPv4 or IPv6 address        | ThisRFC   | IIPC  |
-| ts_ip_dst_end     | IPv4 or IPv6 address        | ThisRFC   | IIPC  |
-| ts_proto          | TCP, UDP, UDP-Lite, SCTP,   | ThisRFC   | IIPC  |  
-|                   | ANY,                        |           |       |
-| ts_port_src_start | Port number                 | ThisRFC   | IIPC  |
-| ts_port_src_end   | Port number                 | ThisRFC   | IIPC  |
-| ts_port_dst_start | Port number                 | ThisRFC   | IIPC  |
-| ts_port_dst_end   | Port number                 | ThisRFC   | IIPC  |
+| ts_ip_version     | "IPv4-only IPv6-only"       | RFC7296   | IIPC  |
+| ts_ip_src_start   | IP4 or IPv6 address         | RFC7296   | IIPC  |
+| ts_ip_src_end     | IP4 or IPv6 address         | RFC7296   | IIPC  |
+| ts_ip_dst_start   | IPv4 or IPv6 address        | RFC7296   | IIPC  |
+| ts_ip_dst_end     | IPv4 or IPv6 address        | RFC7296   | IIPC  |
+| ts_proto          | TCP, UDP, UDP-Lite, SCTP,   | RFC7296   | IIPC  |  
+|                   | ANY, ...                    |           |       |
+| ts_port_src_start | Port number                 | RFC7296   | IIPC  |
+| ts_port_src_end   | Port number                 | RFC7296   | IIPC  |
+| ts_port_dst_start | Port number                 | RFC7296   | IIPC  |
+| ts_port_dst_end   | Port number                 | RFC7296   | IIPC  |
 | dscp_list         | list of DSCP numbers        | RFCYYYY   | IIPC  |
 +-------------------+-----------------------------+-----------+-------+
-| alignment         | "8 bit", "32 bit"           | ThisRFC   | CTEC  |
+| alignment         | "8 bit", "16 bit", "32 bit" | ThisRFC   | CTEC  |
+|                   | "64 bit"                    |           |       |
 | ipsec_mode        | "Tunnel", "Transport"       | RFC4301   | CTEC  | 
-| tunnel_ip         | IPv4, IPv6 address          | RFC4301   | CTEC  |
+| tunnel_ip         | IPv6 address                | RFC4301   | CTEC  |
 | esp_encr          | ESP Encryption Algorithm    | RFC4301   | CTEC  |
 +-------------------+-----------------------------+-----------+-------+
 | esp_spi           | ESP SPI                     | RFC4301   | EEC   |
-| esp_spi_lsb       | 0, 1, 2, 3, 4*              | ThisRFC   | EEC   |
+| esp_spi_lsb       | 0-32                        | ThisRFC   | EEC   |
 | esp_sn            | ESP Sequence Number         | RFC4301   | EEC   |
-| esp_sn_lsb        | 0, 1, 2, 3, 4*              | ThisRFC   | EEC   |
+| esp_sn_lsb        | 0-64                        | ThisRFC   | EEC   |
 +-------------------+-----------------------------+-----------+-------+
 ]]></artwork></figure>
 
-<t>Any parameter starting with "ts_". These parameters are associated with the Traffic Selectors of the SA and are introduced by this specification.
-This specification limits the expression of the Traffic Selector to be of the form (IP source range, IP destination range, Port source range, Port destination range, Protocol ID list, DSCP list).
-This limits the original flexibility of the expression of TS, but we believe that it provides sufficient flexibility. Following shows detail information of these parameters.</t>
+<t>Any parameter starting with "ts_" is associated with the Traffic Selectors of the SA. The notation is introduced by this specification but the definition of the parameters is defined in <xref target="RFC4301"/> and <xref target="RFC7296"/>.</t>
+
+<t>This specification limits the expression of the Traffic Selector to be of the form (IP source range, IP destination range, Port source range, Port destination range, Protocol ID list, DSCP list). This limits the original flexibility of the expression of TS, but provides sufficient flexibility.</t>
+
+<t>The details of each parameter are the following:</t>
 
 <dl>
   <dt>iipc_profile:</dt>
   <dd>
-    <t>designates the profile used by IIPC. When set to "uncompress" IIPC is not performed. This draft describes IIPC that corresponds to the "diet-esp" profile.</t>
+    <t>designates the profile used by IIPC. When set to "uncompress" IIPC is not performed. This specification describes IIPC that corresponds to the "diet-esp" profile.</t>
   </dd>
   <dt>flow_label_cda:</dt>
   <dd>
-    <t>indicates how the Flow Label field of the inner IPv6 packet or the Identification field of the inner IPv4 packet is compressed / decompressed - See <xref target="sec-cda"/> for more information. In a nutshell, "uncompress" indicates that Flow Label (resp. Identification) are not compressed. "lower" indicates the value is read from the outer IP header - eventually with some adaptations when inner IP packet and outer IP pakets have different versions. "generated" indicate s that the fields is generated by the receiving party. In that case, the decompressed value may take a different value its original value. "zero" indicates the field is set to zero.</t>
+    <t>indicates how the Flow Label field of the inner IPv6 packet or the Identification field of the inner IPv4 packet is compressed / decompressed - See <xref target="sec-cda"/> for more information. In a nutshell, "uncompress" indicates that Flow Label (resp. Identification) are not compressed. "lower" indicates the value is read from the outer IP header - eventually with some adaptations when inner IP packet and outer IP pakets have different versions. "generated" indicates that the fields is generated by the receiving party. In that case, the decompressed value may take a different value its original value. "zero" indicates the field is set to zero.</t>
   </dd>
   <dt>dscp_cda:</dt>
   <dd>
@@ -354,19 +414,16 @@ This limits the original flexibility of the expression of TS, but we believe tha
   </dd>
   <dt>ts_ip_version:</dt>
   <dd>
-    <t>designates the IP version of the Traffic Selectors and its value is set to "IPv4-only" when only IPv4 IP addresses are considered and to "IPv6-only" when only IPv6 addresses are considered.
-Practically, when IKEv2 is used, it means that the agreed TSi or TSr results only in a mutually exclusive combination of TS_IPv4_ADDR_RANGE or TS_IPV6_ADDR_RANGE payloads.</t>
+    <t>designates the IP version of the Traffic Selectors and its value is set  to "IPv4-only" when only IPv4 IP addresses are considered and to "IPv6-only" when only IPv6 addresses are considered.
+Practically, when IKEv2 is used, it means that the agreed TSi or TSr results only in a mutually exclusive combination of TS_IPV4_ADDR_RANGE or TS_IPV6_ADDR_RANGE payloads.</t>
   </dd>
   <dt>ts_ip_src_start:</dt>
   <dd>
-    <t>designates the starting value range of source IP addresses of the inner packet and has the same meaning as the Starting Address field of the Traffic Selector payload defined in <xref section="3.13" sectionFormat="comma" target="RFC7296"/>.
-Note however that in this specification, ts_ip_src_start applies for all agreed Traffic Selector payloads.
-When the IP addresses cannot be expressed as a range, that can be exactly expressed as [ ts_ip_src_start, ts_ip_src_end ], ts_ip_src_start is undefined.</t>
+    <t>designates the starting value range of source IP addresses of the inner packet and has the same meaning as the Starting Address field of the Traffic Selector payload defined in <xref section="3.13" sectionFormat="comma" target="RFC7296"/>.</t>
   </dd>
   <dt>ts_ip_src_end:</dt>
   <dd>
-    <t>designates the high end value range of source IP addresses of the inner packet and has the same meaning as the Ending Address field of the Traffic Selector payload defined in <xref section="3.13" sectionFormat="comma" target="RFC7296"/>.
-Similarly to ts_ip_src_end, when the IP addresses cannot be expressed as a range, ts_ip_src_end is undefined.</t>
+    <t>designates the high end value range of source IP addresses of the inner packet and has the same meaning as the Ending Address field of the Traffic Selector payload defined in <xref section="3.13" sectionFormat="comma" target="RFC7296"/>.</t>
   </dd>
   <dt>ts_port_src_start:</dt>
   <dd>
@@ -394,7 +451,7 @@ Finally, len( x ) is defined as the function that returns the number of bits of 
   </dd>
   <dt>alignment:</dt>
   <dd>
-    <t>indicates the byte alignement supported by the OS for the ESP extension. By default, the alignement is 32 bit for IPv6, but some systems may also support an 8 bit alignement. Note that when a block cipher such as AES-CCM is used, an 8 bit alignment is overwritten by the block size.</t>
+    <t>indicates the byte alignement supported by the OS for the ESP extension. By default, the alignement is 32 bit for IPv6, but some systems may also support an 8 bit alignement. Note that when a block cipher such as AES-CCM is used, an 128 bit alignment is overwritten by the block size.</t>
   </dd>
   <dt>ipsec_mode:</dt>
   <dd>
@@ -408,7 +465,7 @@ That IP address can be an IPv4 or IPv6 address.</t>
   </dd>
   <dt>esp_encr:</dt>
   <dd>
-    <t>designates the encryption algorithm used. For the purpose of compression it is RECOMMENDED to use <xref target="RFC8750"/>.</t>
+    <t>designates the encryption algorithm used. For the purpose of compression it is RECOMMENDED to use algorithms that already compresse their IV <xref target="RFC8750"/>.</t>
   </dd>
   <dt>esp_spi:</dt>
   <dd>
@@ -416,7 +473,11 @@ That IP address can be an IPv4 or IPv6 address.</t>
   </dd>
   <dt>esp_spi_lsb:</dt>
   <dd>
-    <t>designates the LSB to be considered for the compressed SPI. This parameter is defined by this specification and can take the following values 0, 1, 2, 4 respectively meaning that the compressed SPI will consist of the esp_spi_lsb LSB bytes of the original SPI.
+    <t>designates the LSB to be considered for the compressed SPI. A value of 32 for esp_spi_lsb will leave the SPI unchanged.</t>
+  </dd>
+  <dt/>
+  <dd>
+    <t>This parameter is defined by this specification and can take the following values 0, 1, 2, 4 respectively meaning that the compressed SPI will consist of the esp_spi_lsb LSB bytes of the original SPI.
 A value of 4 for esp_spi_lsb will leave the SPI unchanged.</t>
   </dd>
   <dt>esp_sn:</dt>
@@ -429,11 +490,9 @@ A value of 4 for esp_spi_lsb will leave the SPI unchanged.</t>
   </dd>
 </dl>
 
-</section>
-<section anchor="sec-cda"><name>New SCHC CDA</name>
+<section anchor="sec-cda"><name>Compression/Decompression Actions in Diet-ESP</name>
 
-<t>In addition to the Compression / Decompression Actions defined in <xref section="7.4" sectionFormat="comma" target="RFC8724"/>, this specification uses the CDA as presented in <xref target="tab-cda"/>.
-These CDA are either a refinement of the compute- * CDA or the result of combined CDA.</t>
+<t>In addition to the Compression/Decompression Actions (CDAs) defined in <xref section="7.4" sectionFormat="comma" target="RFC8724"/>, this specification uses the CDAs presented in <xref target="tab-cda"/>. These CDAs are either a refinement of the compute- * CDA or the result of a combined CDA.</t>
 
 <figure title="EHCP ESP related parameter" anchor="tab-cda"><artwork align="center"><![CDATA[
 +========================+=============+======================+
@@ -442,14 +501,16 @@ These CDA are either a refinement of the compute- * CDA or the result of combine
 | lower                  | elided      | Get from lower layer |
 | generated (Flow Label) | elided      | Compute flow label   |
 | checksum               | elided      | Compute checksum     |
-| padding                | elided      | Compute padding      |
+| ESP padding            | elided      | Compute padding      |
+| hop limit              | elided      | Get from lower layer |
+| SCHC padding           | send        | Compute padding      |
 +------------------------+-------------+----------------------+
 ]]></artwork></figure>
 
 <dl>
   <dt>lower:</dt>
   <dd>
-    <t>is only used in a Tunnel mode and indicates that the fields of the inner IP packet header are generated from the corresponding fields of the Tunnel IP header fields. This CDA can be used for the DSCP, ECN, and IPv6 Flow Label (resp. IPv4 Identification) field. When the outer IP header is an IPv6 Header and the inner IP header is in IPv4 header the 16 LSB are copied. When the outer IP header is an IPv4 Header and the inner IP Header is an IPv6 Header, the 4 MSB bits are set to 0.</t>
+    <t>is only used in a Tunnel mode and indicates that the fields of the inner IP packet header are generated from the corresponding fields of the Tunnel IP header fields. This CDA can be used for the DSCP, ECN, and IPv6 Flow Label (resp. IPv4 identification) fields.</t>
   </dd>
   <dt>generated:</dt>
   <dd>
@@ -459,20 +520,31 @@ These CDA are either a refinement of the compute- * CDA or the result of combine
   <dd>
     <t>indicates that a checksum is computed accordingly. Typically, the checksum CDA has a different implementation for IPv4, UDP, TCP,...</t>
   </dd>
-  <dt>padding:</dt>
+  <dt>ESP padding:</dt>
   <dd>
-    <t>indicates that padding bytes are generated accordingly.</t>
+    <t>indicates that the ESP padding bytes are generated accordingly.</t>
+  </dd>
+  <dt>hop limit:</dt>
+  <dd>
+    <t>indicates that the hop limit is derived from the outer IPv6 header.</t>
+  </dd>
+  <dt>SCHC padding:</dt>
+  <dd>
+    <t>indicates that the SCHC padding bits are generated accordingly.</t>
   </dd>
 </dl>
 
 </section>
 </section>
-<section anchor="inner-ip-compression-iipc"><name>Inner IP Compression (IIPC)</name>
+</section>
+<section anchor="schc-compression-for-ipsec-in-tunnel-mode"><name>SCHC Compression for IPsec in Tunnel mode</name>
+
+<section anchor="sec-iipc"><name>Inner IP Compression (IIPC)</name>
 
 <t>When iipc_profile is set to "uncompress", the packet is uncompressed. 
 When iipc_profile is set to "diet-esp", IIPC proceeds to the compression of the inner IP Packet composed of an IP Header and an IP Payload.
 The compression of the inner IP Payload is described in <xref target="sec-payload"/>.<br />
-The IP Header is compressed when ipsec_mode is set to "Tunnel" and left uncompressed otherwise. ts_ip_version determines how the IPv6 Header (resp. the IPv4 Header) is compressed - see <xref target="sec-inner-ip6"/> (resp. <xref target="sec-inner-ip4"/>).</t>
+The IP Header is compressed when ipsec_mode is set to "Tunnel" and left uncompressed otherwise. ts_ip_version determines how the IPv6 Header (resp. the IPv4 header) is compressed - see <xref target="sec-inner-ip6"/> (resp. <xref target="sec-inner-ip4"/>).</t>
 
 <section anchor="sec-payload"><name>Inner IP Payload Compression</name>
 
@@ -488,9 +560,9 @@ This may result in decompressing a zero-checksum UDP packet with a valid checksu
 </section>
 <section anchor="sec-inner-ip6"><name>Inner IPv6 Header Compression</name>
 
-<t>The version field is elided, FL is set to 3, TV is set to ts_ipversion, MO is set to"equal" and CDA is set to "not-sent".</t>
+<t>The version field is elided, FL is set to 3, TV is set to ts_ipversion, MO is set to "equal" and CDA is set to "not-sent".</t>
 
-<t>Traffic Class is composed of the 6 bit DSCP and 2 bit ECN and only the DSCP bits are subject to compression. 
+<t>Traffic Class is composed of the 6 bit DSCP and 2 bit ECN.
 The compression of DSCP and ECN are defined independently.</t>
 
 <t>DSCP values are compressed according to the dscp_cda value:
@@ -505,32 +577,23 @@ For ECN, FL is set to 2 bits, TV is not set, MO is set to ignore and CDA is set 
 
 <t>Flow label is compressed according to the flow_label_cda value: 
 * If flow_label_cda is set to "uncompress", the Flow label is included in the IPv6 Header. FL is set to 20 bits, TV is not set MO is set to "ignore" and CDA is set to "sent-value".
-* If flow_label_cda is set to "lower", the Flow Label is elided and read from the outer IP Header (See <xref target="sec-cda"/>). FL is set to 20 bits, TV is not set, MO is set to "ignore" and CDA is set to "lower". If the outer IP header is an IPv4 Header, only the 16 LSB of the Flow Label are inserted into the IPv4 Header. At the decompression, the 4 MSB of the Flow Label are set to 0. 
-* If flow_label_cda is set to "generated", the Flow Label elided and the Flow Label is then re-generated at the decompression (See <xref target="sec-cda"/>). The resulting Flow Label is expected result in a different value. FL is set to 20, TV is not set, MO is set to "ignore" and CDA is set to "generated". 
+* If flow_label_cda is set to "lower", the Flow Label is elided and read from the outer IP Header (See <xref target="sec-cda"/>). FL is set to 20 bits, TV is not set, MO is set to "ignore" and CDA is set to "lower". If the outer IP header is an IPv4 header, only the 16 LSB of the FLow Label are inserted into the IPv4 Header. At the decompression, the 4 MSB of the Flow Label are set to 0. 
+* If flow_label_cda is set to "generated", the Flow Label elided and the Flow Label is then re-generated at the decompression (See <xref target="sec-cda"/>). The resulting Flow Label differs from the initial value. FL is set to 20, TV is not set, MO is set to "ignore" and CDA is set to "generated". 
 * If flow_label_cda is set to "zero", the Flow Label is elided and set to 0 at decompression. A 0 value indicates no flow label is present. Fl is set to 20 bits, TV is set to 0, MO is set to "equal" and CDA is set to "not-sent".</t>
 
 <t>Payload Length is elided and determined from the Tunnel IP Header Payload Length as well as the decompressed Payload. FL is set to 16 bits, TV is not set, MO is set to "ignore", CDA is set to "lower".</t>
 
-<t>NOTE TO COAUTHORS: I DO NOT THINK WE CAN COMPRESS THE LAST NEXT HEADER AS WE ONLY KNOW IT IS THE LAST ONCE WE HAVE READ IT. TO DETERMINE THAT THIS IS THE LAST WE NEED TO MAKE SOME ASSUMPTIONS THAT THERE ARE NO IPV6 EXTENSION HEADER. I AM NOT SURE WE CAN MAKE SUCH ASSUMPTION AS THIS IS NOT SOMETHING AGREED BETWEEN THE TWO PEERS. IF THAT IS CORRECT, THE SECTION BELOW NEEDS TO BE REMOVED. 
-The last Next Header determine the transport being used and for convenience we refer it as the Transport Next Header. 
-* If the ts_proto contains a single non-zero value specified by the SA, ts_proto, is elided and decompressed according to the SA. FL is set to 8, TV is set to that value, MO is set to "equal," and CDA is set to "not-sent."
-* If ts_proto is a list of non zero values, values are ordered in increasing order to form proto_list. Next Header is then replaced by the corresponding index of the list. FL is set to 8 bits, TV is set to the proto_list, MO is set to "match-mapping," and CDA is set to "mapping-sent".
+<t>Next Header is compressed according to ts_proto: 
 * If ts_proto is the single value 0, Next Header is not compressed. FL is set to 8 bits, TV is not set, MO is set to "ignore", CDA is set to "sent-value".
-* If ts_proto is a list non zero values are ordered in increasing number, 0 ("OTHER") is appended. Next Header is then replaced by the corresponding index except for the "OTHER" in which case, the complete Next Header is sent.</t>
-
-<t>NOTE TO COAUTHORS: I AM NOT SURE WE CAN USE STANDARD RULES TO IMPLEMENT THE LIST WITH 0. wE HAVE TWO ALTERNATIVES. EITHER WE ASSUME THAT THERE IS NO COMPRESSION WHEN A ZERO IS THERE OR WE CREATE A NEW CDA.</t>
-
-<t>This profiles considers a list of values "TCP", "UDP", "UDP-Lite", "SCTP", "OTHER".</t>
+* If ts_proto is a single non zero value, Next Header is compressed. FL is set to 8 bits, TV is set to ts_proto, MO is set to "equal" and CDA is set to "not-sent".</t>
 
 <t>The IPv6 Hop Limit is read from the Tunnel IP Header Hop Limit. FL is set to 8 bits, TV is not set, MO is set to "ignore" and CDA is set to "lower."</t>
-
-<t>NOTE TO COAUTHORS: WE MAY NEED TO DEFINE A hop_limit_cda FOR CONSISTENCY.</t>
 
 <t>The source and destination IPv6 addresses are compressed using MSB. 
 In both cases, FL is set to 128, TV is respectively set to  msb(ts_ip_src_start, ts_ip_src_ed) or msb(ts_ip_dst_start, ts_ip_dst_end)), the MO is set to "MSB," and the CDA is set to "LSB."</t>
 
 </section>
-<section anchor="sec-inner-ip4"><name>Inner IPv4 Compression</name>
+<section anchor="sec-inner-ip4"><name>Inner IPv4 Header Compression</name>
 
 <t>The fields Version, DSCP, ECN, Source Address and Destination Address are compressed as described for IPv6 in <xref target="sec-inner-ip6"/>.
 The field Total Length (16 bits) is compressed similarly to the IPv6 field Payload Length. The field Identification (16 bits) is compressed similarly to the IPv6 field Flow Label. If the IP Header is an IPv6 Header, the Identification are placed as the LSB of the IPv6 Header and the 4 remaining MSB are set to 0.  The field Time to Live is compressed similarly to the IPv6 Hop Limit field. The Protocol field is compressed similarly to the last IPv6 Next Header field.</t>
@@ -542,52 +605,23 @@ FL is set to 16, TV is omitted, MO is set to "ignore," and CDA is set to "checks
 
 </section>
 </section>
-<section anchor="clear-text-esp-compression-ctec"><name>Clear Text ESP Compression (CTEC)</name>
+<section anchor="sec-byte-align"><name>ESP Data Byte alignment</name>
 
-<t>The Clear Text ESP Compression is performed on the ESP fields not yet encrypted, that is the ESP Payload Data, the ESP padding field, the Pad Length field as well as the Next Header field, which indicates the type of the inner packet.</t>
-
-<t>NOTE TO COAUTHORS: THE TWO FOLLOWING PARAGRAPHS NEED TO BE REMOVED, UNLESS WE CAN COMPRESS THE NEXT HEADER TRANSPORT.</t>
-
-<t>When ipsec_mode is set to "Transport" and the ts_ip_version is set to 4, the Next Header in the ESP necessarily contains the Protocol ID and the Next Header can be compressed as described in sec-nh.</t>
-
-<t>When ipsec_mode is set to "Transport" and the ts_ip_version is set to 6, the Next Header does not necessarily designates the Protocol ID, but instead it may contain an IPv6 Header extension. As result, the Next Header cannot be compressed.</t>
-
-<t>When ipsec_mode is set to "Tunnel", the Next Header Field indicates whether the inner packet is an IPv6 or IPv4 packet.</t>
-
-<t>END OF REMOVED PARAGRAPH</t>
-
-<t>NOTE TO COAUTHORS: AS WE ASSUMES THAT WE HAVE A SINGLE TYPE IP ADDRESS WE CAN REMOVE THE FOLLOWING PARAGRAPH.</t>
-
-<t>If ts_ip_version is set 0, the Next Header uses a map and FL is set to 8 bits, TV is set to the list [ "IPv4", "IPv6"], MO is set to "match-mapping" and CDA is set to "mapping-sent".
-If ts_ip_version is set to IPv4 or IPv6, the Next Header is elided, FL is set to 8 bits, TV is set to ts_ip_version, MO is set to "equal" and CDA is set to "not-sent".</t>
-
-<t>END OF PARAGRAPH TO BE REMOVED.</t>
-
-<t>NOTE TO COAUTHORS: IN THE TUNNEL MODE, WE ONLY CONSIDER ip PACKETS SO THE INNER DATA END SUP IN:</t>
-
-<t>BITS( PAYLOAD DATA ) + BITS(PADDING FOR ALIGNMENT)</t>
-
-<t>IN SCHC, WE USUALLY DETERMINE PAYLOAD DATA AND IGNORE THE REMAINDER. I AM NOT SURE THIS IS SOMETHING WE CAN DO HERE AS WE HAVE NO WAYS TO DETERMINE THE END OF THE PAYLOAD DATA FROM READING THE PAYLOAD DATA (LENGTH HAVE BEEN REMOVED). I AM UNDER THE IMPRESSION THAT WE MUST IMPLEMENT A BIT_PADDING AT THE END THAT IS COMPOSED OF PADDING_BITS AND A PAD_LEN FIELD. WHEN ALIGNMENT IS 8 BITS, PAD_LEN FOLLOWS THE FOLLOWING RULES:</t>
-
-<t>ALIGNMENT PAD_LEN<br />
-8 BITS    3 BITS
-16 BITS   4 BITS
-32 BITS   5 BITS
-64 BITS   6 BITS</t>
-
-<t>If the esp_encr does not require a specific block size, Padding and Pad Length are elided.
-FL is defined by the type that is to (Pad Length + 1 ) * 8 bits, TV is unset, MO is set to "ignore" and CDA is set to padding.</t>
-
-<t>Encryption may require require the clear text to respect a given size block.
-In addition, IP networking may also require a special alignment which is 32 bits by default for IPv6 Extensions, but may also be overwritten by the EHC Context.
-The Padding is defined by pad_value and pad_size appended to the clear text payload - similarly to what ESP does with Padding and Pad Len. 
-An 8 (resp. 16, 32 or 64) bit alignment is interpreted by SCHC as a Word of 8 (resp. 16, 32 or 64) bits.
-The padding size pad_size is defined by the alignment and set to 3 bits for an 8 bit alignment (23) and 5 bits for 32 bit alignment (2**5).
-If pad designates the number of bits to be padded, the pad value is set to pad_value = ( pad + len( pad_size ) % Word.
-This results in an additional pad_value + pad_size bits.</t>
+<t>SCHC operates on bits, while protocols like ESP expect payloads to be aligned to byte boundaries (8-bit alignment). To ensure this, we apply a padding by appending the SCHC_padding bits and the SCHC_padding_len. SCHC_padding_len is encoded over 3 bits to encode the values 0-7. SCHC_padding are randomy generated. Let's call the complementing bits, the bits that are needed to have a byte boundary. If the complementing bits are less or equal to 2 bits, the padding will result in adding an extra byte.</t>
 
 </section>
-<section anchor="encrypted-esp-compression-eec"><name>Encrypted ESP Compression (EEC)</name>
+<section anchor="sec-ctec"><name>Clear Text ESP Compression (CTEC)</name>
+
+<t>The Clear Text ESP Compression is applied to compress the unencrypted ESP fields, including the ESP Payload Data and the Next Header field, which indicates the type of the inner packet.</t>
+
+<t>SCHC Compression efficiently compresses the Next Header field, reducing overhead and aligning the packet to byte boundaries using SCHC Padding. After this, the SCHC Pad Length field is added. If required by the encryption algorithm, additional ESP Padding and Pad Length fields are introduced to ensure the packet fits the specified encryption block size.</t>
+
+<t>In tunnel mode, the Next Header field is elided as the inner IP packet (either IPv4 or IPv6) is determined by the Traffic Selector, which is expressed by a single Traffic Selector Payload in the SA.</t>
+
+<t>The ESP Padding and Pad Length fields are reduced by the SCHC compression rule. This process minimizes the size of the Clear Text ESP packet by eliminating unnecessary padding, while maintaining proper alignment for transmission. The ESP Padding and Pad Length may differ from the decompressed versions due to alignment requirements, which depend on the maximum of the encryption block alignment or the IPv6 Header alignment (32 bits). Since the padding is stripped by the IPsec process, these differences do not impact packet processing. This is expressed as FL is defined by the type that is to (Pad Length + 1 ) * 8 bits, TV is unset, MO is set to "ignore" and CDA is set to padding.</t>
+
+</section>
+<section anchor="sec-eec"><name>Encrypted ESP Compression (EEC)</name>
 
 <t>SPI is compressed to its LSB.
 FL is set to 32 bits, TV is not set, MO is set to "MSB( 4 - esp_spi_lsb)" and CDA is set to "LSB".</t>
@@ -598,6 +632,12 @@ FL is set to 32 bits, TV is not set, MO is set to "MSB( 4 - esp_spi_lsb)" and CD
 <t>Note that the use of implicit IV always result in a better compression as a 64 bit IV to be sent while compression of the SN alone results at best in a reduction of 32 bits.</t>
 
 <t>The IPv6 Next Header field or the IPv4 Protocol that contains the "ESP" value is changed to "SCHC".</t>
+
+</section>
+</section>
+<section anchor="schc-compression-for-ipsec-in-transport-mode"><name>SCHC Compression for IPsec in Transport mode</name>
+
+<t>The transport mode mostly differ from the Tunnel mode in that the IP header of the packet is not encrypted. As a result, the IP Payload is compressed as described in <xref target="sec-payload"/>. The IP header is not compressed. The byte alignment of the Compressed Payload is performed as described in <xref target="sec-byte-align"/>. The Clear Text ESP Compression is performed as described in <xref target="sec-ctec"/> except for the Next Header Field which is compressed as described in <xref target="sec-inner-ip6"/></t>
 
 </section>
 <section anchor="iana-considerations"><name>IANA Considerations</name>
@@ -618,6 +658,8 @@ FL is set to 32 bits, TV is not set, MO is set to "MSB( 4 - esp_spi_lsb)" and CD
 +----------------------+-----------+
 | "uncompress"         | ThisRFC   |
 | "generated"          | ThisRFC   |
+| "lower"              | ThisRFC   |
+| "zero"               | ThisRFC   |
 ]]></artwork></figure>
 
 <figure><artwork><![CDATA[
@@ -625,20 +667,14 @@ FL is set to 32 bits, TV is not set, MO is set to "MSB( 4 - esp_spi_lsb)" and CD
 +----------------------+-----------+
 | "uncompress"         | ThisRFC   |
 | "lower"              | ThisRFC   |
+| "sa"                 | ThisRFC   |
 ]]></artwork></figure>
 
 <figure><artwork><![CDATA[
-| DSCP CDA Value       | Reference |
+| ECN CDA Value       | Reference |
 +----------------------+-----------+
 | "uncompress"         | ThisRFC   |
 | "lower"              | ThisRFC   |
-]]></artwork></figure>
-
-<figure><artwork><![CDATA[
-| TS IP Version Value  | Reference |
-+----------------------+-----------+
-| "IPv4-only"          | ThisRFC   |
-| "IPv6-only"          | ThisRFC   |
 ]]></artwork></figure>
 
 <figure><artwork><![CDATA[
@@ -665,7 +701,7 @@ FL is set to 32 bits, TV is not set, MO is set to "MSB( 4 - esp_spi_lsb)" and CD
 </section>
 <section anchor="acknowledgements"><name>Acknowledgements</name>
 
-<t>We would like to thank Laurent Toutain for its guidance on SCHC. Robert Moskowitz for inspiring the name "Diet-ESP" from Diet-HIP.</t>
+<t>We would like to thank Laurent Toutain for its guidance on SCHC. Robert Moskowitz for inspiring the name "Diet-ESP" from Diet-HIP. The authors would like to acknowledge the support from Mitacs through the Mitacs Accelerate program.</t>
 
 </section>
 
@@ -677,13 +713,15 @@ FL is set to 32 bits, TV is not set, MO is set to "MSB( 4 - esp_spi_lsb)" and CD
 
     <references title='Normative References' anchor="sec-normative-references">
 
+&RFC7296;
 &RFC2119;
 &RFC8174;
 &RFC4303;
 &RFC4301;
 &RFC8724;
+&I-D.ietf-ipsecme-ikev2-diet-esp-extension;
 &RFC8376;
-&RFC7296;
+&I-D.ietf-schc-architecture;
 &I-D.mglt-ipsecme-ikev2-diet-esp-extension;
 &RFC5996;
 &I-D.mglt-ipsecme-dscp-np;
@@ -696,561 +734,156 @@ FL is set to 32 bits, TV is not set, MO is set to "MSB( 4 - esp_spi_lsb)" and CD
 
     <references title='Informative References' anchor="sec-informative-references">
 
+<reference anchor="OpenSCHC" target="https://github.com/openschc">
+  <front>
+    <title>OpenSCHC a Python open-source implementation of SCHC (Static Context Header Compression) RFC8724</title>
+    <author >
+      <organization></organization>
+    </author>
+    <date year="n.d."/>
+  </front>
+</reference>
 &RFC9333;
-&RFC4309;
 
 
     </references>
 
 
-<?line 587?>
+<?line 625?>
 
-<section anchor="illustrative-example"><name>Illustrative Example</name>
-
-<section anchor="sec-iot-udp"><name>Single UDP Session IoT VPN</name>
-
-<t>This section considers a IoT IPv6 probe hosting a UDP application.
-The probe is dedicated to a single application and establishes a single UDP session with a server, and sets a VPN to connect its secure domain - like a home gateway.
-The home gateway will be responsible to decompress the compress packet and provides interoperability with standard application server.</t>
-
-<t>The EHC Context is defined as mentioned below:</t>
-
-<t><list style="symbols">
-  <t>alignment is set to 8 bits</t>
-  <t>ipsec_mode is set to "Tunnel"</t>
-  <t>tunnel_ip_srct is set to the IPv6_m, the IPv6 address of the mote.</t>
-  <t>tunnel_ip_dst is set to IPv6_gw, the IPv6 of the security gateway.</t>
-  <t>esp_spi is agreed by the IKEv2.</t>
-  <t>esp_spi_lsb is set to 0 as IPv6_m provides sufficient context to associate the right SA.</t>
-  <t>esp_sn results from the standard IPsec, and not impacted.</t>
-  <t>esp_sn_lsb is set to 2 even though we are considering  AES-CCM_8_IIV <xref target="RFC8750"/> which uses the ESP Sequence Number to generated the IV.
-This results in a 8 bytes reduction compared to the AES-CCM_8 <xref target="RFC4309"/>.</t>
-  <t>esp_encr is configured with AES-CCM_8_IIV <xref target="RFC8750"/>. This cipher suite does not require a block size and so no padding is required and does not support SN compression.</t>
-  <t>flow_label As the inner traffic and the encrypted traffic are very correlated, it makes sense to re-use the flow label and flow_label is set to True.</t>
-  <t>ts_ip_version is set to IPv6.</t>
-  <t>ts_ip_src_start is set to IPv6_m. In this example, the SA is associated to messages sent by the mote to the application server (IPv6_server)</t>
-  <t>ts_ip_src_end is set to IPv6_m</t>
-  <t>ts_ip_dst_end the IPv6 address of the application server (IPv6_server).</t>
-  <t>ts_ip_dst_end IPv6_server</t>
-  <t>ts_proto [ UDP ], in the case of a very constraint mote, only UDP messages are considered.</t>
-  <t>ts_port_src_start port_m. The mote and the application server are using dedicated ports.</t>
-  <t>ts_port_src_end port_m. The mote and the application server are using dedicated ports. The use of a specific single port enables their elision.</t>
-  <t>ts_port_dst_end port_server</t>
-  <t>ts_port_dst_end port_server</t>
-  <t>ts_dsp_list [ 0 ] the default standard value, we MAY assume that value has been negotiated via IKEv2 or that it as been set as the default value left to the lower layers.</t>
-</list></t>
-
-<t><xref target="fig-std-udp-tunnel"/> illustrates an UDP packet being protected by ESP in the tunnel mode using AES-CCM_8_IIV.
-This packet is compressed as depicted in <xref target="fig-comp-udp-tunnel"/>.<br />
-EHC reduces the packet size by 53 bytes.</t>
-
-<figure title="Standard ESP packet for IoT UDP in Tunnel mode more with AES-CCM_8_IIV" anchor="fig-std-udp-tunnel"><artwork align="center"><![CDATA[
-  0                   1                   2                   3
-  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
--+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
-E|               Security Parameters Index (SPI)                 |  ^
-S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
-P|                      Sequence Number (SN)                     |  |
- +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
-I|version| traffic class |               flow label              |^ |
-P+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-v|         payload length        |  next header  |   hop limit   || |
-6+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
- |                                                               || a
- |                      inner source IP                          || u
- |                                                               |e t
- |                                                               |n h
- +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+c e
- |                                                               |r n
- |                    inner destination IP                       |y t
- |                                                               |p i
- |                                                               |t c
--+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+e a
-U|          source port          |           dest port           |d t
-D+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| e
-P|             length            |            checksum           || d
- +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
- |                                                               || |
- ~                        APPLICATION DATA                       ~| |
- |                                                               || |
--|                                               +-+-+-+-+-+-+-+-+| |
-E|                                               |    Padding    || |
-S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-P|     Padding (continue)        |  Pad Length   | Next Header   |v v
--+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
- |         Integrity Check Value-ICV   (variable)                |
- |                                                               |
- +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-]]></artwork></figure>
-
-<figure title="EHC ESP packet for IoT UDP in Tunnel mode more with AES-CCM_8_IIV" anchor="fig-comp-udp-tunnel"><artwork align="center"><![CDATA[
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+--
-|      Sequence Number          |                               | ^
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                               | aut
-|                                                               | hen
-~                        APPLICATION DATA                       ~ tic
-|                          (encrypted)                          | ate
-|               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-|
-|               |                                               | V
-+-+-+-+-+-+-+-+-+                                               |--
-|         Integrity Check Value-ICV   (variable)                |
-|               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|               |
-+-+-+-+-+-+-+-+-+
-]]></artwork></figure>
-
-</section>
-<section anchor="single-tcp-session-iot-vpn"><name>Single TCP session IoT VPN</name>
-
-<t>This section is very similar to <xref target="sec-iot-udp"/> except that a TCP session is used instead.</t>
-
-<t>The compression on the TCP payload is very limited, and in a case where the TCP end point is the same as the ESP end point additionnal compression could be performed.
-Additional fields such as TCP options, urgent pointers, the SN and ACK Number could be compressed by a specific profile agreed at the TCP level as opposed to the ESP level.</t>
-
-<t>The ESP encapsulated TCP packet described in <xref target="fig-std-tcp-tunnel"/> is compressed by EHCP using th esam eEHCP context as in <xref target="sec-iot-udp"/> and EHCP reduces that packet by 55 bytes, as depicted in <xref target="fig-comp-udp-tunnel"/>.</t>
-
-<figure title="Standard ESP packet for IoT TCP in Tunnel mode more with AES-CCM_8_IIV" anchor="fig-std-tcp-tunnel"><artwork align="center"><![CDATA[
-  0                   1                   2                   3
-  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
--+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
-E|               Security Parameters Index (SPI)                 |  ^
-S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
-P|                      Sequence Number (SN)                     |  |
- +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
-I|version| traffic class |               flow label              |^ |
-P+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-v|         payload length        |  next header  |   hop limit   || |
-6+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
- |                                                               || a
- |                      inner source IP                          || u
- |                                                               |e t
- |                                                               |n h
- +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+c e
- |                                                               |r n
- |                    inner destination IP                       |y t
- |                                                               |p i
- |                                                               |t c
--+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+e a
-T|          source port          |           dest port           |d t
-C+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| e
-P|                      Sequence Number (SN)                     || d
- +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
- |                     ACK Sequence Number                       || |
- +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
- |Off. | Rserv |      Flags      |         Window Size           || |
- +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
- |             Checksum          |      Urgent Pointer           || |
- +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
- |                                                               || |
- ~                        APPLICATION DATA                       ~| |
- |                                                               || |
- |                                               +-+-+-+-+-+-+-+-+| |
-E|                                               |    Padding    || |
-S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-P|     Padding (continue)        |  Pad Length   | Next Header   |V V
--+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
- |         Integrity Check Value-ICV   (variable)                |
- |                                                               |
- +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-]]></artwork></figure>
-
-<figure title="EHC ESP packet for IoT TCP in Tunnel mode more with AES-CCM_8_IIV" anchor="fig-comp-tcp-tunnel"><artwork align="center"><![CDATA[
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
-|  Sequence Number (SN) (ESP)   |          Sequence Number      ~   ^
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+- |
-~       (SN) (TCP)              |                ACK            ~^ | 
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| a
-~      Sequence Number          |Off. | Rserv |      Flags      || u
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+e t
-|         Window Size           |      Urgent Pointer           |n h
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+c |
-|      Urgent Pointer           |                               |r |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                               |y |
-|                                                               ~p |
-~                        APPLICATION DATA                       |t | 
-|                                                               || |
-|               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-|               |                                               |v v
-+-+-+-+-+-+-+-+-+                                               |---
-|         Integrity Check Value-ICV   (variable)                |
-|               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|               |
-+-+-+-+-+-+-+-+-+
-]]></artwork></figure>
-
-</section>
-<section anchor="traditional-vpn"><name>Traditional VPN</name>
-
-<t>This section illustrates the case of an company VPN that allows web browsing. 
-The VPN is typically set by a remote host that forwards all its traffic to the
-security gateway.<br />
-In this case, the SA does not specify the protocol (TCP and UDP packet can be sent), nor the ports. 
-Regarding ports it could be possible to restrict the user to only use high range ports (0  - 2 ** 10) - especially if the VPN is only supporting web browsing - but we did not consider this in this example. 
-The destination IP address is also expect to take any value, while the IPv6 source in the case of a road warrior scenarios us expected to take a single value.
-We consider the VPN client is using an IPv4 or an IPv6 address. 
-Regarding ESP, we considered the VPN client is using AES-GCM_16, though AES-GCM_IIV would be the RECOMMENDED transform.
-The VPN client is also expected to have a reasonably low throughput which enables the SN to be coded over 16 bits as opposed to 32 bits. 
-Similarly, the number of connection is expected to remain sufficiently low so that a 16 bit SPI remains sufficient.</t>
-
-<t>The EHC Context is defined as mentioned below:</t>
-
-<t><list style="symbols">
-  <t>alignment is set to 8 bits</t>
-  <t>ipsec_mode is set to "Tunnel"</t>
-  <t>tunnel_ip_src is set to the IPv6_user, the IPv6 address of the mote.</t>
-  <t>tunnel_ip_dst is set to IPv6_gw, the IPv6 of the security gateway.</t>
-  <t>esp_spi: is agreed by the IKEv2.</t>
-  <t>esp_spi_lsb: is set to 2 bytes.</t>
-  <t>esp_sn: results from the standard IPsec, and not impacted.</t>
-  <t>esp_sn_lsb: is set to 16 bits. Note that such compression is possible since AES-GCM_16 is used instead of AES-GCM_16_IIV. 
-While this results in better performances for EHC, it is not an optimal choice as IIV transforms results always in better comprehensions.</t>
-  <t>esp_encr: is configured with AES-GCM_16 <xref target="RFC8750"/>.</t>
-  <t>flow_label: is set to True, note as the outer IP address is IPv6, the compression is lossless.</t>
-  <t>ts_ip_version: is set not set as the VPN user can use either an IPv4 or an IPv6 address.</t>
-  <t>ts_ip_src_start: is set to IPv6_user or IPv4_user. Note that the version can be inferred by the Next Header, and the version can deterministically determine the IP in use.</t>
-  <t>ts_ip_src_end: is set to IPv6_user or IPv4_user</t>
-  <t>ts_ip_dst_end: IP destination is set to take any value, so the range is unspecified and the start/ end addresses are undefined.</t>
-  <t>ts_ip_dst_end: undefined.</t>
-  <t>ts_proto: undefined</t>
-  <t>ts_port_src_start: undefined.</t>
-  <t>ts_port_src_end: undefined.</t>
-  <t>ts_port_dst_end: undefined</t>
-  <t>ts_port_dst_end: undefined</t>
-  <t>ts_dsp_list: [ 0 ] the default standard value, we MAY assume that value has been negotiated via IKEv2 or that it as been set as the default value left to the lower layers.</t>
-</list></t>
-
-</section>
-<section anchor="ipv6-in-ipv6"><name>IPv6 in IPv6</name>
-
-<t><xref target="fig-std-vpn-tunnel-66"/> represents the original ESP TCP packet with IPv6 inner IP addresses and <xref target="fig-comp-vpn-tunnel-66"/> represents the corresponding packet compressed with EHC.</t>
-
-<t>The compression with Diet-ESP results in a reduction of 32 bytes.</t>
-
-<figure title="Standard ESP packet for VPN traffic mode with AES-GCM_16" anchor="fig-std-vpn-tunnel-66"><artwork align="center"><![CDATA[
-  0                   1                   2                   3
-  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
--+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
-E|               Security Parameters Index (SPI)                 |  ^
-S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
-P|                      Sequence Number (SN)                     |  |
- +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
- |                                                               |  |
- |                             IV                                |  |
--+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+- |
-I|version| traffic class |               flow label              |^ |
-P+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-v|         payload length        |  next header  |   hop limit   || |
-6+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
- |                                                               || a
- |                      inner source IP                          || u
- |                                                               |e t
- |                                                               |n h
- +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+c e
- |                                                               |r n
- |                    inner destination IP                       |y t
- |                                                               |p i
- |                                                               |t c
--+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+e a
-T|          source port          |           dest port           |d t
-C+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| e
-P|                      Sequence Number (SN)                     || d
- +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
- |                     ACK Sequence Number                       || |
- +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
- |Off. | Rserv |      Flags      |         Window Size           || |
- +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
- |             Checksum          |      Urgent Pointer           || |
- +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
- |                                                               || |
- ~                        APPLICATION DATA                       ~| |
- |                                                               || |
--|                                               +-+-+-+-+-+-+-+-+| |
-E|                                               |    Padding    || |
-S+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |
-P|     Padding (continue)        |  Pad Length   | Next Header   |V V
--+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
- |                                                               |
- |         Integrity Check Value-ICV   (variable)                |
- |                                                               |
- |                                                               |
- +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-]]></artwork></figure>
-
-<figure title="Compressed IPv6 in IPv6 ESP packet for VPN traffic mode with AES-GCM_16" anchor="fig-comp-vpn-tunnel-66"><artwork align="center"><![CDATA[
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+---
-|             SPI               |              SN               |  ^
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+  |
-|                                                               |  |
-|                             IV                                |  |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+--|
-|  Next Header  |                                               |^ |
-+-+-+-+-+-+-+-+-+                                               || |
-|                                                               || |
-|                    inner destination IP                       || |
-|                                                               || |a
-|               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |u
-|               |          source port          |  destination  ~|e|t
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|n|h
-~ port          |     TCP Sequence Number (SN)                  ~|c|e
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|r|n
-~  (continue)   |    ACK Sequence Number (SN)                   ~|y|t
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|p|i
-~  (continue)   |Off. | Rserv |      Flags      |    Window     ~|t|c
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+|e|a
-~   Size        |   Urgent   Pointer            |               ~|d|t
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+| |e
-|                                                               || |d
-~                        APPLICATION DATA                       ~| |
-|                                                               || |
-|                             +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ || |
-|                             |  Next Header    | Integrity     ~v v
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+               +---
-|                                                               |
-|         Integrity Check Value-ICV   (variable)                |
-|                                               +-+-+-+-+-+-+-+-+
-|                                               |                              
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-]]></artwork></figure>
-
-</section>
-</section>
 <section anchor="json-format-context"><name>JSON format Context</name>
 
-<t>The JSON file defines a set of rules within the SCHC_Context that are used for compressing and decompressing ESP headers. Each rule has a RuleID, a Description, and a set of Fields. Each field specifies how a particular part of the packet should be handled during compression or decompression. Note that the RuleID can be set by the user in any numeric order.</t>
-
-<t>Rule 1: Clear Text ESP Compression
-Rule 1 compresses the fields of the ESP packet before encryption. The Payload Data field, which is variable in length, is not sent during compression (CDA: "not-sent"). This means that the data payload itself is excluded from the compressed packet and will be handled separately. The Padding field, also variable in length, is computed during decompression to meet alignment requirements (CDA: "padding"). The Pad Length field is an 8-bit field indicating the length of the padding, and it is sent as-is (CDA: "value-sent"). The Next Header field, which indicates the type of the next protocol header, is also an 8-bit field sent without modification (CDA: "value-sent").</t>
-
-<t>Rule 2: Encrypted ESP Compression
-Rule 2 focuses on compressing fields of the ESP packet after encryption. The SPI (Security Parameters Index) is a 32-bit field that is compressed using the Most Significant Bits (MSB) technique based on the number of least significant bytes to be considered (MO: "MSB(4 - esp_spi_lsb)", CDA: "LSB"). Similarly, the Sequence Number, another 32-bit field, is compressed using the MSB technique, reducing its size by only sending the least significant bits as defined in the context (MO: "MSB(4 - esp_sn_lsb)", CDA: "LSB"). This rule ensures that only the necessary parts of these large fields are transmitted, reducing the overall packet size.</t>
-
-<t>Rule 3: Clear Text ESP Decompression
-Rule 3 handles the decompression of the clear text fields of the ESP packet after decryption. The Payload Data field, which is variable in length and was not sent during compression, is restored in its original form (CDA: "not-sent"). The Padding field, also variable, is recalculated to ensure correct alignment as per the network requirements (CDA: "padding"). The Pad Length field, an 8-bit indicator of padding length, is received as-is (CDA: "value-sent"). Similarly, the Next Header field, which specifies the next protocol header, is decompressed directly from the received value (CDA: "value-sent"). This rule ensures that the original structure of the ESP packet is accurately reconstructed.</t>
-
-<t>Rule 4: Inner Packet Compression
-Rule 4 is responsible for compressing the IP source and destination addresses of the inner packet. The IP Source field is compressed using the MSB technique, where only the most significant bits that change are sent (MO: "MSB", CDA: "LSB"). This reduces the amount of data transmitted by leveraging the static context of the IP addresses. Similarly, the IP Destination field is compressed using the same MSB technique, ensuring efficient compression of the IP addresses (MO: "MSB", CDA: "LSB"). By focusing on the most significant bits, this rule minimizes the data needed to represent the IP addresses.</t>
-
-<t>Rule 5: Inner Packet Decompression
-Rule 5 decompresses the IP source and destination addresses of the inner packet. The IP Source field, which was compressed using the MSB technique, is decompressed by reconstructing the full address from the received least significant bits (MO: "MSB", CDA: "LSB"). The same process applies to the IP Destination field, where the original address is reconstructed from the compressed data (MO: "MSB", CDA: "LSB"). This rule ensures that the IP addresses in the inner packet are accurately restored to their original form, maintaining the integrity of the packet structure.</t>
-
-<figure><artwork><![CDATA[
-removed as it is basic and can be found in SCHC RFC8724:
-
-## Detailed Field Explanation
-Each field in the rules has the following properties:
-
-- FieldID: The identifier of the field.
-- FL: Field length, which can be fixed (e.g., 8, 32 bits) or variable.
-- FP: Field position in the packet.
-- DI: Direction indicator (Up for outbound, Down for inbound).
-- TV: Target value, used for matching during compression/decompression.
-- MO: Matching operator, which specifies how to match the field (ignore, MSB, etc.).
-- CDA: Compression/Decompression action, which defines what to do with the field (e.g., not-sent, padding, value-sent, LSB).
-]]></artwork></figure>
-
-<t>Alignment: Ensures that the length of the compressed data plus padding aligns correctly according to network requirements.
-Padding and Pad Length: Handled dynamically based on alignment and the length of the payload data.</t>
-
-<t>For Rule 1, ignoring PadLen and Padding is an optimal choice when possible, but it is not always feasible as IPv6 typically requires ESP to have a 32-bit alignment. The alignment is determined by the network's requirements. We have:</t>
-
-<t>len(Payload Data) + len(Padding) + len(Pad Length) + len(Next Header) = 0 mod ALIGN</t>
-
-<t><list style="symbols">
-  <t><spanx style="verb">len(Next Header) = 1</spanx> or <spanx style="verb">0</spanx> if compressed. It can be compressed if the type of inner packet is known. For example, in Tunnel mode, the IP range determines if it is an IPv6 or IPv4 packet. In Transport mode, the upper layer protocol type (TCP or UDP) determines this.</t>
-  <t>Payload Data has been compressed by IIPC.</t>
-  <t><spanx style="verb">len(Padding) = Pad Length</spanx></t>
-</list></t>
-
-<t>If alignment is set to 8 bits:</t>
-
-<t>len(Padding) = Pad Length = 0
-len(Pad Length) = 0</t>
-
-<t>Otherwise:
-- If Compressed Payload Data has a fixed size:</t>
-
-<t>len(Pad Length) = 0
-len(Padding) = Pad Length = ALIGN - len(Payload Data) - len(Next Header) mod ALIGN</t>
-
-<t><list style="symbols">
-  <t>Otherwise:</t>
-</list></t>
-
-<t>len(Pad Length) = 1
-len(Padding) = Pad Length = ALIGN - len(Payload Data) - 1 - len(Next Header) mod ALIGN</t>
-
-<t>Overall, this means that the SCHC_Context is dynamically generated from the EHCP Context. Additionally, a rule is required to compress the inner packet. IP source and IP destination should be compressed using LSB.</t>
+<t>The JSON file defines a set of rules within the SCHC_Context that are used for compressing and decompressing ESP headers. Each rule has a RuleID, a Description, and a set of Fields. Each field specifies how a particular part of the packet should be handled during compression or decompression. Note that the RuleID can be set by the user in any numeric order.
+Each rule is defined with a compression_level, indicating which level of the ESP packet structure (IIPC, CTEC, or EEC) the rule applies to, as defined in the Terminology section.</t>
 
 <figure><artwork><![CDATA[
 {
-  "SCHC_Context": {
-    "Rules": [
-      {
-        "RuleID": 1,
-        "Description": "Clear Text ESP Compression",
-        "Fields": [
-          {
-            "FieldID": "Payload Data",
-            "FL": "variable",
-            "FP": 1,
-            "DI": "Up",
-            "TV": null,
-            "MO": "ignore",
-            "CDA": "not-sent"
-          },
-          {
-            "FieldID": "Padding",
-            "FL": "variable",
-            "FP": 2,
-            "DI": "Up",
-            "TV": null,
-            "MO": "ignore",
-            "CDA": "padding"
-          },
-          {
-            "FieldID": "Pad Length",
-            "FL": 8,
-            "FP": 3,
-            "DI": "Up",
-            "TV": null,
-            "MO": "ignore",
-            "CDA": "value-sent"
-          },
-          {
-            "FieldID": "Next Header",
-            "FL": 8,
-            "FP": 4,
-            "DI": "Up",
-            "TV": null,
-            "MO": "ignore",
-            "CDA": "value-sent"
-          }
-        ]
-      },
-      {
-        "RuleID": 2,
-        "Description": "Encrypted ESP Compression",
-        "Fields": [
-          {
-            "FieldID": "SPI",
-            "FL": 32,
-            "FP": 1,
-            "DI": "Up",
-            "TV": null,
-            "MO": "MSB(4 - esp_spi_lsb)",
-            "CDA": "LSB"
-          },
-          {
-            "FieldID": "Sequence Number",
-            "FL": 32,
-            "FP": 2,
-            "DI": "Up",
-            "TV": null,
-            "MO": "MSB(4 - esp_sn_lsb)",
-            "CDA": "LSB"
-          }
-        ]
-      },
-      {
-        "RuleID": 3,
-        "Description": "Clear Text ESP Decompression",
-        "Fields": [
-          {
-            "FieldID": "Payload Data",
-            "FL": "variable",
-            "FP": 1,
-            "DI": "Down",
-            "TV": null,
-            "MO": "ignore",
-            "CDA": "not-sent"
-          },
-          {
-            "FieldID": "Padding",
-            "FL": "variable",
-            "FP": 2,
-            "DI": "Down",
-            "TV": null,
-            "MO": "ignore",
-            "CDA": "padding"
-          },
-          {
-            "FieldID": "Pad Length",
-            "FL": 8,
-            "FP": 3,
-            "DI": "Down",
-            "TV": null,
-            "MO": "ignore",
-            "CDA": "value-sent"
-          },
-          {
-            "FieldID": "Next Header",
-            "FL": 8,
-            "FP": 4,
-            "DI": "Down",
-            "TV": null,
-            "MO": "ignore",
-            "CDA": "value-sent"
-          }
-        ]
-      },
-      {
-        "RuleID": 4,
-        "Description": "Inner Packet Compression",
-        "Fields": [
-          {
-            "FieldID": "IP Source",
-            "FL": "variable",
-            "FP": 1,
-            "DI": "Up",
-            "TV": "msb(ip_src)",
-            "MO": "MSB",
-            "CDA": "LSB"
-          },
-          {
-            "FieldID": "IP Destination",
-            "FL": "variable",
-            "FP": 2,
-            "DI": "Up",
-            "TV": "msb(ip_dst)",
-            "MO": "MSB",
-            "CDA": "LSB"
-          }
-        ]
-      },
-      {
-        "RuleID": 5,
-        "Description": "Inner Packet Decompression",
-        "Fields": [
-          {
-            "FieldID": "IP Source",
-            "FL": "variable",
-            "FP": 1,
-            "DI": "Down",
-            "TV": "msb(ip_src)",
-            "MO": "MSB",
-            "CDA": "LSB"
-          },
-          {
-            "FieldID": "IP Destination",
-            "FL": "variable",
-            "FP": 2,
-            "DI": "Down",
-            "TV": "msb(ip_dst)",
-            "MO": "MSB",
-            "CDA": "LSB"
-          }
-        ]
-      }
-    ]
-  }
+  "rules": [
+    {
+      "rule_id": 1,
+      "compression_level": "IIPC",
+      "fields": [
+        {
+          "field": "IP Version",
+          "FL": 3,
+          "TV": "IPv6",
+          "MO": "equal",
+          "CDA": "not-sent"
+        },
+        {
+          "field": "Traffic Class DSCP",
+          "FL": 6,
+          "TV": [0],
+          "MO": "ignore",
+          "CDA": "sent-value"
+        },
+        {
+          "field": "Flow Label",
+          "FL": 20,
+          "TV": null,
+          "MO": "ignore",
+          "CDA": "lower"
+        },
+        {
+          "field": "Payload Length",
+          "FL": 16,
+          "TV": null,
+          "MO": "ignore",
+          "CDA": "lower"
+        },
+        {
+          "field": "Next Header",
+          "FL": 8,
+          "TV": null,
+          "MO": "ignore",
+          "CDA": "sent-value"
+        },
+        {
+          "field": "Hop Limit",
+          "FL": 8,
+          "TV": null,
+          "MO": "ignore",
+          "CDA": "lower"
+        },
+        {
+          "field": "Source Address",
+          "FL": 128,
+          "TV": "IPv6",
+          "MO": "MSB",
+          "CDA": "LSB"
+        },
+        {
+          "field": "Destination Address",
+          "FL": 128,
+          "TV": "IPv6",
+          "MO": "MSB",
+          "CDA": "LSB"
+        }
+      ]
+    },
+    {
+      "rule_id": 2,
+      "compression_level": "CTEC",
+      "fields": [
+        {
+          "field": "ESP Padding",
+          "FL": 8,
+          "TV": null,
+          "MO": "ignore",
+          "CDA": "padding"
+        },
+        {
+          "field": "Pad Length",
+          "FL": 8,
+          "TV": null,
+          "MO": "ignore",
+          "CDA": "padding"
+        },
+        {
+          "field": "Next Header",
+          "FL": 8,
+          "TV": null,
+          "MO": "ignore",
+          "CDA": "sent-value"
+        },
+        {
+          "field": "SCHC Padding",
+          "FL": 4,
+          "TV": null,
+          "MO": "ignore",
+          "CDA": "send"
+        }
+      ]
+    },
+    {
+      "rule_id": 3,
+      "compression_level": "EEC",
+      "fields": [
+        {
+          "field": "SPI",
+          "FL": 32,
+          "TV": null,
+          "MO": "MSB(4 - esp_spi_lsb)",
+          "CDA": "LSB"
+        },
+        {
+          "field": "Sequence Number",
+          "FL": 32,
+          "TV": null,
+          "MO": "MSB(4 - esp_sn_lsb)",
+          "CDA": "LSB"
+        },
+        {
+          "field": "Next Header",
+          "FL": 8,
+          "TV": null,
+          "MO": "ignore",
+          "CDA": "sent-value"
+        }
+      ]
+    }
+  ],
 }
-
 ]]></artwork></figure>
 
 </section>
@@ -1259,370 +892,265 @@ len(Padding) = Pad Length = ALIGN - len(Payload Data) - 1 - len(Next Header) mod
   </back>
 
 <!-- ##markdown-source:
-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
-qMgwcPEG4/igzxwHnC/0/WcnqBHt5aWU5MJbyHi/WWfPDOze9nqhU1TUv1wr
-lw7E++BCxhmPnNBzga3ItOuCB6XyZLrqqW0tQab/sbcD6i4H4Db8D74fsHvv
-CwK7XuA9hz8GDdPddQb6uwMKcbnVJsm7E5au14wPts84dvZP6NdCVNm3FDeK
-WXaYjfjx/XIjVzxNePmIL5P3MfsGZ83D+WAu93mZzNBTdZklY/Jo4S41m9H2
-Kvd+bec8jUtJINB1rwPsNt0HkIn5RRPdyPzdID4ez5DSONpMpmiHzdq8LAFe
-p4DXKTEyTZNuiL0ZSGfjliGQ79CJgycZnja6Ht0yRlmJzN8NSZ66lLw99IdL
-FTiujvyXAzRJz+M8t3Tu2BPaJgTc/UYniU3gOGL5wE8bOyChZoEFfsK4/buB
-VdXI+13s0T38HJYRnHQFcxE+sTnBhkkeq6dCWHtEXlQ/xaFbhbwWDNvAif13
-HtcG7Nd85pYCr39bHbIm+t19Gwa/7/5niX7nFIyS8xD/dQPir+apyNed51jE
-KY8l17bsUV2vE0VrxzlMPED6TL1dLAXLHcfsHUP4+VjnthqXroKFQwGr61bj
-AOiVvlXp34iqZBj4Fiz//41X+OEm0RV6GbxZqZc1rPQ3P3cjLN/83NVevvm5
-63v55udu2kff/NzNsHzzc99jjVb/+c35ub9d0fgH+bm/7Of2t+Iq/0162z0N
-6wsd7uS0ENmSDIuBmeef6nZIJ3BGofU2WCf/z+FR9f0aXOx1jrX7/tze3cmK
-usoaEEuQeGzk3hzxr3WQ3LeTOu/rfX+aO7mP8LouSKK1uKQXy3zSTVKoO1E4
-c+Pbcg0RHentZetzrcSLZqbVBM/Pt+PbeA2w5Ld0v8o7IgmWOqGzQQb+fHuz
-FrzMb5MqLKtIoSKAMizl7XgNsMS3HHbjCrU4loiYqkbIrOz3z7eTteAF1OO1
-7KPJw2/SfV3mYn7uxMkqnYTsGJ9Y+YmmUxtkcufYIayVM/X+P7dfIUzlrp/K
-xO7dwx3t74/aahDMfeS7PWs5d23+Xybutb5T/zKE3UB+x1J7r9kQzy/QX8ke
-Esr4F1NBsHwxlRTfEgGBiRLfad83O84pu1GsCx2KTV9ygTslQjlcQWyJRVf1
-o/El9U8ulEidwq9YFSTCSlDjPJlzjnXsxYBDVTn0t5xNWPusCnUJPDMCzORl
-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
-09J/fWpJHjv5+X/h62GkAxABAA==
+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
 
 -->
 
