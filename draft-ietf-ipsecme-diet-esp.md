@@ -1,7 +1,7 @@
 ---
 title: ESP Header Compression Profile
 abbrev: EHCP
-docname: draft-ietf-ipsecme-diet-esp-02
+docname: draft-ietf-ipsecme-diet-esp-03
 ipr: trust200902
 area: Security
 wg: IPsecme
@@ -15,61 +15,53 @@ pi:
   symrefs: yes
 
 author:
-  -
-    ins: D.Migault
-    name: Daniel Migault
-    org: Ericsson
-    email: daniel.migault@ericsson.com
-  -
-    ins: M. Hatami
-    name: Maryam Hatami
-    org: Concordia University
-    email: maryam.hatami@mail.concordia.ca
-  -
-    ins: S. Céspedes
-    name: Sandra Céspedes
-    org: Concordia University
-    email: sandra.cespedes@concordia.ca
-  -  
-    ins:  W. Atwood
-    name: J. William Atwood
-    org: Concordia University
-    email: william.atwood@concordia.ca
-  -
-    ins: D. Liu
-    name: Daiying Liu
-    org: Ericsson
-    role: editor
-    email: harold.liu@ericsson.com
-  -
-    ins: T. Guggemos
-    name: Tobias Guggemos
-    org: LMU
-    email: guggemos@nm.ifi.lmu.de 
-  -
-    ins: C. Bormann
-    name: Carsten Bormann
-    org: Universitaet Bremen TZI
-    email: cabo@tzi.org
-  -
-    ins:  D. Schinazi
-    name:  David Schinazi
-    org: Google LLC
-    email: dschinazi.ietf@gmail.com
-
+      -
+        ins: D.Migault
+        name: Daniel Migault
+        org: Ericsson
+        email: daniel.migault@ericsson.com
+      -
+        ins: M. Hatami
+        name: Maryam Hatami
+        org: Concordia University
+        email: maryam.hatami@mail.concordia.ca
+      -
+        ins: S. Céspedes
+        name: Sandra Céspedes
+        org: Concordia University
+        email: sandra.cespedes@concordia.ca
+      -  
+        ins:  W. Atwood
+        name: J. William Atwood
+        org: Concordia University
+        email: william.atwood@concordia.ca
+      -
+        ins: T. Guggemos
+        name: Tobias Guggemos
+        org: LMU
+        email: guggemos@nm.ifi.lmu.de 
+      -
+        ins: C. Bormann
+        name: Carsten Bormann
+        org: Universitaet Bremen TZI
+        email: cabo@tzi.org
+      -
+        ins:  D. Schinazi
+        name:  David Schinazi
+        org: Google LLC
+        email: dschinazi.ietf@gmail.com
 
 informative:
-  OpenSCHC:
-    author:
-    target: https://github.com/openschc
-    title: OpenSCHC a Python open-source implementation of SCHC (Static Context Header Compression) RFC8724
+ OpenSCHC:
+   author:
+   target: https://github.com/openschc
+   title: OpenSCHC a Python open-source implementation of SCHC (Static Context Header Compression) RFC8724
 
 
 --- abstract
 
 The document specifies Diet-ESP, an ESP Header Compression Profile (EHCP) that compresses IPsec/ESP communications using Static Context Header Compression (SCHC).
 
-Diet-ESP assumes the Traffic Selectors of the Security Association (SA) can be expressed by a single IKEv2 Traffic Selector Payload {{!RFC7296, Section 3.13.1}}. More specifically, the Traffic Selectors are defined with a single type of IP addresses (IPv4 or IPv6), a single IP range, a single protocol (such as UDP, TCP, or not relevant), a single port range and multiple DSCP numbers. 
 
 
 
@@ -82,19 +74,15 @@ Diet-ESP assumes the Traffic Selectors of the Security Association (SA) can be e
 
 # Introduction
 
-Encapsulating Security Payload (ESP) {{!RFC4303}} protocol is part of the IPsec{{!RFC4301}} suite protocols and provides confidentiality, data origin authentication, integrity, anti-replay, and traffic flow confidentiality. The set of services ESP provides depends on the Security Association (SA) parameters negotiated between devices.
-
-An ESP packet is composed of an ESP Header, an ESP Payload and an Integrity Check Value (ICV). The ESP Payload is encrypted and its corresponding clear text includes ESP Data and an ESP Trailer.
-ESP has two modes: Tunnel and Transport. Tunnel mode is commonly used for VPNs, in which case the ESP Data is the full IP packet being encapsulated. The resulting packet is the outer IPheader (or tunnel header), the ESP Header, the ESP Payload and the ICV. In Transport the ESP Data consists in the IP Payload as well as eventually some Header options (but not the IP Header) of the IP Packet. The ESP header is inserted after the original IP packet header.  
-
-> TEXT THAT I REMOVED: trying to re-added it above. ESP has two modes: Tunnel and Transport. Tunnel mode is commonly used for VPNs, with the ESP Header placed after an outer IP header and before the inner IP packet headers of the original datagram. This ensures both the original IP headers and payload are protected. In Transport mode, the Payload consists of the IP payload and the ESP header is inserted after the original IP packet header. In this way, the ESP Payload contains either the original IP payload or the fully-encapsulated IP packet, in transport mode or tunnel mode, respectively.
-
-The ESP Data contains either the original IP payload or, in tunnel mode, the full encapsulated IP packet. The ESP Trailer, placed at the end of the ESP Payload, includes fields such as Padding, Pad Length to ensure proper alignment and Next Header to indicate the protocol following the ESP Header. The ICV is calculated over the ESP Header, the ESP Payload, and trailer to maintain packet integrity. To better understand ESP, the reader might be interested in reading Minimal ESP {{?RFC9333}}, a simplified version of ESP.
+The Encapsulating Security Payload (ESP) {{!RFC4303}} protocol is part of the IPsec {{!RFC4301}} suite of protocols and can provide confidentiality, data origin authentication, integrity, anti-replay, and traffic flow confidentiality. The set of services ESP provides depends on the Security Association (SA) parameters negotiated between devices.
  
-
-While ESP is effective in securing traffic, further optimization can reduce packet sizes, enhancing performance in networks with limited bandwidth. In such environments, reducing the size of transmitted packets is essential to improve efficiency. This document defines the ESP Header Compression Profile (EHCP) Diet-ESP for compression/decompression (C/D) ESP packets as represented in {{fig-esp}}, using Static Context Header Compression (SCHC) {{!RFC8724}}. Compression with SCHC is based on using a set of Rules (SoR), which constitutes the Context of SCHC C/D. Since we are using IPsec, this Context can be agreed via IKEv2 {{!RFC7296}} and its specific extension {{!I-D.ietf-ipsecme-ikev2-diet-esp-extension}}. 
-
-As a result, any information that can be generated from the received compressed packet and the SCHC Context is not sent on the wire,  thus reducing the ESP packet size on the wire. 
+An ESP packet is composed of the ESP Header, the ESP Payload, the ESP Trailer, and the Integrity Check Value (ICV). ESP has two modes of operation: Transport and Tunnel. In Transport mode, the ESP Payload consists of the payload of the original IP packet; the ESP Header is inserted after the original IP packet header. In Tunnel mode, commonly used for VPNs, the ESP Header is placed after an outer IP header and before the inner IP packet headers of the original datagram. This ensures both the original IP headers and payload are protected. Consequently, the ESP Payload field contains either the payload from the original IP packet or the fully-encapsulated IP packet, in transport mode or tunnel mode, respectively.
+ 
+The ESP Trailer, placed at the end of the encrypted payload, includes fields such as Padding and Pad Length to ensure proper alignment, and Next Header to indicate the protocol following the ESP header. The ICV, calculated over the ESP Header, ESP Payload, and ESP Trailer, is appended after the ESP Trailer to ensure packet integrity. For a simplified overview of ESP, readers are referred to Minimal ESP {{?RFC9333}}.
+ 
+While ESP is effective in securing traffic, further optimization can reduce packet sizes, enhancing performance in networks with limited bandwidth. In such environments, reducing the size of transmitted packets is essential to improve efficiency. This document defines the ESP Header Compression Profile (EHCP), namely Diet-ESP, for compression/decompression (C/D) of IPsec/ESP {{!RFC4301}} / {{!RFC4303}} packets using the Static Context Header Compression and Fragmentation (SCHC) framework {{!RFC8724}}. The structure of Diet-ESP is shown in {{fig-esp}}. Compression with SCHC is based on the use of a Set of Rules (SoR) used in a SCHC instance for C/D operations {{!I-D.ietf-schc-architecture}}. One or more SoR constitute the SCHC Context. In the case of IPsec, the Context can be agreed via IKEv2 {{!RFC7296}} and its specific extension {{!I-D.ietf-ipsecme-ikev2-diet-esp-extension}}.
+ 
+As a result of the application of the same SoR, header values shared by the end-points do not need to be sent on the wire. At the receiver, header information is re-generated from the received compressed packet and the application of the proper SoR retrieved from the Context.
 
 ~~~
  0                   1                   2                   3
@@ -102,8 +90,8 @@ As a result, any information that can be generated from the received compressed 
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ----
 |               Security Parameters Index (SPI)                 | ^Int.
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ |Cov-
-|                      Sequence Number (SN)                     | |ered
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ | ---
+|                      Sequence Number                          | |ered
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ | ----
 |                    Payload Data* (variable)                   | |   ^
 ~                                                               ~ |   |
 |                                                               | |Conf.
@@ -120,7 +108,7 @@ As a result, any information that can be generated from the received compressed 
 {: #fig-esp artwork-align="center" title="Top-Level Format of an ESP Packet"}
 
     
-This document defines the ESP Header Compression profile (EHCP) Architecture with the application of SCHC at various layers of the IPsec stack -- also called SCHC strata -- as defined below:
+This document defines the ESP Header Compression profile (EHCP) Architecture with the application of SCHC at various layers of the IPsec stack---also called SCHC strata---as defined below:
 
 1. Inner IP Compression (IIPC): The SoR used in this SCHC stratum apply directly to the headers of the inner IP packet. For example, in the case of a UDP packet with ports determined by the SA, fields such as UDP ports and checksums are typically compressed. If no compression of the inner packet is possible, the resulting SCHC packet contains the uncompressed IP packet, as per {{!RFC8724, Section 7.2}}.
 
@@ -141,16 +129,16 @@ ESP Trailer:
 : A set of fields added at the end of the ESP payload, including Padding, Pad Length, and Next Header, used to ensure alignment and indicate the next protocol.
 
 SCHC Stratum: 
-: Refers to the specific layer in the ESP packet structure where the Set of Rules of a SCHC instance are applied for compression and decompression and applied. 
+: Refers to the specific layer in the ESP packet structure where the Set of Rules of a SCHC instance are applied for compression and decompression. 
 
 Inner IP C/D (IIPC): 
 : Expressed via the SCHC framework, IIPC compresses/decompresses the inner IP packet headers.
 
 Clear Text ESP C/D (CTEC): 
-: Expressed via the SCHC framework, CTEC compresses/decompresses all fields that will later be encrypted by ESP, which include the ESP Data ESP Trailer.
+: Expressed via the SCHC framework, CTEC compresses/decompresses all fields that will later be encrypted by ESP, which include the ESP Data and ESP Trailer.
 
 Encrypted ESP C/D (EEC): 
-: Expressed via the SCHC framework, EEC compresses/decompresses ESP fields that will not be encrypted by ESP.  
+: Expressed via the SCHC framework, EEC compresses/decompresses ESP fields that will not be encrypted by ESP.
 
 Security Parameters Index (SPI): 
 : As defined in {{!RFC4301, Section 4.1}}.
@@ -187,21 +175,19 @@ It is assumed that the reader is familiar with other SCHC terminology defined in
 
 The main principle of the ESP Header Compression Profile (EHCP) is to avoid sending information that has already been shared by the peers. Different profiles and technologies, such as those defined by {{!RFC4301}} and {{!RFC4303}}, ensure that ESP can be tailored to various network requirements and security policies. However, ESP is not optimized for bandwidth efficiency because it has been designed as a general-purpose protocol. EHCP aims to address this by leveraging a profile, expressed via the SCHC architecture, to optimize the ESP header sizes for better efficiency in constrained environments.
 
+{{fig-arch}} illustrates the integration of SCHC into the IPsec stack, detailing the different layers and components involved in the compression and decompression processes. The diagram is divided into two entities, each representing an endpoint of a communication link. 
 
+Rules for compression are derived from parameters associated with the Security Association (SA) and agreed upon via IKEv2 {{!RFC7296}}, as well as specific compression parameters designated as Attributes for Rules Generation (AfRG) (see {{sec-afrg}}). These AfRGs are also agreed upon via IKEv2 in {{!I-D.ietf-ipsecme-ikev2-diet-esp-extension}}.
 
-Figure {{fig-arch}} illustrates the integration of SCHC into the IPsec stack, detailing the different layers and components involved in the compression and decompression processes. The diagram is divided into two entities, each representing an endpoint of a communication link. 
+Upon establishing the SA, Diet-ESP uses the AfRGs listed in {{tab-ehc-ctx-esp}} for derivation of the SoR applicable to each SCHC stratum. The collection of rules are then used for the SCHC Context initialization. The reference column in {{tab-ehc-ctx-esp}} indicates the source where the parameter value is defined. The C/D column specifies in which of the SCHC strata the parameter is being used. 
 
-Rules for compression are derived from parameters associated with the Security Association (SA) and agreed upon via IKEv2 {{!RFC7296}}, as well as specific compression parameters defined for IKEv2 in {{!I-D.mglt-ipsecme-ikev2-diet-esp-extension}}. 
+EHCP defines three SCHC strata for compression: Inner IP Compression (IIPC), Clear Text ESP Compression (CTEC), and Encrypted ESP Compression (EEC). The compression operations for each stratum are described in {{sec-iipc}}, {{sec-ctec}}, and {{sec-eec}}.
 
-Upon establishing the SA, Diet-ESP uses the parameters listed in Table {{tab-ehc-ctx-esp}} for derivation of the SoR applicable to each SCHC stratum. The collection of rules are then used for the SCHC Context initialization. The reference column in Table {{tab-ehc-ctx-esp}} indicates the source where the parameter value is defined. The C/D column specifies in which of the SCHC strata the parameter is being used. 
-
-EHCP defines three SCHC strata for compression: IIPC, CTEC, and EEC. The compression operations for each stratum are described in {{sec-iipc}}, {{sec-ctec}}, and {{sec-eec}}.
-
-Note that additional compression could be performed, especially on the inner IP packet—for example, to include the TCP layer. However, this profile limits the scope of the compression to the inner IP headers and UDP headers when available. Further and more specific compression profiles may be defined in the future to cover compression of headers of different upper layer protocols.
+EHCP essentially limits the scope of the compression to the inner IP headers and specific fields such as ports and checksums of transports like UDP, UDP-Lite, TCP, SCTP.  Further and more specific compression profiles may be defined in the future to cover compression of headers of different upper layer protocols.
 
 At the receiver endpoint, the decompression of the inbound packet follows a reverse process. First, the Encrypted ESP C/D (EEC) decompresses the encrypted ESP header fields. After the ESP packet is decrypted, the Clear Text ESP C/D (CTEC) decompresses the Clear Text fields of the ESP packet.
 
-Note that implementations MAY differ from the architectural description but it is assumed the outputs will be the same.
+Note that implementations MAY differ from the architectural description but it is assumed that the outputs will be the same.
 
 
 ~~~
@@ -235,13 +221,10 @@ Endpoint                         |                 Endpoint
 |  L2             |                               |  L2             |
 +-----------------+                               +-----------------+
 ~~~
-{: #fig-arch artwork-align="center" title="SCHC Integration into the IPsec Stack. Packets are described for IPsec in tunnel mode. C designates the Compressed header for the fields inside. IIP refers to the Inner IP packet, EH refers to the ESP Header, and ET refers to the ESP Trailer"}
+{: #fig-arch artwork-align="center" title="SCHC Integration into the IPsec Stack. Packets are described for IPsec in tunnel mode. C designates the Compressed header for the fields inside. IIP refers to the Inner IP packet, EH refers to the ESP Header, and ET refers to the ESP Trailer. The labels “SCHC (IIPC: Compress Inner IP),” “SCHC (CTEC: Compress Trailer),” and “SCHC (EEC: Compress ESP Header)” are added to indicate that different SCHC instances are applied at the IIPC, CTEC, and EEC layers, respectively."}
 
 
-The labels “SCHC (IIPC: Compress Inner IP),” “SCHC (CTEC: Compress Trailer),” and “SCHC (EEC: Compress ESP Header)” are added to indicate that different SCHC instances are applied at the IIPC, CTEC, and EEC layers, respectively.
-
-
-## SCHC parameters for Diet-ESP
+## SCHC Parameters for Diet-ESP
   
 A SCHC compressed packet is always in the form:
 
@@ -263,11 +246,11 @@ Maximum Packet Size:
 : MAX_PACKET_SIZE is determined by the specific IPsec ESP configuration and the underlying transport, but it is typically aligned with the network’s MTU. The size constraints are optimized based on the available link capacity and negotiated parameters between endpoints.
 
 SCHC Padding:
-: Padding in SCHC is used to align data to a specific boundary (typically byte-aligned or 8-bit aligned) to meet the requirements of the underlying link layer protocol or encryption algorithm. Padding bits are often zero or follow a pattern but do not contain significant data. In Diet-ESP, The SCHC padding is added in the CTEC strata to align the packet for encryption.
+: Padding in SCHC is used to align data to a specific boundary (typically byte-aligned or 8-bit aligned) to meet the requirements of the underlying link layer protocol or encryption algorithm. Padding bits are often zero or follow a pattern but do not contain significant data. In Diet-ESP, the SCHC padding is added in the CTEC strata to align the packet for encryption.
 
 The resulting IP/ESP packet size is variable. In some networks, the packet will require fragmentation before transmission over the wire. Fragmentation is out of the scope of this document since it is dependent on the layer 2 technology.
 
-The Figure {{tab-diet-esp-compressed-pck}} illustrates how the final compressed packet looks when using SCHC compression for ESP headers in the Diet-ESP profile. In this format:
+{{tab-diet-esp-compressed-pck}} illustrates how the final compressed packet looks when using SCHC compression for ESP headers in the Diet-ESP profile.
 
 
 
@@ -275,18 +258,18 @@ The Figure {{tab-diet-esp-compressed-pck}} illustrates how the final compressed 
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|                  SCHC EEC Header (EEC strata)                 |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ------
-|                 SCHC CTEC Header (CTEC strata)                | |    |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ |Conf.
-|                 SCHC IIP Header (IIPC strata)                 | |Cov-
-+---------------------------------------------------------------+ |ered*
-|               Inner IP Payload Data* (variable)               | |    |
-~                                                               ~ |    |
-|                                                               | |    |
-+---------------------------------------------------------------+ |    |
-|                       SCHC CTEC Padding                       | v    v
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ------
+|                  SCHC EEC Header (EEC stratum)                |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ----
+|                 SCHC CTEC Header (CTEC stratum)               | ^
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ |
+|                 SCHC IIP Header (IIPC stratum)                | |
++---------------------------------------------------------------+ En-
+|               Inner IP Payload Data* (variable)               | cry-
+~                                                               ~ pted
+|                                                               | |  
++---------------------------------------------------------------+ |
+|                       SCHC CTEC Padding                       | v
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ----
 |                                                               |
 |                             ICV                               |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -299,18 +282,18 @@ SCHC SoR are predefined sets of instructions that specify how to compress and de
 
 Similarly to the SA, Rules are directional and the Direction Indicator (DI) is set to Up for outbound SA and Down for inbound SA. Each Rule also contains a Field Position parameter that is set to 1, unless specified otherwise. 
 
-## Attributes for Rules Generation 
+## Attributes for Rules Generation {#sec-afrg}
 
-The list of attributes used for the Rules generation is shown in Table {{tab-ehc-ctx-esp}}. These attributes are used to express the various compressions that operate at the IIPC, CTEC, and EEC layers.  
+The list of attributes for the Rules Generation (AfRG) is shown in {{tab-ehc-ctx-esp}}. These attributes are used to express the various compressions that operate at the IIPC, CTEC, and EEC layers.
 
 The compression of the Inner IP Packet is based on the attributes that are derived from the negotiated Traffic Selectors TSi/TSr, as described in {{!RFC7296, Section 3.13}}. The Traffic Selectors may result in a quite complex expression, and this specification restricts that complexity. In particular, Diet-ESP restricts the Traffic Selector to a single type of IP address (i.e., IPv4 or IPv6), a single protocol (such as UDP, TCP, or not relevant), a single port range, and multiple DSCP numbers. Such simplification corresponds to the expression of an individual Traffic Selector Payload {{!RFC7296, Section 3.13.1}}.  
 
 The ability to derive the EHCP Context for the IIPC from the agreed Traffic Selectors is indicated by the variable iipc_profile. 
  
-~~~
-+===================+=============================+===========+=======+
+
+
 | EHC Context       | Possible Values             | Reference | C / D |
-+===================+=============================+===========+=======+
+|-------------------+-----------------------------+-----------+-------+
 | iipc_profile      | "diet-esp", "uncompress"    | ThisRFC   | N/A   |
 | dscp_cda          | "uncompress", "lower", "sa" | ThisRFC   | IIPC  | 
 | ecn_cda           | "uncompress", "lower"       | ThisRFC   | IIPC  | 
@@ -321,29 +304,28 @@ The ability to derive the EHCP Context for the IIPC from the agreed Traffic Sele
 | ts_ip_src_end     | IP4 or IPv6 address         | RFC7296   | IIPC  |
 | ts_ip_dst_start   | IPv4 or IPv6 address        | RFC7296   | IIPC  |
 | ts_ip_dst_end     | IPv4 or IPv6 address        | RFC7296   | IIPC  |
-| ts_proto          | TCP, UDP, UDP-Lite, SCTP,   | RFC7296   | IIPC  |  
+| ts_proto          | TCP, UDP, UDP-Lite, SCTP,   | RFC7296   | IIPC  |
 |                   | ANY, ...                    |           |       |
 | ts_port_src_start | Port number                 | RFC7296   | IIPC  |
 | ts_port_src_end   | Port number                 | RFC7296   | IIPC  |
 | ts_port_dst_start | Port number                 | RFC7296   | IIPC  |
 | ts_port_dst_end   | Port number                 | RFC7296   | IIPC  |
 | dscp_list         | list of DSCP numbers        | RFCYYYY   | IIPC  |
-+-------------------+-----------------------------+-----------+-------+
+|-------------------+-----------------------------+-----------+-------+
 | alignment         | "8 bit", "16 bit", "32 bit" | ThisRFC   | CTEC  |
 |                   | "64 bit"                    |           |       |
 | ipsec_mode        | "Tunnel", "Transport"       | RFC4301   | CTEC  | 
 | tunnel_ip         | IPv6 address                | RFC4301   | CTEC  |
 | esp_encr          | ESP Encryption Algorithm    | RFC4301   | CTEC  |
-+-------------------+-----------------------------+-----------+-------+
+|-------------------+-----------------------------+-----------+-------+
 | esp_spi           | ESP SPI                     | RFC4301   | EEC   |
 | esp_spi_lsb       | 0-32                        | ThisRFC   | EEC   |
 | esp_sn            | ESP Sequence Number         | RFC4301   | EEC   |
 | esp_sn_lsb        | 0-64                        | ThisRFC   | EEC   |
-+-------------------+-----------------------------+-----------+-------+
-~~~
-{: #tab-ehc-ctx-esp artwork-align="center" title="EHCP related parameters"}
+|-------------------+-----------------------------+-----------+-------+
+{: #tab-ehc-ctx-esp title="EHCP related parameters"}
 
-Any parameter starting with "ts_" is associated with the Traffic Selectors of the SA. The notation is introduced by this specification but the definition of the parameters is defined in {{!RFC4301}} and {{!RFC7296}}.
+Any parameter starting with "ts_" is associated with the Traffic Selectors of the SA. The notation is introduced by this specification but the definition of the parameters is in {{!RFC4301}} and {{!RFC7296}}.
 
 This specification limits the expression of the Traffic Selector to be of the form (IP source range, IP destination range, Port source range, Port destination range, Protocol ID list, DSCP list). This limits the original flexibility of the expression of TS, but provides sufficient flexibility. 
 
@@ -353,7 +335,7 @@ iipc_profile:
 : designates the profile used by IIPC. When set to "uncompress" IIPC is not performed. This specification describes IIPC that corresponds to the "diet-esp" profile.
  
 flow_label_cda:
-: indicates how the Flow Label field of the inner IPv6 packet or the Identification field of the inner IPv4 packet is compressed / decompressed - See {{sec-cda}} for more information. In a nutshell, "uncompress" indicates that Flow Label (resp. Identification) are not compressed. "lower" indicates the value is read from the outer IP header - eventually with some adaptations when inner IP packet and outer IP pakets have different versions. "generated" indicates that the fields is generated by the receiving party. In that case, the decompressed value may take a different value its original value. "zero" indicates the field is set to zero.
+: indicates how the Flow Label field of the inner IPv6 packet or the Identification field of the inner IPv4 packet is compressed / decompressed - See {{sec-cda}} for more information. In a nutshell, "uncompress" indicates that Flow Label (resp. Identification) are not compressed. "lower" indicates the value is read from the outer IP header - eventually with some adaptations when inner IP packet and outer IP packets have different versions. "generated" indicates that the field is generated by the receiving party. In that case, the decompressed value may take a different value compared to its original value. "zero" indicates the field is set to zero.
 
 dscp_cda:
 : indicates how the DSCP values of the inner IP packet are generated. (See flow_label_cda). "sa" indicates, compression is performed according to the DSCP values agreed by the SA (dscp_list). 
@@ -383,14 +365,14 @@ Similarly, lsb( start, end ) is defined as the function that returns the LSB tha
 Finally, len( x ) is defined as the function that returns the number of bits of the bit array x.
 
 ts_proto:
-: designates the list of Protocol ID field, whose meaning is defined in {{!RFC7296, Section 3.13}}. This profile considers the specific protocols values "TCP", "UDP", "UDP-Lite", "SCTP", "OTHER" and "ANY". "OTHER" designates any protocol values that are not in :"TCP", "UDP", "UDP-Lite", "SCTP. "ANY" as defined in {{!RFC5996, Section 3.13}} and designates any possible values. 
+: designates the list of Protocol ID field, whose meaning is defined in {{!RFC7296, Section 3.13}}. This profile considers the specific protocols values "TCP", "UDP", "UDP-Lite", "SCTP" and "ANY". "ANY" designates any possible values as defined in {{!RFC5996, Section 3.13}}. 
 
 dscp_list:
-: designates the list of DSCP values with the same meaning as the List of DSCP Values defined in {{!I-D.mglt-ipsecme-dscp-np}}. These are not Traffic Selector, but the compression mandates the packets takes one of these listed DSCP value. 
+: designates the list of DSCP values with the same meaning as the List of DSCP Values defined in {{?I-D.mglt-ipsecme-dscp-np}}. These are not Traffic Selectors, but the compression mandates that the packets take one of these listed DSCP values. 
 
 
 alignment:
-: indicates the byte alignement supported by the OS for the ESP extension. By default, the alignement is 32 bit for IPv6, but some systems may also support an 8 bit alignement. Note that when a block cipher such as AES-CCM is used, an 128 bit alignment is overwritten by the block size. 
+: indicates the byte alignement supported by the OS for the ESP extension. By default, the alignment is 32 bit for IPv6, but some systems may also support an 8 bit alignment. Note that when a block cipher such as AES-CCM is used, a 128 bit alignment is overwritten by the block size. 
 
 ipsec_mode:
 : designates the IPsec mode defined in {{!RFC4301}}. In this document, the possible values are "tunnel" for the Tunnel mode and "transport" for the Transport mode. 
@@ -408,8 +390,6 @@ esp_spi:
 
 esp_spi_lsb: 
 : designates the LSB to be considered for the compressed SPI. A value of 32 for esp_spi_lsb will leave the SPI unchanged.
-: This parameter is defined by this specification and can take the following values 0, 1, 2, 4 respectively meaning that the compressed SPI will consist of the esp_spi_lsb LSB bytes of the original SPI.
-A value of 4 for esp_spi_lsb will leave the SPI unchanged.
 
 esp_sn:
 : designates the Sequence Number (SN) field defined in {{!RFC4301}}.
@@ -422,19 +402,18 @@ esp_sn_lsb:
 
 In addition to the Compression/Decompression Actions (CDAs) defined in {{!RFC8724, Section 7.4}}, this specification uses the CDAs presented in {{tab-cda}}. These CDAs are either a refinement of the compute- * CDA or the result of a combined CDA. 
 
-~~~ 
-+========================+=============+======================+
+
+
 | Action                 | Compression | Decompression        |
-+========================+=============+======================+
+|------------------------+-------------+----------------------+
 | lower                  | elided      | Get from lower layer |
 | generated (Flow Label) | elided      | Compute flow label   |
 | checksum               | elided      | Compute checksum     |
 | ESP padding            | elided      | Compute padding      |
 | hop limit              | elided      | Get from lower layer |
 | SCHC padding           | send        | Compute padding      |
-+------------------------+-------------+----------------------+
-~~~
-{: #tab-cda artwork-align="center" title="EHCP ESP related parameter"}
+|------------------------+-------------+----------------------+
+{: #tab-cda title="EHCP ESP related parameter"}
 
 lower:
 : is only used in a Tunnel mode and indicates that the fields of the inner IP packet header are generated from the corresponding fields of the Tunnel IP header fields. This CDA can be used for the DSCP, ECN, and IPv6 Flow Label (resp. IPv4 identification) fields.
@@ -468,8 +447,8 @@ The IP Header is compressed when ipsec_mode is set to "Tunnel" and left uncompre
 
 The compression only affects UDP, UDP-Lite, TCP or SCTP packets and the type of packet is determined by the IP header.
 
-For UDP, UDP-Lite, TCP and SCTP packets, source ports destination ports and checksums are compressed. 
-For source port (resp. destination port) only the least significant bits are sent. FL is set to 16 bits,  TV is set to msb( ts_port_src_start, ts_port_src_end ) ( resp. ts_port_dst_start, ts_port_dst_end ) ), MO is set to "MSB" and CDA to "LSB". 
+For UDP, UDP-Lite, TCP and SCTP packets, source ports, destination ports, and checksums are compressed. 
+For source port (resp. destination port) only the least significant bits are sent. FL is set to 16 bits,  TV is set to msb( ts_port_src_start, ts_port_src_end ) ( resp. ts_port_dst_start, ts_port_dst_end ), MO is set to "MSB" and CDA to "LSB". 
 The checksum is elided, FL is set to 16 bits, TV is not set, MO is set to "ignore" and CDA is set to "checksum". 
 This may result in decompressing a zero-checksum UDP packet with a valid checksum, but this has no impact as a valid checksum is universally accepted.
 
@@ -483,38 +462,42 @@ Traffic Class is composed of the 6 bit DSCP and 2 bit ECN.
 The compression of DSCP and ECN are defined independently. 
 
 DSCP values are compressed according to the dscp_cda value:
+
 * If dscp_cda is set to "uncompress", the DSCP values are included in the inner IP header. FL is set to 6 bits, TV is not set, MO is set to "ignore", CDA is set to "sent-value".
 * If dscp_cda is set to "lower", the DSCP field is elided and its value is copied from the Tunnel IP header. FL is set to 6 bits, TV is not set, MO is set to "ignore", CDA is set to "lower".
 * If dscp_cda is set to "sa", DSCP is compressed according to the DSCP values of the SA. If dscp_list contains a single element, the DSCP is elided, FL is set to 6 bits, TV is set to dscp_list[0], MO is set to "equal" and CDA is set to "not-sent". If dscp_list contains more than one DSCP value, FL is set to 6 bits, TV is set to dscp_list, MO is set to "match-mapping" and the CDA is set to "mapping-sent". 
 For ECN, FL is set to 2 bits, TV is not set, MO is set to ignore and CDA is set to "value-sent".
 
 ECN values are compressed according to the ecn_cda value:
-* If ecn_cda is set to "uncompress", the ECN field included in the inner IP header. FL is set to 2 bits, TV is not set, MO is set to "ignore", CDA is set to "sent-value".
+
+* If ecn_cda is set to "uncompress", the ECN field is included in the inner IP header. FL is set to 2 bits, TV is not set, MO is set to "ignore", CDA is set to "sent-value".
 * If ecn_cda is set to "lower", the ECN value is elided and the ECN value is copied in the outer IP header. FL is set to 2 bits, TV is not set, MO is set to "ignore", CDA is set to "lower".
 
-Flow label is compressed according to the flow_label_cda value: 
-* If flow_label_cda is set to "uncompress", the Flow label is included in the IPv6 Header. FL is set to 20 bits, TV is not set MO is set to "ignore" and CDA is set to "sent-value".
-* If flow_label_cda is set to "lower", the Flow Label is elided and read from the outer IP Header (See {{sec-cda}}). FL is set to 20 bits, TV is not set, MO is set to "ignore" and CDA is set to "lower". If the outer IP header is an IPv4 header, only the 16 LSB of the FLow Label are inserted into the IPv4 Header. At the decompression, the 4 MSB of the Flow Label are set to 0. 
-* If flow_label_cda is set to "generated", the Flow Label elided and the Flow Label is then re-generated at the decompression (See {{sec-cda}}). The resulting Flow Label differs from the initial value. FL is set to 20, TV is not set, MO is set to "ignore" and CDA is set to "generated". 
+Flow label is compressed according to the flow_label_cda value:
+
+* If flow_label_cda is set to "uncompress", the Flow label is included in the IPv6 Header. FL is set to 20 bits, TV is not set, MO is set to "ignore", and CDA is set to "sent-value".
+* If flow_label_cda is set to "lower", the Flow Label is elided and read from the outer IP Header (See {{sec-cda}}). FL is set to 20 bits, TV is not set, MO is set to "ignore", and CDA is set to "lower". If the outer IP header is an IPv4 header, only the 16 LSB of the Flow Label are inserted into the IPv4 Header. At the decompression, the 4 MSB of the Flow Label are set to 0. 
+* If flow_label_cda is set to "generated", the Flow Label is elided and the Flow Label is then re-generated at the decompression (See {{sec-cda}}). The resulting Flow Label differs from the initial value. FL is set to 20, TV is not set, MO is set to "ignore" and CDA is set to "generated". 
 * If flow_label_cda is set to "zero", the Flow Label is elided and set to 0 at decompression. A 0 value indicates no flow label is present. Fl is set to 20 bits, TV is set to 0, MO is set to "equal" and CDA is set to "not-sent". 
 
 
 Payload Length is elided and determined from the Tunnel IP Header Payload Length as well as the decompressed Payload. FL is set to 16 bits, TV is not set, MO is set to "ignore", CDA is set to "lower". 
 
-Next Header is compressed according to ts_proto: 
+Next Header is compressed according to ts_proto:
+
 * If ts_proto is the single value 0, Next Header is not compressed. FL is set to 8 bits, TV is not set, MO is set to "ignore", CDA is set to "sent-value".
 * If ts_proto is a single non zero value, Next Header is compressed. FL is set to 8 bits, TV is set to ts_proto, MO is set to "equal" and CDA is set to "not-sent".
  
 The IPv6 Hop Limit is read from the Tunnel IP Header Hop Limit. FL is set to 8 bits, TV is not set, MO is set to "ignore" and CDA is set to "lower."
 
 The source and destination IPv6 addresses are compressed using MSB. 
-In both cases, FL is set to 128, TV is respectively set to  msb(ts_ip_src_start, ts_ip_src_ed) or msb(ts_ip_dst_start, ts_ip_dst_end)), the MO is set to "MSB," and the CDA is set to "LSB."
+In both cases, FL is set to 128, TV is respectively set to  msb(ts_ip_src_start, ts_ip_src_ed) or msb(ts_ip_dst_start, ts_ip_dst_end), the MO is set to "MSB," and the CDA is set to "LSB."
 
 
 ###  Inner IPv4 Header Compression {#sec-inner-ip4}
 
 The fields Version, DSCP, ECN, Source Address and Destination Address are compressed as described for IPv6 in {{sec-inner-ip6}}.
-The field Total Length (16 bits) is compressed similarly to the IPv6 field Payload Length. The field Identification (16 bits) is compressed similarly to the IPv6 field Flow Label. If the IP Header is an IPv6 Header, the Identification are placed as the LSB of the IPv6 Header and the 4 remaining MSB are set to 0.  The field Time to Live is compressed similarly to the IPv6 Hop Limit field. The Protocol field is compressed similarly to the last IPv6 Next Header field.
+The field Total Length (16 bits) is compressed similarly to the IPv6 field Payload Length. The field Identification (16 bits) is compressed similarly to the IPv6 field Flow Label. If the IP Header is an IPv6 Header, the Identification is placed as the LSB of the IPv6 Header and the 4 remaining MSB are set to 0.  The field Time to Live is compressed similarly to the IPv6 Hop Limit field. The Protocol field is compressed similarly to the last IPv6 Next Header field.
 
 
 IHL is uncompressed, FL is set to 4 bits, TV is not set, MO is set to ignore and CDA is set to "value-sent".
@@ -525,7 +508,7 @@ FL is set to 16, TV is omitted, MO is set to "ignore," and CDA is set to "checks
 
 ## ESP Data Byte alignment {#sec-byte-align}
 
-SCHC operates on bits, while protocols like ESP expect payloads to be aligned to byte boundaries (8-bit alignment). To ensure this, we apply a padding by appending the SCHC_padding bits and the SCHC_padding_len. SCHC_padding_len is encoded over 3 bits to encode the values 0-7. SCHC_padding are randomy generated. Let's call the complementing bits, the bits that are needed to have a byte boundary. If the complementing bits are less or equal to 2 bits, the padding will result in adding an extra byte.
+SCHC operates on bits, while protocols like ESP expect payloads to be aligned to byte boundaries (8-bit alignment). To ensure this, we apply a padding by appending the SCHC_padding bits and the SCHC_padding_len. SCHC_padding_len is encoded over 3 bits to encode the values 0-7. SCHC_padding is randomly generated. Let's call the complementing bits, the bits that are needed to have a byte boundary. If the complementing bits are less than or equal to 2 bits, the padding will result in adding an extra byte.
 
 ## Clear Text ESP Compression (CTEC) {#sec-ctec}
     
@@ -548,14 +531,14 @@ FL is set to 32 bits, TV is not set, MO is set to "MSB( 4 - esp_spi_lsb)" and CD
 If the esp_encr considers implicit IV {{!RFC8750}}, Sequence Numbers are not compressed. Otherwise, SN are compressed to their LSB similarly to the SPI. 
 FL is set to 32 bits, TV is not set, MO is set to "MSB( 4 - esp_spi_lsb)" and CDA is set to "LSB".
 
-Note that the use of implicit IV always result in a better compression as a 64 bit IV to be sent while compression of the SN alone results at best in a reduction of 32 bits. 
+Note that the use of implicit IV always results in a better compression as a 64 bit IV to be sent while compression of the SN alone results at best in a reduction of 32 bits. 
 
-The IPv6 Next Header field or the IPv4 Protocol that contains the "ESP" value is changed to "SCHC".
+The IPv6 Next Header field or the IPv4 Protocol field that contains the "ESP" value is changed to "SCHC".
   
   
 # SCHC Compression for IPsec in Transport mode
 
-The transport mode mostly differ from the Tunnel mode in that the IP header of the packet is not encrypted. As a result, the IP Payload is compressed as described in {{sec-payload}}. The IP header is not compressed. The byte alignment of the Compressed Payload is performed as described in {{sec-byte-align}}. The Clear Text ESP Compression is performed as described in {{sec-ctec}} except for the Next Header Field which is compressed as described in {{sec-inner-ip6}}
+The transport mode mostly differs from the Tunnel mode in that the IP header of the packet is not encrypted. As a result, the IP Payload is compressed as described in {{sec-payload}}. The IP header is not compressed. The byte alignment of the Compressed Payload is performed as described in {{sec-byte-align}}. The Clear Text ESP Compression is performed as described in {{sec-ctec}} except for the Next Header Field, which is compressed as described in {{sec-inner-ip6}}.
 
 # IANA Considerations
 
@@ -569,7 +552,7 @@ We request the IANA to create a new registry for the IIPC Profile
 | "diet-esp"         | ThisRFC   |
 ~~~
 
-We request IANA to create the following registried for the "diet-esp" IIPC Profile. 
+We request IANA to create the following registries for the "diet-esp" IIPC Profile. 
 
 ~~~
 | Flow Label CDA Value | Reference |
@@ -615,145 +598,234 @@ We request IANA to create the following registried for the "diet-esp" IIPC Profi
 
 # Security Considerations
 
-There is no specific considerations associated with the profile other than the security considerations of ESP {{!RFC4303}} and those of SCHC {{!RFC8724}}.
+There are no specific considerations associated with the profile other than the security considerations of ESP {{!RFC4303}} and those of SCHC {{!RFC8724}}.
 
 # Acknowledgements
 
-We would like to thank Laurent Toutain for its guidance on SCHC. Robert Moskowitz for inspiring the name "Diet-ESP" from Diet-HIP. The authors would like to acknowledge the support from Mitacs through the Mitacs Accelerate program.
+We would like to thank Laurent Toutain for his guidance on SCHC. Robert Moskowitz for inspiring the name "Diet-ESP" from Diet-HIP. The authors would like to acknowledge the support from Mitacs through the Mitacs Accelerate program.
 
 --- back 
 
-# JSON format Context
+
+
+# Appendix
+
+This appendix provides the details of the SCHC rules defined for Diet-ESP compression, alongside an explanation and an example outcome.
+
+
+## JSON Representation of SCHC Rules for Diet-ESP Header Compression
 
 The JSON file defines a set of rules within the SCHC_Context that are used for compressing and decompressing ESP headers. Each rule has a RuleID, a Description, and a set of Fields. Each field specifies how a particular part of the packet should be handled during compression or decompression. Note that the RuleID can be set by the user in any numeric order.
-Each rule is defined with a compression_level, indicating which level of the ESP packet structure (IIPC, CTEC, or EEC) the rule applies to, as defined in the Terminology section.
+The rules include all the compression_levels, including IIPC, CTEC, and EEC as defined in the Terminology section.
+
+~~~json
+[
+  {
+    "RuleIDValue": 1,
+    "RuleIDLength": 8,
+    "Compression": [
+      {
+        "FID": "ESP.SPI",
+        "TV": 5,
+        "MO": "equal",
+        "CDA": "not-sent"
+      },
+      {
+        "FID": "ESP.SEQ",
+        "TV": 1,
+        "MO": "MSB",
+        "MO.VAL": 16,
+        "CDA": "LSB"
+      }
+    ]
+  },
+  {
+    "RuleIDValue": 2,
+    "RuleIDLength": 8,
+    "Compression": [
+      {
+        "FID": "UDP.DEV_PORT",
+        "TV": 123,
+        "MO": "MSB",
+        "MO.VAL": 12,
+        "CDA": "LSB"
+      },
+      {
+        "FID": "UDP.APP_PORT",
+        "TV": 4567,
+        "MO": "MSB",
+        "MO.VAL": 12,
+        "CDA": "LSB"
+      },
+      {
+        "FID": "UDP.LEN",
+        "TV": 0,
+        "MO": "ignore",
+        "CDA": "compute-length"
+      },
+      {
+        "FID": "UDP.CKSUM",
+        "TV": 0,
+        "MO": "ignore",
+        "CDA": "compute-checksum"
+      }
+    ]
+  },
+  {
+    "RuleIDValue": 0,
+    "RuleIDLength": 0,
+    "schc_header": [
+      {
+        "FID": "SCHC.NXT",
+        "TV": [17, 50, 41],
+        "MO": "match-mapping",
+        "CDA": "mapping-sent"
+      }
+    ]
+  },
+  {
+    "RuleIDValue": 4,
+    "RuleIDLength": 8,
+    "Compression": [
+      {
+        "FID": "IPV6.DEV_PREFIX",
+        "TV": "ff02::5678",
+        "MO": "equal",
+        "CDA": "value-sent"
+      },
+      {
+        "FID": "IPV6.APP_PREFIX",
+        "TV": "2001:db8::1000",
+        "MO": "equal",
+        "CDA": "value-sent"
+      }
+    ]
+  },
+  {
+    "RuleIDValue": 5,
+    "RuleIDLength": 8,
+    "Compression": [
+      {
+        "FID": "ESP.NXT",
+        "TV": 41,
+        "MO": "equal",
+        "CDA": "not-sent"
+      }
+    ]
+  }
+]
 
 ~~~
-{
-  "rules": [
-    {
-      "rule_id": 1,
-      "compression_level": "IIPC",
-      "fields": [
-        {
-          "field": "IP Version",
-          "FL": 3,
-          "TV": "IPv6",
-          "MO": "equal",
-          "CDA": "not-sent"
-        },
-        {
-          "field": "Traffic Class DSCP",
-          "FL": 6,
-          "TV": [0],
-          "MO": "ignore",
-          "CDA": "sent-value"
-        },
-        {
-          "field": "Flow Label",
-          "FL": 20,
-          "TV": null,
-          "MO": "ignore",
-          "CDA": "lower"
-        },
-        {
-          "field": "Payload Length",
-          "FL": 16,
-          "TV": null,
-          "MO": "ignore",
-          "CDA": "lower"
-        },
-        {
-          "field": "Next Header",
-          "FL": 8,
-          "TV": null,
-          "MO": "ignore",
-          "CDA": "sent-value"
-        },
-        {
-          "field": "Hop Limit",
-          "FL": 8,
-          "TV": null,
-          "MO": "ignore",
-          "CDA": "lower"
-        },
-        {
-          "field": "Source Address",
-          "FL": 128,
-          "TV": "IPv6",
-          "MO": "MSB",
-          "CDA": "LSB"
-        },
-        {
-          "field": "Destination Address",
-          "FL": 128,
-          "TV": "IPv6",
-          "MO": "MSB",
-          "CDA": "LSB"
-        }
-      ]
-    },
-    {
-      "rule_id": 2,
-      "compression_level": "CTEC",
-      "fields": [
-        {
-          "field": "ESP Padding",
-          "FL": 8,
-          "TV": null,
-          "MO": "ignore",
-          "CDA": "padding"
-        },
-        {
-          "field": "Pad Length",
-          "FL": 8,
-          "TV": null,
-          "MO": "ignore",
-          "CDA": "padding"
-        },
-        {
-          "field": "Next Header",
-          "FL": 8,
-          "TV": null,
-          "MO": "ignore",
-          "CDA": "sent-value"
-        },
-        {
-          "field": "SCHC Padding",
-          "FL": 4,
-          "TV": null,
-          "MO": "ignore",
-          "CDA": "send"
-        }
-      ]
-    },
-    {
-      "rule_id": 3,
-      "compression_level": "EEC",
-      "fields": [
-        {
-          "field": "SPI",
-          "FL": 32,
-          "TV": null,
-          "MO": "MSB(4 - esp_spi_lsb)",
-          "CDA": "LSB"
-        },
-        {
-          "field": "Sequence Number",
-          "FL": 32,
-          "TV": null,
-          "MO": "MSB(4 - esp_sn_lsb)",
-          "CDA": "LSB"
-        },
-        {
-          "field": "Next Header",
-          "FL": 8,
-          "TV": null,
-          "MO": "ignore",
-          "CDA": "sent-value"
-        }
-      ]
-    }
-  ],
-}
-~~~
+
+## Example Outcome
+
+### Input Packet
+
+The following packet undergoes processing based on the SCHC Diet-ESP profile:
+
+- **IPv6 Header**:
+  - `Source Address`: `2001:db8::1000`
+  - `Destination Address`: `ff02::5678`
+  - Other attributes include `Payload Length: 18`, `Next Header: UDP`, and `Hop Limit: 64`.
+
+- **UDP Header**:
+  - `Source Port`: `123`
+  - `Destination Port`: `4567`
+  - `Length`: `18`
+  - `Checksum`: `0x6bc9`
+
+- **Payload**:
+  - 10 bytes sample Data: `b'U\xe2(\x88\xbf\xf9\xd91\x08\xc5'`
+
+### Compression Process
+
+1. **UDP Header Compression**:
+   - Initial size: `8 bytes`.
+   - Compressed using the UDP-specific rules from the Diet-ESP profile.
+   - Ports are encoded as LSB fields, reducing the size to `2 bytes`.
+
+2. **IPv6 Header Compression**:
+   - Initial size: `40 bytes`.
+   - Source and destination addresses are compressed using value-sent rules based on matching prefixes.
+   - Final compressed size: `17 bytes`.
+
+3. **ESP Header Compression**:
+   - Initial size: `12 bytes`.
+   - SPI is not transmitted (`not-sent` CDA), and SEQ is compressed using the LSB technique.
+   - Final compressed size: `2 bytes`.
+
+4. **ESP Clear Text Compression**:
+
+   - The ESP.NXT field (Next Header) is compressed using the match-mapping CDA:
+Rule: The ESP.NXT value is matched to a single value (41 for the IPv6 Next Header).
+CDA: mapping-sent is used to send only the mapped index.
+
+5. **Payload Handling**:
+   - The payload is not compressed. Further compression may be possible with additional SCHC rules.
+
+### Decompression Process
+
+The decompression reverses the steps:
+
+1. **ESP Header Reconstruction**:
+   - SPI is restored using the fixed value from the rule (TV=5).
+   - SEQ is reconstructed from the LSB field.
+
+2. **ESP Clear Text Reconstruction**:
+
+   - The ESP.NXT field is restored using the mapping-sent rule, where the value 41 (Next Header for IPv6) is retrieved from the mapping.
+
+3. **UDP Header Reconstruction**:
+   - Ports are restored using the compressed LSB values.
+   - Length and checksum fields are calculated using compute-length and compute-checksum CDA.
+
+4. **IPv6 Header Reconstruction**:
+   - Prefixes are restored using the value-sent fields in the rule.
+
+5. **Payload Restoration**:
+   - The payload is directly restored, as it was not compressed.
+
+### Final Output Packet
+
+After reconstruction, the packet is identical to the original input:
+
+- **IPv6 Header**:
+  - `Source Address`: `2001:db8::1000`
+  - `Destination Address`: `ff02::5678`
+  - `Payload Length`: `18`
+  - `Next Header`: `UDP`
+  - `Hop Limit`: `64`.
+
+- **UDP Header**:
+  - `Source Port`: `123`
+  - `Destination Port`: `4567`
+  - `Length`: `18`
+  - `Checksum`: `0x6bc9`.
+
+- **Payload**:
+  - Data: `b'U\xe2(\x88\xbf\xf9\xd91\x08\xc5'`.
+
+
+
+This example demonstrates the efficiency and accuracy of the Diet-ESP profile when applied to compress and decompress network packets. 
+
+- **Efficiency**: The SCHC rules reduce packet overhead:
+  - The UDP header is compressed from `8 bytes` to `2 bytes`.
+  - The IPv6 header is reduced from `40 bytes` to `17 bytes`.
+  - The ESP header size is decreased from `12 bytes` to `2 bytes`.
+  - The ESP.NXT field is eliminated from transmission (`1 byte` reduction).
+ 
+  These reductions are particularly beneficial in constrained environments such as Low-Power Wide-Area Networks (LPWANs).
+
+- **Accuracy**: The decompression process fully reconstructs the original packet, ensuring no loss of information.
+
+- **Applicability**: By leveraging these rules, the Diet-ESP profile addresses the challenges of transmitting data efficiently in constrained networks, optimizing bandwidth utilization while retaining compatibility with standard protocols.
+
+
+### GitHub Repository: Diet-ESP SCHC Implementation
+
+The source code for the implementation of the Diet-ESP profile, including the compression and decompression logic using the SCHC rules, is available on GitHub. Access the code at the following link:
+
+GitHub Repository: [Diet-ESP SCHC Implementation](https://github.com/mglt/pyesp/tree/master/examples/draft-diet-esp.py)
+
+This repository contains the rule definitions, examples, and source code for implementing and testing the Diet-ESP profile. Refer to the README file for setup instructions and usage guidelines.
