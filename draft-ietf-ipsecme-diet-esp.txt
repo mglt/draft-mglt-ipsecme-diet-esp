@@ -5,7 +5,7 @@
 IPsecme                                                       D. Migault
 Internet-Draft                                                  Ericsson
 Intended status: Standards Track                               M. Hatami
-Expires: 25 July 2025                                        S. Céspedes
+Expires: 27 July 2025                                        S. Céspedes
                                                                W. Atwood
                                                     Concordia University
                                                                   D. Liu
@@ -16,7 +16,7 @@ Expires: 25 July 2025                                        S. Céspedes
                                                  Universitaet Bremen TZI
                                                              D. Schinazi
                                                               Google LLC
-                                                         21 January 2025
+                                                         23 January 2025
 
 
                      ESP Header Compression Profile
@@ -43,7 +43,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 25 July 2025.
+   This Internet-Draft will expire on 27 July 2025.
 
 Copyright Notice
 
@@ -53,7 +53,7 @@ Copyright Notice
 
 
 
-Migault, et al.           Expires 25 July 2025                  [Page 1]
+Migault, et al.           Expires 27 July 2025                  [Page 1]
 
 Internet-Draft                    EHCP                      January 2025
 
@@ -93,23 +93,23 @@ Table of Contents
      10.1.  Normative References . . . . . . . . . . . . . . . . . .  24
      10.2.  Informative References . . . . . . . . . . . . . . . . .  25
    Appendix A.  Appendix . . . . . . . . . . . . . . . . . . . . . .  26
-     A.1.  Registry for Diet-ESP Attributes for Rules Generation
-           (AfRG)  . . . . . . . . . . . . . . . . . . . . . . . . .  26
-     A.2.  JSON Representation of SCHC Rules for Diet-ESP Header
-           Compression . . . . . . . . . . . . . . . . . . . . . . .  28
-     A.3.  Example Outcome . . . . . . . . . . . . . . . . . . . . .  30
-       A.3.1.  Input Packet  . . . . . . . . . . . . . . . . . . . .  30
-       A.3.2.  Compression Process . . . . . . . . . . . . . . . . .  30
-       A.3.3.  Decompression Process . . . . . . . . . . . . . . . .  31
-       A.3.4.  Final Output Packet . . . . . . . . . . . . . . . . .  32
-       A.3.5.  GitHub Repository: Diet-ESP SCHC Implementation . . .  33
-   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  33
+     A.1.  JSON Representation of SCHC Rules for Diet-ESP Header
+           Compression . . . . . . . . . . . . . . . . . . . . . . .  27
+     A.2.  Example Outcome . . . . . . . . . . . . . . . . . . . . .  29
+       A.2.1.  Input Packet  . . . . . . . . . . . . . . . . . . . .  29
+       A.2.2.  Compression Process . . . . . . . . . . . . . . . . .  29
+       A.2.3.  Decompression Process . . . . . . . . . . . . . . . .  30
+       A.2.4.  Final Output Packet . . . . . . . . . . . . . . . . .  31
+       A.2.5.  GitHub Repository: Diet-ESP SCHC Implementation . . .  32
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  32
 
 
 
 
 
-Migault, et al.           Expires 25 July 2025                  [Page 2]
+
+
+Migault, et al.           Expires 27 July 2025                  [Page 2]
 
 Internet-Draft                    EHCP                      January 2025
 
@@ -165,7 +165,7 @@ Internet-Draft                    EHCP                      January 2025
 
 
 
-Migault, et al.           Expires 25 July 2025                  [Page 3]
+Migault, et al.           Expires 27 July 2025                  [Page 3]
 
 Internet-Draft                    EHCP                      January 2025
 
@@ -221,7 +221,7 @@ Internet-Draft                    EHCP                      January 2025
 
 
 
-Migault, et al.           Expires 25 July 2025                  [Page 4]
+Migault, et al.           Expires 27 July 2025                  [Page 4]
 
 Internet-Draft                    EHCP                      January 2025
 
@@ -277,7 +277,7 @@ Internet-Draft                    EHCP                      January 2025
 
 
 
-Migault, et al.           Expires 25 July 2025                  [Page 5]
+Migault, et al.           Expires 27 July 2025                  [Page 5]
 
 Internet-Draft                    EHCP                      January 2025
 
@@ -333,7 +333,7 @@ Internet-Draft                    EHCP                      January 2025
 
 
 
-Migault, et al.           Expires 25 July 2025                  [Page 6]
+Migault, et al.           Expires 27 July 2025                  [Page 6]
 
 Internet-Draft                    EHCP                      January 2025
 
@@ -389,7 +389,7 @@ Internet-Draft                    EHCP                      January 2025
 
 
 
-Migault, et al.           Expires 25 July 2025                  [Page 7]
+Migault, et al.           Expires 27 July 2025                  [Page 7]
 
 Internet-Draft                    EHCP                      January 2025
 
@@ -445,7 +445,7 @@ Internet-Draft                    EHCP                      January 2025
 
 
 
-Migault, et al.           Expires 25 July 2025                  [Page 8]
+Migault, et al.           Expires 27 July 2025                  [Page 8]
 
 Internet-Draft                    EHCP                      January 2025
 
@@ -501,7 +501,7 @@ Internet-Draft                    EHCP                      January 2025
 
 
 
-Migault, et al.           Expires 25 July 2025                  [Page 9]
+Migault, et al.           Expires 27 July 2025                  [Page 9]
 
 Internet-Draft                    EHCP                      January 2025
 
@@ -557,22 +557,22 @@ Internet-Draft                    EHCP                      January 2025
 
 
 
-Migault, et al.           Expires 25 July 2025                 [Page 10]
+Migault, et al.           Expires 27 July 2025                 [Page 10]
 
 Internet-Draft                    EHCP                      January 2025
 
 
    Action (CDA) dscp_cda, the ECN CDA ecn_cda, the Flow Label CDA
-   flow_label_cda, the alignment alignment XXX, the ESP SPI Least
+   flow_label_cda, the ESP alignment alignment, the ESP SPI Least
    Significant Bits (LSB) esp_spi_lsb, and the ESP Sequence Number LSB
    esp_sn_lsb.
 
    The second category pertains to AfRG that are negotiated through
    IKEv2 exchanges or extensions that are not specifically designed for
    compression purposes.  This category includes AfRG associated with
-   Traffic Selectors (TS), as identified in Table 1, which are th eTS IP
-   Version ts_ip_version, the TS IP Source Start ts_ip_src_start, the TS
-   IP Source End ts_ip_src_end, the TS IP Destination Start
+   TS, as identified in Table 1, which are the TS IP Version
+   ts_ip_version, the TS IP Source Start ts_ip_src_start, the TS IP
+   Source End ts_ip_src_end, the TS IP Destination Start
    ts_ip_dst_start, the TS IP Destination End ts_ip_dst_end, the TS
    Protocol ts_proto, the TS Port Source Start ts_port_src_start, the TS
    Port Source End ts_port_src_end, the TS Port Destination Start
@@ -580,7 +580,7 @@ Internet-Draft                    EHCP                      January 2025
    These AfRG are derived from the Traffic Selectors established through
    TSi/TSr payloads during the IKEv2 CREATE_CHILD_SA exchange, as
    described in [RFC7296], Section 3.13.  The AfRG IPsec Mode designated
-   as ipsec_mode inTable 1 is determined by the presence or absence of
+   as ipsec_mode in Table 1 is determined by the presence or absence of
    the USE_TRANSPORT_MODE Notify Payload during the CREATE_CHILD_SA
    exchange, as detailed in [RFC7296], Section 1.3.1.  The AfRG Tunnel
    IP designated as tunnel_ip in Table 1 is obtained from the IP address
@@ -613,7 +613,7 @@ Internet-Draft                    EHCP                      January 2025
 
 
 
-Migault, et al.           Expires 25 July 2025                 [Page 11]
+Migault, et al.           Expires 27 July 2025                 [Page 11]
 
 Internet-Draft                    EHCP                      January 2025
 
@@ -664,12 +664,12 @@ Internet-Draft                    EHCP                      January 2025
 
    Any parameter starting with "ts_" is associated with the Traffic
    Selectors (TSi/TSr) of the SA.  The notation is introduced by this
-   specification but the definition of the parameters is in [RFC4301]
+   specification but the definitions of the parameters are in [RFC4301]
    and [RFC7296].
 
 
 
-Migault, et al.           Expires 25 July 2025                 [Page 12]
+Migault, et al.           Expires 27 July 2025                 [Page 12]
 
 Internet-Draft                    EHCP                      January 2025
 
@@ -725,7 +725,7 @@ Internet-Draft                    EHCP                      January 2025
 
 
 
-Migault, et al.           Expires 25 July 2025                 [Page 13]
+Migault, et al.           Expires 27 July 2025                 [Page 13]
 
 Internet-Draft                    EHCP                      January 2025
 
@@ -781,7 +781,7 @@ Internet-Draft                    EHCP                      January 2025
 
 
 
-Migault, et al.           Expires 25 July 2025                 [Page 14]
+Migault, et al.           Expires 27 July 2025                 [Page 14]
 
 Internet-Draft                    EHCP                      January 2025
 
@@ -809,8 +809,7 @@ Internet-Draft                    EHCP                      January 2025
       are not Traffic Selectors, but the compression mandates that the
       packets take one of these listed DSCP values.
 
-   alignment:  We do not beleiev there is any alignment for the Dat
-      Payload, so this argument is likely to be removed.  XXXX
+   alignment:  designates the ESP alignment as defined by [RFC4303].
 
    ipsec_mode:  designates the IPsec Mode defined in [RFC4301].  In this
       document, the possible values are "tunnel" for the Tunnel mode and
@@ -834,15 +833,15 @@ Internet-Draft                    EHCP                      January 2025
    esp_spi_lsb:  designates the LSB to be considered for the compressed
       SPI.  A value of 32 for esp_spi_lsb will leave the SPI unchanged.
 
+   esp_sn:  designates the ESP Sequence Number (SN) field defined in
 
 
 
-Migault, et al.           Expires 25 July 2025                 [Page 15]
+Migault, et al.           Expires 27 July 2025                 [Page 15]
 
 Internet-Draft                    EHCP                      January 2025
 
 
-   esp_sn:  designates the ESP Sequence Number (SN) field defined in
       [RFC4301].
 
    esp_sn_lsb:  designates the LSB to be considered for the compressed
@@ -890,15 +889,14 @@ Internet-Draft                    EHCP                      January 2025
       accordingly.
 
    hop limit:  indicates that the hop limit is derived from the outer
+      IPv6 header.
 
 
 
-Migault, et al.           Expires 25 July 2025                 [Page 16]
+Migault, et al.           Expires 27 July 2025                 [Page 16]
 
 Internet-Draft                    EHCP                      January 2025
 
-
-      IPv6 header.
 
    SCHC padding:  indicates that the SCHC padding bits are generated
       accordingly.
@@ -949,7 +947,9 @@ Internet-Draft                    EHCP                      January 2025
 
 
 
-Migault, et al.           Expires 25 July 2025                 [Page 17]
+
+
+Migault, et al.           Expires 27 July 2025                 [Page 17]
 
 Internet-Draft                    EHCP                      January 2025
 
@@ -1005,7 +1005,7 @@ Internet-Draft                    EHCP                      January 2025
 
 
 
-Migault, et al.           Expires 25 July 2025                 [Page 18]
+Migault, et al.           Expires 27 July 2025                 [Page 18]
 
 Internet-Draft                    EHCP                      January 2025
 
@@ -1061,7 +1061,7 @@ Internet-Draft                    EHCP                      January 2025
 
 
 
-Migault, et al.           Expires 25 July 2025                 [Page 19]
+Migault, et al.           Expires 27 July 2025                 [Page 19]
 
 Internet-Draft                    EHCP                      January 2025
 
@@ -1069,23 +1069,23 @@ Internet-Draft                    EHCP                      January 2025
 5.2.  ESP Payload Data Byte Alignment
 
    SCHC operates on bits, and the compression performed by SCHC may
-   result in a bit payload that is not aligned to a byte ( 8 bits)
-   boundary.  Protocols like ESP expect payloads to be aligned to byte
-   boundaries (8-bit alignment).  To ensure this, we apply a padding by
-   appending the SCHC_padding bits and the SCHC_padding_len.
+   result in a bit payload that is not aligned to a byte (8 bits)
+   boundary.  Protocols such as ESP expect payloads to be aligned to
+   byte boundaries (8-bit alignment).  To ensure this, we apply a
+   padding by appending the SCHC_padding bits and the SCHC_padding_len.
    SCHC_padding_len is encoded over 3 bits to encode the number of bits
    that will compose the SCHC_padding field.  As a result SCHC_padding
-   field has between 0 and 7 bits coded over the the SCHC_padding_len.
-   The two fields are between 3 and 10 bits, so if the complementing
-   bits are less than or equal to 2 bits, the padding will result in
-   adding an extra byte.
+   field has between 0 and 7 bits coded over the SCHC_padding_len.  The
+   two fields are between 3 and 10 bits, so if the complementing bits
+   are less than or equal to 2 bits, the padding will result in adding
+   an extra byte.
 
    When the iipc_profile is set to "iipc_uncompress" there is no ESP
    Payload Data Byte alignment.  When iipc_profile is set to "iipc_diet-
-   esp" ESP Payload Data Byte Alignement is performed over the
-   Compressed Inner IP packet.  This ensures that in both transport and
-   tunnel mode, the Payload Data later encrypted by ESP result in a
-   interger number of bytes.
+   esp" ESP Payload Data Byte Alignment is performed over the Compressed
+   Inner IP packet.  This ensures that in both transport and tunnel
+   mode, the Payload Data later encrypted by ESP result in an integer
+   number of bytes.
 
 5.3.  Clear Text ESP Compression (CTEC)
 
@@ -1108,25 +1108,24 @@ Internet-Draft                    EHCP                      January 2025
    is set to IPv4 or IPv6 depending on ts_ip_version, MO is set to
    "equal" and CDA is set to "not-sent".
 
-   We need to check the rules above.
+   The ESP Pad Length and Padding fields are omitted only when ESP
+   alignment has been selected to "8bit" and esp_encr does not
+   necessitate a specific block size alignment, or if that block size is
+   one byte.  This is represented by setting FL to (Pad Length + 1) * 8
+   bits, leaving TV unset, configuring MO to "ignore," and designating
+   CDA as padding.  The ESP Padding and Pad Length may vary from their
 
-   The ESP Pad Length and Padding fields are omitted only when esp_encr
-   does not necessitate a specific block size alignment, or if that
-   block size is one byte.  This is represented by setting FL to (Pad
-   Length + 1) * 8 bits, leaving TV unset, configuring MO to "ignore,"
 
 
-
-Migault, et al.           Expires 25 July 2025                 [Page 20]
+Migault, et al.           Expires 27 July 2025                 [Page 20]
 
 Internet-Draft                    EHCP                      January 2025
 
 
-   and designating CDA as padding.  The ESP Padding and Pad Length may
-   vary from their decompressed counterparts.  However, since the IPsec
-   process removes the padding, these variations do not affect packet
-   processing.  When esp_encr requires a specific block size, the ESP
-   Pad Length and Padding fields remain uncompressed.
+   decompressed counterparts.  However, since the IPsec process removes
+   the padding, these variations do not affect packet processing.  When
+   esp_encr requires a specific block size, the ESP Pad Length and
+   Padding fields remain uncompressed.
 
 5.4.  Encrypted ESP Compression (EEC)
 
@@ -1166,23 +1165,18 @@ Internet-Draft                    EHCP                      January 2025
    | "lower"              | ThisRFC   |
    | "zero"               | ThisRFC   |
 
-
-
-
-
-
-
-
-Migault, et al.           Expires 25 July 2025                 [Page 21]
-
-Internet-Draft                    EHCP                      January 2025
-
-
    | DSCP CDA Value       | Reference |
    +----------------------+-----------+
    | "uncompress"         | ThisRFC   |
    | "lower"              | ThisRFC   |
    | "sa"                 | ThisRFC   |
+
+
+
+Migault, et al.           Expires 27 July 2025                 [Page 21]
+
+Internet-Draft                    EHCP                      January 2025
+
 
    | ECN CDA Value       | Reference |
    +----------------------+-----------+
@@ -1215,6 +1209,31 @@ Internet-Draft                    EHCP                      January 2025
    Value to either "uncompress" or "sa," and the ECN CDA Value to
    "uncompress."
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Migault, et al.           Expires 27 July 2025                 [Page 22]
+
+Internet-Draft                    EHCP                      January 2025
+
+
    However, this protection is compromised if the Flow Label CAD Value,
    DSCP CAD Value, or ECN CDA Values are set to "lower."  In such cases,
    the values from the inner packet for the respective fields will be
@@ -1226,14 +1245,6 @@ Internet-Draft                    EHCP                      January 2025
    an attacker within an untrusted domain, potentially disrupting load
    balancing strategies that rely on the Flow Label [RFC6438][RFC6437].
    More broadly, when the Flow Label CAD Value is set to "lower," the
-
-
-
-Migault, et al.           Expires 25 July 2025                 [Page 22]
-
-Internet-Draft                    EHCP                      January 2025
-
-
    relevant Flow Label Security Considerations from [RFC6437] apply.
    Additionally, an attacker may manipulate the DSCP values to diminish
    the priority of specific packets, resulting in packets from the same
@@ -1260,18 +1271,37 @@ Internet-Draft                    EHCP                      January 2025
    The encryption algorithm must adhere to the guidelines provided in
    [RFC8221] to guarantee contemporary cryptographic protection.
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Migault, et al.           Expires 27 July 2025                 [Page 23]
+
+Internet-Draft                    EHCP                      January 2025
+
+
    The least significant bits (LSB) of the ESP Security Parameter Index
    (SPI) determine the number of bits allocated to the SPI.  An
    acceptable quantity of LSB must ensure that the peer possesses a
-   sufficient number of SPIs, which is contingent upon th
-   eimplementation of the SA lookup employed.  If a peer relies solely
-   on the SPI fields for SA lookup, then the LSB must be sufficiently
-   large to satisfy the condition MAX_SPI <= 2** LSB.  The SPI may
-   assume various LSB values; however, the operator must be cognizant
-   that if multiple LSB values are permissible for each type of SA
-   lookup, then multiple SA lookups and signature verifications may be
-   required.  It is advisable for a peer to ascertain the LSB associated
-   with an incoming packet in a deterministic manner.
+   sufficient number of SPIs, which is contingent upon the
+   implementation of the SA lookup employed.  If a peer relies solely on
+   the SPI fields for SA lookup, then the LSB must be sufficiently large
+   to satisfy the condition MAX_SPI <= 2**LSB.  The SPI may assume
+   various LSB values; however, the operator must be cognizant that if
+   multiple LSB values are permissible for each type of SA lookup, then
+   multiple SA lookups and signature verifications may be required.  It
+   is advisable for a peer to ascertain the LSB associated with an
+   incoming packet in a deterministic manner.
 
    The ESP SN LSB must be established in a manner that allows the
    receiving peer to clearly ascertain the sequence number of the IPsec
@@ -1281,14 +1311,6 @@ Internet-Draft                    EHCP                      January 2025
    maximum number of packets that may be in transit simultaneously.
    This approach will guarantee that the last packet received is
    correctly linked to the corresponding sequence number.
-
-
-
-
-Migault, et al.           Expires 25 July 2025                 [Page 23]
-
-Internet-Draft                    EHCP                      January 2025
-
 
 9.  Acknowledgements
 
@@ -1315,6 +1337,15 @@ Internet-Draft                    EHCP                      January 2025
               DOI 10.17487/RFC2119, March 1997,
               <https://www.rfc-editor.org/info/rfc2119>.
 
+
+
+
+
+Migault, et al.           Expires 27 July 2025                 [Page 24]
+
+Internet-Draft                    EHCP                      January 2025
+
+
    [RFC4301]  Kent, S. and K. Seo, "Security Architecture for the
               Internet Protocol", RFC 4301, DOI 10.17487/RFC4301,
               December 2005, <https://www.rfc-editor.org/info/rfc4301>.
@@ -1336,15 +1367,6 @@ Internet-Draft                    EHCP                      January 2025
               Kivinen, "Internet Key Exchange Protocol Version 2
               (IKEv2)", STD 79, RFC 7296, DOI 10.17487/RFC7296, October
               2014, <https://www.rfc-editor.org/info/rfc7296>.
-
-
-
-
-
-Migault, et al.           Expires 25 July 2025                 [Page 24]
-
-Internet-Draft                    EHCP                      January 2025
-
 
    [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
               2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
@@ -1371,6 +1393,15 @@ Internet-Draft                    EHCP                      January 2025
 
 10.2.  Informative References
 
+
+
+
+
+Migault, et al.           Expires 27 July 2025                 [Page 25]
+
+Internet-Draft                    EHCP                      January 2025
+
+
    [I-D.ietf-schc-architecture]
               Pelov, A., Thubert, P., and A. Minaburo, "Static Context
               Header Compression (SCHC) Architecture", Work in Progress,
@@ -1387,20 +1418,12 @@ Internet-Draft                    EHCP                      January 2025
               ipsecme-dscp-np-01>.
 
    [OpenSCHC] "OpenSCHC a Python open-source implementation of SCHC
-              (Static Context Header Compression", n.d.,
+              (Static Context Header Compression)", n.d.,
               <https://github.com/openschc>.
 
    [RFC4302]  Kent, S., "IP Authentication Header", RFC 4302,
               DOI 10.17487/RFC4302, December 2005,
               <https://www.rfc-editor.org/info/rfc4302>.
-
-
-
-
-Migault, et al.           Expires 25 July 2025                 [Page 25]
-
-Internet-Draft                    EHCP                      January 2025
-
 
    [RFC6438]  Carpenter, B. and S. Amante, "Using the IPv6 Flow Label
               for Equal Cost Multipath Routing and Link Aggregation in
@@ -1421,100 +1444,21 @@ Appendix A.  Appendix
    Diet-ESP compression, alongside an explanation and an example
    outcome.
 
-A.1.  Registry for Diet-ESP Attributes for Rules Generation (AfRG)
-
-   +=====+===========+================+==========+==========+=========+
-   |AfRG |Full Name  |Designation     |Has       |Default   |Reference|
-   |Code |           |                |Associated|Value     |         |
-   |Point|           |                |Data      |          |         |
-   +=====+===========+================+==========+==========+=========+
-   |0    |SCHC       |schc_payload_cda|YES       |not-sent  |ThisRFC  |
-   |     |Payload CDA|                |          |          |         |
-   +-----+-----------+----------------+----------+----------+---------+
-   |1    |SCHC       |schc_padding_cda|YES       |padding   |ThisRFC  |
-   |     |Padding CDA|                |          |          |         |
-   +-----+-----------+----------------+----------+----------+---------+
-   |2    |SCHC Pad   |schc_padlen_cda |YES       |value-sent|ThisRFC  |
-   |     |Length CDA |                |          |          |         |
-   +-----+-----------+----------------+----------+----------+---------+
-   |3    |SCHC Next  |schc_nh_cda     |YES       |value-sent|ThisRFC  |
-   |     |Header CDA |                |          |          |         |
-   +-----+-----------+----------------+----------+----------+---------+
-   |4    |SCHC SPI   |schc_spi_lsb    |YES       |32        |ThisRFC  |
-   |     |LSB        |                |          |          |         |
-   +-----+-----------+----------------+----------+----------+---------+
-   |5    |SCHC       |schc_sn_lsb     |YES       |32        |ThisRFC  |
-   |     |Sequence   |                |          |          |         |
-   |     |Number LSB |                |          |          |         |
-   +-----+-----------+----------------+----------+----------+---------+
-   |6    |SCHC IP    |schc_ip_src_cda |YES       |MSB       |ThisRFC  |
-   |     |Source CDA |                |          |          |         |
-   +-----+-----------+----------------+----------+----------+---------+
 
 
 
-Migault, et al.           Expires 25 July 2025                 [Page 26]
+
+
+
+
+
+
+Migault, et al.           Expires 27 July 2025                 [Page 26]
 
 Internet-Draft                    EHCP                      January 2025
 
 
-   |7    |SCHC IP    |schc_ip_dst_cda |YES       |MSB       |ThisRFC  |
-   |     |Destination|                |          |          |         |
-   |     |CDA        |                |          |          |         |
-   +-----+-----------+----------------+----------+----------+---------+
-   |8    |SCHC       |schc_alignment  |YES       |32-bit    |ThisRFC  |
-   |     |Alignment  |                |          |          |         |
-   +-----+-----------+----------------+----------+----------+---------+
-
-                Table 3: Table of Defined AfRG Code Points
-
-                   +=======+==============+===========+
-                   | Value | Designation  | Reference |
-                   +=======+==============+===========+
-                   | 0     | Full SPI     | ThisRFC   |
-                   +-------+--------------+-----------+
-                   | 1-31  | LSB SPI      | ThisRFC   |
-                   +-------+--------------+-----------+
-                   | 32    | Uncompressed | ThisRFC   |
-                   +-------+--------------+-----------+
-
-                      Table 4: SCHC SPI LSB Registry
-
-                   +=======+==============+===========+
-                   | Value | Designation  | Reference |
-                   +=======+==============+===========+
-                   | 0     | Full SN      | ThisRFC   |
-                   +-------+--------------+-----------+
-                   | 1-31  | LSB SN       | ThisRFC   |
-                   +-------+--------------+-----------+
-                   | 32    | Uncompressed | ThisRFC   |
-                   +-------+--------------+-----------+
-
-                      Table 5: SCHC Sequence Number
-                               LSB Registry
-
-                    +=======+=============+===========+
-                    | Value | Designation | Reference |
-                    +=======+=============+===========+
-                    | 0     | 8-bit       | ThisRFC   |
-                    +-------+-------------+-----------+
-                    | 1     | 16-bit      | ThisRFC   |
-                    +-------+-------------+-----------+
-                    | 2     | 32-bit      | ThisRFC   |
-                    +-------+-------------+-----------+
-                    | 3     | 64-bit      | ThisRFC   |
-                    +-------+-------------+-----------+
-
-                    Table 6: Padding Alignment Registry
-
-
-
-Migault, et al.           Expires 25 July 2025                 [Page 27]
-
-Internet-Draft                    EHCP                      January 2025
-
-
-A.2.  JSON Representation of SCHC Rules for Diet-ESP Header Compression
+A.1.  JSON Representation of SCHC Rules for Diet-ESP Header Compression
 
    The JSON file defines a set of rules within the SCHC_Context that are
    used for compressing and decompressing ESP headers.  Each rule has a
@@ -1565,7 +1509,7 @@ A.2.  JSON Representation of SCHC Rules for Diet-ESP Header Compression
 
 
 
-Migault, et al.           Expires 25 July 2025                 [Page 28]
+Migault, et al.           Expires 27 July 2025                 [Page 27]
 
 Internet-Draft                    EHCP                      January 2025
 
@@ -1591,8 +1535,8 @@ Internet-Draft                    EHCP                      January 2025
          {
            "FID": "SCHC.NXT",
            "TV": [17, 50, 41],
-           "MO": "match-mapping",
-           "CDA": "mapping-sent"
+           "MO": "equal",
+           "CDA": "not-sent"
          }
        ]
      },
@@ -1621,7 +1565,7 @@ Internet-Draft                    EHCP                      January 2025
 
 
 
-Migault, et al.           Expires 25 July 2025                 [Page 29]
+Migault, et al.           Expires 27 July 2025                 [Page 28]
 
 Internet-Draft                    EHCP                      January 2025
 
@@ -1636,9 +1580,9 @@ Internet-Draft                    EHCP                      January 2025
      }
    ]
 
-A.3.  Example Outcome
+A.2.  Example Outcome
 
-A.3.1.  Input Packet
+A.2.1.  Input Packet
 
    The following packet undergoes processing based on the SCHC Diet-ESP
    profile:
@@ -1666,7 +1610,7 @@ A.3.1.  Input Packet
 
       -  10 bytes sample Data: b'U\xe2(\x88\xbf\xf9\xd91\x08\xc5'
 
-A.3.2.  Compression Process
+A.2.2.  Compression Process
 
    1.  *UDP Header Compression*:
 
@@ -1677,7 +1621,7 @@ A.3.2.  Compression Process
 
 
 
-Migault, et al.           Expires 25 July 2025                 [Page 30]
+Migault, et al.           Expires 27 July 2025                 [Page 29]
 
 Internet-Draft                    EHCP                      January 2025
 
@@ -1714,7 +1658,7 @@ Internet-Draft                    EHCP                      January 2025
        *  The payload is not compressed.  Further compression may be
           possible with additional SCHC rules.
 
-A.3.3.  Decompression Process
+A.2.3.  Decompression Process
 
    The decompression reverses the steps:
 
@@ -1733,7 +1677,7 @@ A.3.3.  Decompression Process
 
 
 
-Migault, et al.           Expires 25 July 2025                 [Page 31]
+Migault, et al.           Expires 27 July 2025                 [Page 30]
 
 Internet-Draft                    EHCP                      January 2025
 
@@ -1753,7 +1697,7 @@ Internet-Draft                    EHCP                      January 2025
 
        *  The payload is directly restored, as it was not compressed.
 
-A.3.4.  Final Output Packet
+A.2.4.  Final Output Packet
 
    After reconstruction, the packet is identical to the original input:
 
@@ -1789,7 +1733,7 @@ A.3.4.  Final Output Packet
 
 
 
-Migault, et al.           Expires 25 July 2025                 [Page 32]
+Migault, et al.           Expires 27 July 2025                 [Page 31]
 
 Internet-Draft                    EHCP                      January 2025
 
@@ -1816,7 +1760,7 @@ Internet-Draft                    EHCP                      January 2025
       constrained networks, optimizing bandwidth utilization while
       retaining compatibility with standard protocols.
 
-A.3.5.  GitHub Repository: Diet-ESP SCHC Implementation
+A.2.5.  GitHub Repository: Diet-ESP SCHC Implementation
 
    The source code for the implementation of the Diet-ESP profile,
    including the compression and decompression logic using the SCHC
@@ -1845,7 +1789,7 @@ Authors' Addresses
 
 
 
-Migault, et al.           Expires 25 July 2025                 [Page 33]
+Migault, et al.           Expires 27 July 2025                 [Page 32]
 
 Internet-Draft                    EHCP                      January 2025
 
@@ -1901,4 +1845,4 @@ Internet-Draft                    EHCP                      January 2025
 
 
 
-Migault, et al.           Expires 25 July 2025                 [Page 34]
+Migault, et al.           Expires 27 July 2025                 [Page 33]

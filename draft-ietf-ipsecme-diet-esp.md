@@ -1,5 +1,4 @@
 ---
-
 title: ESP Header Compression Profile
 abbrev: EHCP
 docname: draft-ietf-ipsecme-diet-esp-04
@@ -61,7 +60,7 @@ informative:
   OpenSCHC:
     author:
     target: https://github.com/openschc
-    title: OpenSCHC a Python open-source implementation of SCHC (Static Context Header Compression
+    title: OpenSCHC a Python open-source implementation of SCHC (Static Context Header Compression)
 
 
 --- abstract
@@ -292,9 +291,9 @@ Similarly to the SA, Rules are directional and the Direction Indicator (DI) is s
 
 The list of attributes for the Rules Generation (AfRG) is shown in {{tab-ehc-ctx-esp}}. These attributes are used to express the various compressions that operate at the IIPC, CTEC, and EEC layers.
     
-As outlined in {{sec-schc-ipsec-integration}}, this specification does not detail the process by which the AfRG are established between peers. Instead, such negotiations are addressed in {{!I-D.ietf-ipsecme-ikev2-diet-esp-extension}}. However, the AfRG can be classified into two distinct categories. The first category encompasses AfRG that are negotiated through a specific IKEv2 extension tailored for the negotiation of AfRG linked to a particular profile, the Diet-ESP profile in this context. The AfRG referenced in {{tab-ehc-ctx-esp}} in this category are: the DSCP Compression/Decompression Action (CDA) dscp_cda, the ECN CDA ecn_cda, the Flow Label CDA flow_label_cda, the alignment alignment XXX, the ESP SPI Least Significant Bits (LSB) esp_spi_lsb, and the ESP Sequence Number LSB esp_sn_lsb.
+As outlined in {{sec-schc-ipsec-integration}}, this specification does not detail the process by which the AfRG are established between peers. Instead, such negotiations are addressed in {{!I-D.ietf-ipsecme-ikev2-diet-esp-extension}}. However, the AfRG can be classified into two distinct categories. The first category encompasses AfRG that are negotiated through a specific IKEv2 extension tailored for the negotiation of AfRG linked to a particular profile, the Diet-ESP profile in this context. The AfRG referenced in {{tab-ehc-ctx-esp}} in this category are: the DSCP Compression/Decompression Action (CDA) dscp_cda, the ECN CDA ecn_cda, the Flow Label CDA flow_label_cda, the ESP alignment alignment, the ESP SPI Least Significant Bits (LSB) esp_spi_lsb, and the ESP Sequence Number LSB esp_sn_lsb.
 
-The second category pertains to AfRG that are negotiated through IKEv2 exchanges or extensions that are not specifically designed for compression purposes. This category includes AfRG associated with Traffic Selectors (TS), as identified in {{tab-ehc-ctx-esp}}, which are th eTS IP Version ts_ip_version, the TS IP Source Start ts_ip_src_start, the TS IP Source End ts_ip_src_end, the TS IP Destination Start ts_ip_dst_start, the TS IP Destination End ts_ip_dst_end, the TS Protocol ts_proto, the TS Port Source Start ts_port_src_start, the TS Port Source End ts_port_src_end, the TS Port Destination Start ts_port_dst_start, and the  TS Port Destination End ts_port_dst_end. These AfRG are derived from the Traffic Selectors established through TSi/TSr payloads during the IKEv2 CREATE_CHILD_SA exchange, as described in {{!RFC7296, Section 3.13}}. The AfRG IPsec Mode designated as ipsec_mode in{{tab-ehc-ctx-esp}} is determined by the presence or absence of the USE_TRANSPORT_MODE Notify Payload during the CREATE_CHILD_SA exchange, as detailed in {{!RFC7296, Section 1.3.1}}. The AfRG Tunnel IP designated as tunnel_ip in {{tab-ehc-ctx-esp}} is obtained from the IP address of the IKE messages exchanged during the CREATE_CHILD_SA process, as noted in {{!RFC7296, Section 1.1.3}}. The AfRGs designated as ESP Encryption Algorythm esp_encr and ESP Security Parameter Index (SPI) esp_spi in {{tab-ehc-ctx-esp}} are established through the SAi2/SAr2 payloads during the CREATE_CHILD_SA exchange, while the AfRG designated as ESP Sequence Number esp_sn in {{tab-ehc-ctx-esp}} is initialized upon the creation of the Child SA and incremented for each subsequent ESP message. 
+The second category pertains to AfRG that are negotiated through IKEv2 exchanges or extensions that are not specifically designed for compression purposes. This category includes AfRG associated with TS, as identified in {{tab-ehc-ctx-esp}}, which are the TS IP Version ts_ip_version, the TS IP Source Start ts_ip_src_start, the TS IP Source End ts_ip_src_end, the TS IP Destination Start ts_ip_dst_start, the TS IP Destination End ts_ip_dst_end, the TS Protocol ts_proto, the TS Port Source Start ts_port_src_start, the TS Port Source End ts_port_src_end, the TS Port Destination Start ts_port_dst_start, and the  TS Port Destination End ts_port_dst_end. These AfRG are derived from the Traffic Selectors established through TSi/TSr payloads during the IKEv2 CREATE_CHILD_SA exchange, as described in {{!RFC7296, Section 3.13}}. The AfRG IPsec Mode designated as ipsec_mode in {{tab-ehc-ctx-esp}} is determined by the presence or absence of the USE_TRANSPORT_MODE Notify Payload during the CREATE_CHILD_SA exchange, as detailed in {{!RFC7296, Section 1.3.1}}. The AfRG Tunnel IP designated as tunnel_ip in {{tab-ehc-ctx-esp}} is obtained from the IP address of the IKE messages exchanged during the CREATE_CHILD_SA process, as noted in {{!RFC7296, Section 1.1.3}}. The AfRGs designated as ESP Encryption Algorythm esp_encr and ESP Security Parameter Index (SPI) esp_spi in {{tab-ehc-ctx-esp}} are established through the SAi2/SAr2 payloads during the CREATE_CHILD_SA exchange, while the AfRG designated as ESP Sequence Number esp_sn in {{tab-ehc-ctx-esp}} is initialized upon the creation of the Child SA and incremented for each subsequent ESP message. 
 
 The ability to derive the EHCP Context for the IIPC from the agreed Traffic Selectors is indicated by the variable iipc_profile. 
  
@@ -331,7 +330,7 @@ The ability to derive the EHCP Context for the IIPC from the agreed Traffic Sele
 
 
 Any parameter starting with "ts_" is associated with the Traffic Selectors (TSi/TSr) of the SA. 
-The notation is introduced by this specification but the definition of the parameters is in {{!RFC4301}} and {{!RFC7296}}.
+The notation is introduced by this specification but the definitions of the parameters are in {{!RFC4301}} and {{!RFC7296}}.
 
 The Traffic Selectors may result in a quite complex expression, and this specification restricts that complexity. 
 This specification restricts the resulting TSi/TSr to a single type of IP address (IPv4 or IPv6), a single protocol (e.g., UDP, TCP, or ANY), a single port range for source and destination. This specification presumes that the Traffic Selectors can be articulated as a result of CREATE_CHILD_SA with only one Traffic Selector {{!RFC7296, Section 3.13.1}} in both TSi and TSr payloads (as described in {{!RFC7296, Section 3.13}}). The TS Type MUST be either TS_IPV4_ADDR_RANGE or TS_IPV6_ADDR_RANGE. 
@@ -395,7 +394,7 @@ dscp_list:
 
 
 alignment:
-: We do not beleiev there is any alignment for the Dat Payload, so this argument is likely to be removed. XXXX 
+: designates the ESP alignment as defined by {{!RFC4303}}. 
 
 ipsec_mode:
 : designates the IPsec Mode defined in {{!RFC4301}}. In this document, the possible values are "tunnel" for the Tunnel mode and "transport" for the Transport mode. 
@@ -531,10 +530,10 @@ FL is set to 16, TV is omitted, MO is set to "ignore," and CDA is set to "checks
 
 ## ESP Payload Data Byte Alignment {#sec-byte-align}
 
-SCHC operates on bits, and the compression performed by SCHC may result in a bit payload that is not aligned to a byte ( 8 bits) boundary. Protocols like ESP expect payloads to be aligned to byte boundaries (8-bit alignment).
-To ensure this, we apply a padding by appending the SCHC_padding bits and the SCHC_padding_len. SCHC_padding_len is encoded over 3 bits to encode the number of bits that will compose the SCHC_padding field. As a result SCHC_padding field has between 0 and 7 bits coded over the the SCHC_padding_len. The two fields are between 3 and 10 bits, so if the complementing bits are less than or equal to 2 bits, the padding will result in adding an extra byte.
+SCHC operates on bits, and the compression performed by SCHC may result in a bit payload that is not aligned to a byte (8 bits) boundary. Protocols such as ESP expect payloads to be aligned to byte boundaries (8-bit alignment).
+To ensure this, we apply a padding by appending the SCHC_padding bits and the SCHC_padding_len. SCHC_padding_len is encoded over 3 bits to encode the number of bits that will compose the SCHC_padding field. As a result SCHC_padding field has between 0 and 7 bits coded over the SCHC_padding_len. The two fields are between 3 and 10 bits, so if the complementing bits are less than or equal to 2 bits, the padding will result in adding an extra byte.
 
-When the iipc_profile is set to "iipc_uncompress" there is no ESP Payload Data Byte alignment. When iipc_profile is set to "iipc_diet-esp" ESP Payload Data Byte Alignement is performed over the Compressed Inner IP packet. This ensures that in both transport and tunnel mode, the Payload Data later encrypted by ESP result in a interger number of bytes.
+When the iipc_profile is set to "iipc_uncompress" there is no ESP Payload Data Byte alignment. When iipc_profile is set to "iipc_diet-esp" ESP Payload Data Byte Alignment is performed over the Compressed Inner IP packet. This ensures that in both transport and tunnel mode, the Payload Data later encrypted by ESP result in an integer number of bytes.
 
 
 ## Clear Text ESP Compression (CTEC) {#sec-ctec}
@@ -546,9 +545,7 @@ In transport mode, the IP header of the inner packet remains uncompressed during
 
 In transport mode, the Next Header field is obtained from either the inner IP Header or the Security Association, as specified in {{sec-inner-ip4}} or {{sec-inner-ip6}}. In tunnel mode, the Next Header is elided, as it is determined by ts_ip_version. FL is set to 8 bit, TV is set to IPv4 or IPv6 depending on ts_ip_version, MO is set to "equal" and CDA is set to "not-sent". 
 
-[We need to check the rules above.]()
-
-The ESP Pad Length and Padding fields are omitted only when esp_encr does not necessitate a specific block size alignment, or if that block size is one byte. This is represented by setting FL to (Pad Length + 1) * 8 bits, leaving TV unset, configuring MO to "ignore," and designating CDA as padding. The ESP Padding and Pad Length may vary from their decompressed counterparts. However, since the IPsec process removes the padding, these variations do not affect packet processing. When esp_encr requires a specific block size, the ESP Pad Length and Padding fields remain uncompressed.
+The ESP Pad Length and Padding fields are omitted only when ESP alignment has been selected to "8bit" and esp_encr does not necessitate a specific block size alignment, or if that block size is one byte. This is represented by setting FL to (Pad Length + 1) * 8 bits, leaving TV unset, configuring MO to "ignore," and designating CDA as padding. The ESP Padding and Pad Length may vary from their decompressed counterparts. However, since the IPsec process removes the padding, these variations do not affect packet processing. When esp_encr requires a specific block size, the ESP Pad Length and Padding fields remain uncompressed.
 
 ## Encrypted ESP Compression (EEC) {#sec-eec}
 
@@ -633,7 +630,7 @@ The DSCP CDA Value is assigned as "sa" when DSCP values are linked to Security A
 
 The encryption algorithm must adhere to the guidelines provided in {{!RFC8221}} to guarantee contemporary cryptographic protection.
 
-The least significant bits (LSB) of the ESP Security Parameter Index (SPI) determine the number of bits allocated to the SPI. An acceptable quantity of LSB must ensure that the peer possesses a sufficient number of SPIs, which is contingent upon th eimplementation of the SA lookup employed. If a peer relies solely on the SPI fields for SA lookup, then the LSB must be sufficiently large to satisfy the condition MAX_SPI <= 2** LSB. The SPI may assume various LSB values; however, the operator must be cognizant that if multiple LSB values are permissible for each type of SA lookup, then multiple SA lookups and signature verifications may be required. It is advisable for a peer to ascertain the LSB associated with an incoming packet in a deterministic manner.
+The least significant bits (LSB) of the ESP Security Parameter Index (SPI) determine the number of bits allocated to the SPI. An acceptable quantity of LSB must ensure that the peer possesses a sufficient number of SPIs, which is contingent upon the implementation of the SA lookup employed. If a peer relies solely on the SPI fields for SA lookup, then the LSB must be sufficiently large to satisfy the condition MAX_SPI <= 2**LSB. The SPI may assume various LSB values; however, the operator must be cognizant that if multiple LSB values are permissible for each type of SA lookup, then multiple SA lookups and signature verifications may be required. It is advisable for a peer to ascertain the LSB associated with an incoming packet in a deterministic manner.
 
 The ESP SN LSB must be established in a manner that allows the receiving peer to clearly ascertain the sequence number of the IPsec packet. If this requirement is not met, it will lead to an invalid signature verification, resulting in the rejection of the packet. Furthermore, the LSB should have the capacity to accommodate the maximum number of packets that may be in transit simultaneously. This approach will guarantee that the last packet received is correctly linked to the corresponding sequence number.
 
@@ -649,47 +646,6 @@ We would like to thank Laurent Toutain for his guidance on SCHC. Robert Moskowit
 # Appendix
 
 This appendix provides the details of the SCHC rules defined for Diet-ESP compression, alongside an explanation and an example outcome.
-
-## Registry for Diet-ESP Attributes for Rules Generation (AfRG)
-
-| **AfRG Code Point** | **Full Name**                 | **Designation**       | **Has Associated Data** | **Default Value**  | **Reference** |
-|----------------------|-------------------------------|------------------------|--------------------------|--------------------|---------------|
-| 0                    | SCHC Payload CDA             | `schc_payload_cda`    | YES                      | `not-sent`         | ThisRFC       |
-| 1                    | SCHC Padding CDA             | `schc_padding_cda`    | YES                      | `padding`          | ThisRFC       |
-| 2                    | SCHC Pad Length CDA          | `schc_padlen_cda`     | YES                      | `value-sent`       | ThisRFC       |
-| 3                    | SCHC Next Header CDA         | `schc_nh_cda`         | YES                      | `value-sent`       | ThisRFC       |
-| 4                    | SCHC SPI LSB                 | `schc_spi_lsb`        | YES                      | `32`               | ThisRFC       |
-| 5                    | SCHC Sequence Number LSB     | `schc_sn_lsb`         | YES                      | `32`               | ThisRFC       |
-| 6                    | SCHC IP Source CDA           | `schc_ip_src_cda`     | YES                      | `MSB`              | ThisRFC       |
-| 7                    | SCHC IP Destination CDA      | `schc_ip_dst_cda`     | YES                      | `MSB`              | ThisRFC       |
-| 8                    | SCHC Alignment               | `schc_alignment`      | YES                      | `32-bit`           | ThisRFC       |
-{: #tab-def-afrg-codes title="Table of Defined AfRG Code Points"}
-
-
-| **Value** | **Designation** | **Reference** |
-|-----------|-----------------|---------------|
-| 0         | Full SPI        | ThisRFC       |
-| 1-31      | LSB SPI         | ThisRFC       |
-| 32        | Uncompressed    | ThisRFC       |
-{: #tab-spi-lsb-register title="SCHC SPI LSB Registry"}
-
-
-
-
-| **Value** | **Designation** | **Reference** |
-|-----------|-----------------|---------------|
-| 0         | Full SN         | ThisRFC       |
-| 1-31      | LSB SN          | ThisRFC       |
-| 32        | Uncompressed    | ThisRFC       |
-{: #tab-sequence-number-register title="SCHC Sequence Number LSB Registry"}
-
-| **Value** | **Designation** | **Reference** |
-|-----------|-----------------|---------------|
-| 0         | 8-bit           | ThisRFC       |
-| 1         | 16-bit          | ThisRFC       |
-| 2         | 32-bit          | ThisRFC       |
-| 3         | 64-bit          | ThisRFC       |
-{: #tab-padding-alignment-register title="Padding Alignment Registry"}
 
 
 ## JSON Representation of SCHC Rules for Diet-ESP Header Compression
@@ -757,8 +713,8 @@ The rules include all the compression_levels, including IIPC, CTEC, and EEC as d
       {
         "FID": "SCHC.NXT",
         "TV": [17, 50, 41],
-        "MO": "match-mapping",
-        "CDA": "mapping-sent"
+        "MO": "equal",
+        "CDA": "not-sent"
       }
     ]
   },
