@@ -85,9 +85,9 @@ An ESP packet is composed of the ESP Header, the ESP Payload, the ESP Trailer, a
  
 The ESP Trailer, placed at the end of the encrypted payload, includes fields such as Padding and Pad Length to ensure proper alignment, and Next Header to indicate the protocol following the ESP header. The ICV, calculated over the ESP Header, ESP Payload, and ESP Trailer, is appended after the ESP Trailer to ensure packet integrity. For a simplified overview of ESP, readers are referred to Minimal ESP {{?RFC9333}}.
  
-While ESP is effective in securing traffic, further optimization can reduce packet sizes, enhancing performance in networks with limited bandwidth. In such environments, reducing the size of transmitted packets is essential to improve efficiency. This document defines the ESP Header Compression Profile (EHCP), namely Diet-ESP, for compression/decompression (C/D) of IPsec/ESP {{!RFC4301}} / {{!RFC4303}} packets using the Static Context Header Compression and Fragmentation (SCHC) framework {{!RFC8724}}. The structure of Diet-ESP is shown in {{fig-esp}}. Compression with SCHC is based on the use of a Set of Rules (SoR) used in a SCHC instance for C/D operations {{?I-D.ietf-schc-architecture}}. One or more SoR constitute the SCHC Context. In the case of IPsec, the Context can be agreed via IKEv2 {{!RFC7296}} and its specific extension {{!I-D.ietf-ipsecme-ikev2-diet-esp-extension}}.
+While ESP is effective in securing traffic, further optimization can reduce packet sizes, enhancing performance in networks with limited bandwidth. In such environments, reducing the size of transmitted packets is essential to improve efficiency. This document defines the ESP Header Compression Profile (EHCP), namely Diet-ESP, for compression/decompression (C/D) of IPsec/ESP {{!RFC4301}} / {{!RFC4303}} packets using the Static Context Header Compression and Fragmentation (SCHC) framework {{!RFC8724}}. The structure of Diet-ESP is shown in {{fig-esp}}. Compression with SCHC is based on one or more SCHC instances, each with its Set of Rules (SoR) for C/D operations {{?I-D.ietf-schc-architecture}}. In the case of IPsec, the SoR and the Set of Variables (SoR) for a SCHC session can be agreed via IKEv2 {{!RFC7296}} and its specific extension {{!I-D.ietf-ipsecme-ikev2-diet-esp-extension}}.
  
-As a result of the application of the same SoR, header values shared by the end-points do not need to be sent on the wire. At the receiver, header information is re-generated from the received compressed packet and the application of the proper SoR retrieved from the Context.
+As a result of the application of the same SoR, header values shared by the end-points do not need to be sent on the wire. At the receiver, header information is re-generated from the received compressed packet and the application of the proper SoR retrieved from the SCHC Instance.
 
 ~~~
  0                   1                   2                   3
@@ -113,17 +113,17 @@ As a result of the application of the same SoR, header values shared by the end-
 {: #fig-esp artwork-align="center" title="Top-Level Format of an ESP Packet"}
 
     
-This document defines the ESP Header Compression profile (EHCP) Architecture with the application of SCHC at various layers of the IPsec stack---also called SCHC strata---as defined below:
+This document defines the application of the SCHC Architecture for ESP Header Compression. C/D operations occur at various layers of the IPsec stack, where each layer is treated in this document as a SCHC Stratum. Diet-ESP operates over three strata, defined as follows:
 
-1. Inner IP Compression (IIPC): The SoR used in this SCHC stratum apply directly to the headers of the inner IP packet. For example, in the case of a UDP packet with ports determined by the SA, fields such as UDP ports and checksums are typically compressed. If no compression of the inner packet is possible, the resulting SCHC packet contains the uncompressed IP packet, as per {{!RFC8724, Section 7.2}}.
+1. Inner IP Compression (IIPC): The SCHC Payload Instance used in this stratum applies its SoR directly to the headers of the inner IP packet. For example, in the case of a UDP packet with ports determined by the SA, fields such as UDP ports and checksums are typically compressed. The compressed inner IP packet becomes the Payload portion of the SCHC Packet, comprising the RuleID and the Compressed Residue (i.e., compression residue plus the inner IP packet payload). If no compression of the inner packet is possible, the No Compression rule is used and the uncompressed IP packet is placed in the Compressed Residue. The resulting SCHC packet may contain a SCHC Header generated with the SoR defined in the SCHC Header Instance. 
 
-2. Clear Text ESP Compression (CTEC): This SCHC stratum contains SoR that compress the fields of the ESP Payload, right before being encrypted, as the encapsulated traffic in tunnel mode. 
+2. Clear Text ESP Compression (CTEC): This SCHC stratum containes a SCHC Payload Instance with the SoR used to compress the fields of the ESP Clear Text Packet, right before being encrypted, as the encapsulated traffic in tunnel mode. The resulting SCHC packet does not contain a SCHC Header since the encryption at the next layer occurs in the same entity.
 
-3. Encrypted ESP Compression (EEC): This SCHC stratum contains SoR that compress the ESP fields that remain visible after encryption, that is, the ESP Header.
+3. Encrypted ESP Compression (EEC): This SCHC stratum contains a SCHC Payload Instance with the SoR to compress the ESP packet fields that remain visible after encryption, that is, the ESP Header. The resulting SCHC packet may contain a SCHC Header generated with the SoR defined in the SCHC Header Instance. 
 
 Note that the descriptions of the three SCHC strata provided in this document meet the general purpose of ESP. It is possible that in some deployments, the SCHC instances from different SCHC layers can be merged. Typically, a specific implementation may merge the compression of IIPC and CTEC layers.
 
-Each SoR indicates the ESP header fields to be matched by the rules. The SCHC instances define how the SCHC Context is initialized from the SA and generate the corresponding SCHC rules (i.e., RuleID, SCHC MAX_PACKET_SIZE, new SCHC Compression/Decompression Actions (CDA), and fragmentation). The appendix provides illustrative examples of applications of EHCP implemented with the OpenSCHC {{OpenSCHC}}. 
+The Rules of type C/D describe the behavior of each header field in the ESP header.A SCHC Session manager provides the management of SCHC Instances with a definition of how the SoR and the SoV are initialized from the SA (i.e., RuleID, SCHC MAX_PACKET_SIZE, new SCHC Compression/Decompression Actions (CDA), and fragmentation). The appendix provides illustrative examples of applications of Diet-ESP implemented with the OpenSCHC {{OpenSCHC}}. 
 
 # Terminology
     
@@ -134,7 +134,7 @@ ESP Trailer:
 : A set of fields added at the end of the ESP payload, including Padding, Pad Length, and Next Header, used to ensure alignment and indicate the next protocol.
 
 SCHC Stratum: 
-: Refers to the specific layer in the ESP packet structure where the Set of Rules of a SCHC instance are applied for compression and decompression. 
+: Refers to the specific layer where SCHC operates with the Set of Rules of a SCHC instance. In this document, each SCHC Stratum covers different parts of the ESP packet structure for compression and decompression purposes.
 
 Inner IP C/D (IIPC): 
 : Expressed via the SCHC framework, IIPC compresses/decompresses the inner IP packet headers.
@@ -158,12 +158,8 @@ Static Context Header Compression Rules (SCHC Rules):
 : As defined in {{!RFC8724}}, Section 5.
 
 RuleID: 
-: A unique identifier for each SCHC rule, as defined in {{!RFC8724}}, Section 5.1.
+: A unique identifier for each Rule part of the Set of Rules.
 
-SCHC Context: 
-: The set of rules shared between communicating entities, as defined in {{!RFC8724}}, Section 5.3.
-
-   
 SCHC Parameters: 
 : A set of predefined values used for SCHC compression and decompression, ensuring byte alignment and proper packet formatting based on the SCHC profile.
    
@@ -184,7 +180,7 @@ The main principle of the ESP Header Compression Profile (EHCP) is to avoid send
 
 Compression rules are derived from Security Association (SA) parameters negotiated through IKEv2 {{!RFC7296}}, such as Traffic Selectors (TS) and IPsec mode, as well as additional parameters explicitly defined in this document as Attributes for Rules Generation (AfRG) (see {{sec-afrg}}). While TS and IPsec mode serve as inputs for compression, they are not traditionally categorized as AfRG. This document introduces the concept of AfRG to unify these inputs and define the compression process. To facilitate complete negotiation, any remaining AfRG parameters requiring explicit agreement are addressed through the IKEv2 extension {{!I-D.ietf-ipsecme-ikev2-diet-esp-extension}}.
 
-Upon establishing the SA, Diet-ESP uses the AfRGs listed in {{tab-ehc-ctx-esp}} for derivation of the SoR applicable to each SCHC stratum. The collection of rules are then used for the SCHC Context initialization. The reference column in {{tab-ehc-ctx-esp}} indicates the source where the parameter value is defined. The C/D column specifies in which of the SCHC strata the parameter is being used. 
+Upon establishing the SA, Diet-ESP uses the AfRGs listed in {{tab-ehc-ctx-esp}} for derivation of the SoR applicable to the SCHC Instance of a given stratum. The reference column in {{tab-ehc-ctx-esp}} indicates the source where the parameter value is defined. The C/D column specifies in which of the SCHC strata the parameter is being used. 
 
 EHCP defines three SCHC strata for compression: Inner IP Compression (IIPC), Clear Text ESP Compression (CTEC), and Encrypted ESP Compression (EEC). The compression operations for each stratum are described in {{sec-iipc}}, {{sec-ctec}}, and {{sec-eec}}.
 
@@ -196,11 +192,11 @@ Note that implementations MAY differ from the architectural description but it i
 
 
 ~~~
-                 +--------------------------------+ 
-                 | ESP Header Compression Context |
-                 |   - Security Association       |
-                 |   - Additional Parameters      |
-                 +--------------------------------+    
+                 +----------------------------------------+ 
+                 | ESP Header Compression Session Manager |
+                 |   - Security Association               |
+                 |   - Additional Parameters              |
+                 +----------------------------------------+    
                                  |        
 Endpoint                         |                 Endpoint
                                  |
@@ -214,7 +210,8 @@ Endpoint                         |                 Endpoint
 | (Encapsulation) |              |                | (unwrapping)    |
 +-----------------+              |                +-----------------+
 | SCHC            |              v                |  SCHC           |
-| (ESP Payload)   |+--------- CTEC layer --------+| (ESP Payload)   |
+| (ESP Clear Text |                               | (ESP Clear Text |       
+|  Packet)        |+--------- CTEC layer --------+|  Packet)        |
 +-----------------+      EH, C {C {IIP}, ET}      +-----------------+
 | ESP             |              |                | ESP             |
 | (Encryption)    |              |                | (decryption)    |
@@ -231,7 +228,7 @@ Endpoint                         |                 Endpoint
 
 ## SCHC Parameters for Diet-ESP
   
-A SCHC compressed packet is always in the form:
+The SCHC Payload section of a compressed SCHC packet is always in the form:
 
 ~~~              
 0 1 2 3 4 5 6 7
@@ -285,7 +282,7 @@ The resulting IP/ESP packet size is variable. In some networks, the packet will 
 
 SCHC SoR are predefined sets of instructions that specify how to compress and decompress the header fields of an ESP packet. The identification of a particular SoR will follow the specification in {{?I-D.ietf-schc-architecture}}.
 
-Similarly to the SA, Rules are directional and the Direction Indicator (DI) is set to Up for outbound SA and Down for inbound SA. Each Rule also contains a Field Position parameter that is set to 1, unless specified otherwise. 
+A rule describes all the header fields required for a certain transformation (e.g., compression, decompression, fragmentation, reassembly, etc). The fields are identified by a Field ID (FID). Fields may include a Direction Indicator (DI), which in Diet-ESP is set to Up for an outbound SA and Down for an inbound SA. Each field also contains a Field Position parameter that is set to 1, unless specified otherwise. 
 
 ## Attributes for Rules Generation {#sec-afrg}
 
@@ -295,10 +292,10 @@ As outlined in {{sec-schc-ipsec-integration}}, this specification does not detai
 
 The second category pertains to AfRG that are negotiated through IKEv2 exchanges or extensions that are not specifically designed for compression purposes. This category includes AfRG associated with TS, as identified in {{tab-ehc-ctx-esp}}, which are the TS IP Version ts_ip_version, the TS IP Source Start ts_ip_src_start, the TS IP Source End ts_ip_src_end, the TS IP Destination Start ts_ip_dst_start, the TS IP Destination End ts_ip_dst_end, the TS Protocol ts_proto, the TS Port Source Start ts_port_src_start, the TS Port Source End ts_port_src_end, the TS Port Destination Start ts_port_dst_start, and the  TS Port Destination End ts_port_dst_end. These AfRG are derived from the Traffic Selectors established through TSi/TSr payloads during the IKEv2 CREATE_CHILD_SA exchange, as described in {{!RFC7296, Section 3.13}}. The AfRG IPsec Mode designated as ipsec_mode in {{tab-ehc-ctx-esp}} is determined by the presence or absence of the USE_TRANSPORT_MODE Notify Payload during the CREATE_CHILD_SA exchange, as detailed in {{!RFC7296, Section 1.3.1}}. The AfRG Tunnel IP designated as tunnel_ip in {{tab-ehc-ctx-esp}} is obtained from the IP address of the IKE messages exchanged during the CREATE_CHILD_SA process, as noted in {{!RFC7296, Section 1.1.3}}. The AfRGs designated as ESP Encryption Algorythm esp_encr and ESP Security Parameter Index (SPI) esp_spi in {{tab-ehc-ctx-esp}} are established through the SAi2/SAr2 payloads during the CREATE_CHILD_SA exchange, while the AfRG designated as ESP Sequence Number esp_sn in {{tab-ehc-ctx-esp}} is initialized upon the creation of the Child SA and incremented for each subsequent ESP message. 
 
-The ability to derive the EHCP Context for the IIPC from the agreed Traffic Selectors is indicated by the variable iipc_profile. 
+The ability to derive the SoR for the IIPC from the agreed Traffic Selectors is indicated by the variable iipc_profile. 
  
 
-| EHC Context       | Possible Values             | Reference | C / D |
+| Variable          | Possible Values             | Reference | Stratum |
 |-------------------+-----------------------------+-----------+-------+
 | iipc_profile      | "iipc_diet-esp", "iipc_uncompress"    | ThisRFC   | N/A   |
 | dscp_cda          | "uncompress", "lower", "sa" | ThisRFC   | IIPC  | 
@@ -326,11 +323,10 @@ The ability to derive the EHCP Context for the IIPC from the agreed Traffic Sele
 | esp_sn            | ESP Sequence Number         | RFC4301   | EEC   |
 | esp_sn_lsb        | 0-32                        | ThisRFC   | EEC   |
 |-------------------+-----------------------------+-----------+-------+
-{: #tab-ehc-ctx-esp title="EHCP related parameters"}
+{: #tab-ehc-ctx-esp title="Set of Variables to establish Diet-ESP SCHC sessions in Diet-ESP"}
 
-
-Any parameter starting with "ts_" is associated with the Traffic Selectors (TSi/TSr) of the SA. 
-The notation is introduced by this specification but the definitions of the parameters are in {{!RFC4301}} and {{!RFC7296}}.
+Any variable starting with "ts_" is associated with the Traffic Selectors (TSi/TSr) of the SA. 
+The notation is introduced by this specification but the definitions of the variables are in {{!RFC4301}} and {{!RFC7296}}.
 
 The Traffic Selectors may result in a quite complex expression, and this specification restricts that complexity. 
 This specification restricts the resulting TSi/TSr to a single type of IP address (IPv4 or IPv6), a single protocol (e.g., UDP, TCP, or ANY), a single port range for source and destination. This specification presumes that the Traffic Selectors can be articulated as a result of CREATE_CHILD_SA with only one Traffic Selector {{!RFC7296, Section 3.13.1}} in both TSi and TSr payloads (as described in {{!RFC7296, Section 3.13}}). The TS Type MUST be either TS_IPV4_ADDR_RANGE or TS_IPV6_ADDR_RANGE. 
@@ -340,7 +336,7 @@ Let the resulting Trafic Selectors TSi/TSr be expressed via the Traffic Selector
 The details of each parameter are the following:
 
 iipc_profile:
-: designates the profile used by IIPC. When set to "iipc_uncompress" IIPC is not performed. This specification describes IIPC that corresponds to the "iipc_diet-esp" profile.
+: designates the behavior of the IIPC layer. When set to "iipc_uncompress" IIPC is not performed. This specification describes IIPC that corresponds to the "iipc_diet-esp" profile.
  
 flow_label_cda:
 : indicates the Flow Label CDA, that is how the Flow Label field of the inner IPv6 packet or the Identification field of the inner IPv4 packet is compressed / decompressed - See {{sec-cda}} for more information. In a nutshell, "uncompress" indicates that Flow Label (resp. Identification) are not compressed. "lower" indicates the value is read from the outer IP header - eventually with some adaptations when inner IP packet and outer IP packets have different versions. "generated" indicates that the field is generated by the receiving party. In that case, the decompressed value may take a different value compared to its original value. "zero" indicates the field is set to zero.
