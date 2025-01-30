@@ -5,7 +5,7 @@
 IPsecme                                                       D. Migault
 Internet-Draft                                                  Ericsson
 Intended status: Standards Track                               M. Hatami
-Expires: 30 July 2025                                        S. Céspedes
+Expires: 2 August 2025                                       S. Céspedes
                                                                W. Atwood
                                                     Concordia University
                                                                   D. Liu
@@ -16,7 +16,7 @@ Expires: 30 July 2025                                        S. Céspedes
                                                  Universitaet Bremen TZI
                                                              D. Schinazi
                                                               Google LLC
-                                                         26 January 2025
+                                                         29 January 2025
 
 
                      ESP Header Compression Profile
@@ -24,9 +24,9 @@ Expires: 30 July 2025                                        S. Céspedes
 
 Abstract
 
-   The document specifies Diet-ESP, an ESP Header Compression Profile
-   (EHCP) that compresses IPsec/ESP communications using Static Context
-   Header Compression (SCHC).
+   This document specifies Diet-ESP, a compression mechanisms for
+   control information in IPsec/ESP communications.  The compression is
+   expressed through the Static Context Header Compression architecture.
 
 Status of This Memo
 
@@ -43,7 +43,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 30 July 2025.
+   This Internet-Draft will expire on 2 August 2025.
 
 Copyright Notice
 
@@ -53,7 +53,7 @@ Copyright Notice
 
 
 
-Migault, et al.           Expires 30 July 2025                  [Page 1]
+Migault, et al.           Expires 2 August 2025                 [Page 1]
 
 Internet-Draft                    EHCP                      January 2025
 
@@ -72,34 +72,35 @@ Table of Contents
    1.  Requirements notation . . . . . . . . . . . . . . . . . . . .   3
    2.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   3
    3.  Terminology . . . . . . . . . . . . . . . . . . . . . . . . .   5
-   4.  SCHC Integration into the IPsec Stack . . . . . . . . . . . .   7
+   4.  Diet-ESP Integration into the IPsec Stack . . . . . . . . . .   7
      4.1.  SCHC Parameters for Diet-ESP  . . . . . . . . . . . . . .   9
      4.2.  Set of Rules (SoR) for Diet-ESP . . . . . . . . . . . . .  10
-     4.3.  Attributes for Rules Generation . . . . . . . . . . . . .  10
+     4.3.  Attributes for Rules Generation . . . . . . . . . . . . .  11
        4.3.1.  Compression/Decompression Actions in Diet-ESP . . . .  16
    5.  SCHC Compression for IPsec in Tunnel mode . . . . . . . . . .  17
      5.1.  Inner IP Compression (IIPC) . . . . . . . . . . . . . . .  17
        5.1.1.  Inner IP Payload Compression  . . . . . . . . . . . .  17
-       5.1.2.  Inner IPv6 Header Compression . . . . . . . . . . . .  17
-       5.1.3.  Inner IPv4 Header Compression . . . . . . . . . . . .  19
+       5.1.2.  Inner IPv6 Header Compression . . . . . . . . . . . .  18
+       5.1.3.  Inner IPv4 Header Compression . . . . . . . . . . . .  20
      5.2.  ESP Payload Data Byte Alignment . . . . . . . . . . . . .  20
-     5.3.  Clear Text ESP Compression (CTEC) . . . . . . . . . . . .  20
+     5.3.  Clear Text ESP Compression (CTEC) . . . . . . . . . . . .  21
      5.4.  Encrypted ESP Compression (EEC) . . . . . . . . . . . . .  21
-   6.  SCHC Compression for IPsec in Transport mode  . . . . . . . .  21
-   7.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  21
-   8.  Security Considerations . . . . . . . . . . . . . . . . . . .  22
+   6.  SCHC Compression for IPsec in Transport mode  . . . . . . . .  22
+   7.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  22
+   8.  Security Considerations . . . . . . . . . . . . . . . . . . .  23
    9.  Acknowledgements  . . . . . . . . . . . . . . . . . . . . . .  24
    10. References  . . . . . . . . . . . . . . . . . . . . . . . . .  24
      10.1.  Normative References . . . . . . . . . . . . . . . . . .  24
-     10.2.  Informative References . . . . . . . . . . . . . . . . .  25
-   Appendix A.  Appendix . . . . . . . . . . . . . . . . . . . . . .  26
+     10.2.  Informative References . . . . . . . . . . . . . . . . .  26
+   Appendix A.  Appendix . . . . . . . . . . . . . . . . . . . . . .  27
      A.1.  JSON Representation of SCHC Rules for Diet-ESP Header
            Compression . . . . . . . . . . . . . . . . . . . . . . .  27
-     A.2.  Example Outcome . . . . . . . . . . . . . . . . . . . . .  29
-       A.2.1.  Input Packet  . . . . . . . . . . . . . . . . . . . .  29
+       A.1.1.  Transport mode: . . . . . . . . . . . . . . . . . . .  27
+     A.2.  Example Outcome . . . . . . . . . . . . . . . . . . . . .  28
+       A.2.1.  Input Packet  . . . . . . . . . . . . . . . . . . . .  28
        A.2.2.  Compression Process . . . . . . . . . . . . . . . . .  29
        A.2.3.  Decompression Process . . . . . . . . . . . . . . . .  30
-       A.2.4.  Final Output Packet . . . . . . . . . . . . . . . . .  31
+       A.2.4.  Final Output Packet . . . . . . . . . . . . . . . . .  30
        A.2.5.  GitHub Repository: Diet-ESP SCHC Implementation . . .  32
    Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  32
 
@@ -108,8 +109,7 @@ Table of Contents
 
 
 
-
-Migault, et al.           Expires 30 July 2025                  [Page 2]
+Migault, et al.           Expires 2 August 2025                 [Page 2]
 
 Internet-Draft                    EHCP                      January 2025
 
@@ -151,47 +151,37 @@ Internet-Draft                    EHCP                      January 2025
    simplified overview of ESP, readers are referred to Minimal ESP
    [RFC9333].
 
-   While ESP is effective in securing traffic, further optimization can
-   reduce packet sizes, enhancing performance in networks with limited
+   While ESP is effective in securing traffic, compression can reduce
+   packet sizes, enhancing performance in networks with limited
    bandwidth.  In such environments, reducing the size of transmitted
    packets is essential to improve efficiency.  This document defines
-   the ESP Header Compression Profile (EHCP), namely Diet-ESP, for
-   compression/decompression (C/D) of IPsec/ESP [RFC4301] / [RFC4303]
-   packets using the Static Context Header Compression and Fragmentation
-   (SCHC) framework [RFC8724].  The structure of Diet-ESP is shown in
-   Figure 1.  Compression with SCHC is based on one or more SCHC
-   instances, each with its Set of Rules (SoR) for C/D operations
-   [I-D.ietf-schc-architecture].  In the case of IPsec, the SoR and the
+   the Diet-ESP, a compression/decompression (C/D) mechanism for IPsec/
+   ESP [RFC4301] / [RFC4303] packet headers (including IP, ESP, UDP,
+   TCP... ) and the ESP trailer.  The C/D is expressed through the
+   Static Context Header Compression and Fragmentation (SCHC) framework
+   [RFC8724][I-D.ietf-schc-architecture].  The structure of the ESP
+   packet to be compressed is shown in Figure Figure 1.
 
 
 
-Migault, et al.           Expires 30 July 2025                  [Page 3]
+
+Migault, et al.           Expires 2 August 2025                 [Page 3]
 
 Internet-Draft                    EHCP                      January 2025
 
 
-   Set of Variables (SoR) for a SCHC session can be agreed via IKEv2
-   [RFC7296] and its specific extension
-   [I-D.ietf-ipsecme-ikev2-diet-esp-extension].
-
-   As a result of the application of the same SoR, header values shared
-   by the end-points do not need to be sent on the wire.  At the
-   receiver, header information is re-generated from the received
-   compressed packet and the application of the proper SoR retrieved
-   from the SCHC Instance.
-
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ----
-|               Security Parameters Index (SPI)                 | ^Int.
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ |Cov-
-|                      Sequence Number                          | |ered
+|               Security Parameters Index (SPI)                 | ^Auth.
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ |Cove-
+|                      Sequence Number                          | |rage
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ | ----
 |                    Payload Data* (variable)                   | |   ^
-~                                                               ~ |   |
-|                                                               | |Conf.
-+               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ |Cov-
-|               |     Padding (0-255 bytes)                     | |ered*
+~  Higher Layer Message (transport) or IP datagram (tunnel)     ~ |   |
+|                                                               | |Encr.
++               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ |Cove
+|               |     Padding (0-255 bytes)                     | |rage*
 +-+-+-+-+-+-+-+-+               +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ |   |
 |                               |  Pad Length   | Next Header   | v   v
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ------
@@ -203,58 +193,72 @@ Internet-Draft                    EHCP                      January 2025
              Figure 1: Top-Level Format of an ESP Packet
 
    This document defines the application of the SCHC Architecture for
-   ESP Header Compression.  C/D operations occur at various layers of
-   the IPsec stack, where each layer is treated in this document as a
-   SCHC Stratum.  Diet-ESP operates over three strata, defined as
+   ESP Header Compression.  Compression at a SCHC layer, also known as
+   SCHC Stratum, is based on one SCHC Header Instance and one or more
+   SCHC Payload Instances, each instance with its Set of Rules (SoR) for
+   C/D operations [I-D.ietf-schc-architecture].  In the case of IPsec,
+   the SoR and the Set of Variables (SoR) for a SCHC session can be
+   agreed via IKEv2 [RFC7296] and its specific extension
+   [I-D.ietf-ipsecme-ikev2-diet-esp-extension].
+
+   As a result of the application of the same SoR, header values shared
+   by the end-points do not need to be sent on the wire.  At the
+   receiver, header information is re-generated from the received
+   compressed packet and the application of the proper SoR retrieved
+   from the selected SCHC Instance.  Diet-ESP defines C/D operations at
+   various layers of the IPsec stack; each C/D layer is treated in this
+   document as a SCHC Stratum [I-D.ietf-schc-architecture].
+   Specifically, Diet-ESP operates over three strata, defined as
    follows:
 
+   1.  Inner IP Compression (IIPC): The SCHC Payload Instance used in
+       this Stratum applies its SoR directly to the headers of the inner
+       IP packet.  For example, in the case of a UDP packet with ports
+       determined by the SA, fields such as UDP ports and checksums are
+       typically compressed.  The compressed inner IP packet becomes the
+       SCHC Payload of the IIPC SCHC Packet, comprising the RuleID, the
+       Compressed Residue, and the inner packet payload.  If no
 
 
 
-
-
-
-
-
-
-
-
-
-
-Migault, et al.           Expires 30 July 2025                  [Page 4]
+Migault, et al.           Expires 2 August 2025                 [Page 4]
 
 Internet-Draft                    EHCP                      January 2025
 
 
-   1.  Inner IP Compression (IIPC): The SCHC Payload Instance used in
-       this stratum applies its SoR directly to the headers of the inner
-       IP packet.  For example, in the case of a UDP packet with ports
-       determined by the SA, fields such as UDP ports and checksums are
-       typically compressed.  The compressed inner IP packet becomes the
-       Payload portion of the SCHC Packet, comprising the RuleID and the
-       Compressed Residue (i.e., compression residue plus the inner IP
-       packet payload).  If no compression of the inner packet is
-       possible, the No Compression rule is used and the uncompressed IP
-       packet is placed in the Compressed Residue.  The resulting SCHC
-       packet may contain a SCHC Header generated with the SoR defined
-       in the SCHC Header Instance.
+       compression of the inner packet is possible, the No Compression
+       rule is used and the uncompressed IP packet is placed in the
+       Compressed Residue.  The resulting IIPC SCHC Packet MAY contain a
+       SCHC Header generated with the SoR defined in the SCHC Header
+       Instance.  The SCHC Header is fully elided if its fields are
+       well-known, in which case, the SoR at the receiving IIPC SCHC
+       Header Instance will serve to recreate the SCHC Header.
 
-   2.  Clear Text ESP Compression (CTEC): This SCHC stratum containes a
-       SCHC Payload Instance with the SoR used to compress the fields of
-       the ESP Clear Text Packet, right before being encrypted, as the
-       encapsulated traffic in tunnel mode.  The resulting SCHC packet
-       does not contain a SCHC Header since the encryption at the next
-       layer occurs in the same entity.
+   2.  Clear Text ESP Compression (CTEC): This Stratum containes a SCHC
+       Payload Instance with the SoR used to compress the fields of the
+       ESP Clear Text Packet, right before being encrypted.  The
+       compressed ESP Clear Text Packet becomes the SCHC Payload of the
+       CTEC SCHC Packet, comprising the RuleID, the Compressed Residue,
+       and the IIPC SCHC Packet.  The resulting CTEC SCHC Packet MAY
+       contain a SCHC Header generated with the SoR defined in the SCHC
+       Header Instance.  The SCHC header is fully elided if its fields
+       are well-known, in which case, the SoR at the receiving CTEC SCHC
+       Header Instance will serve to recreate the SCHC Header.
 
-   3.  Encrypted ESP Compression (EEC): This SCHC stratum contains a
-       SCHC Payload Instance with the SoR to compress the ESP packet
-       fields that remain visible after encryption, that is, the ESP
-       Header.  The resulting SCHC packet may contain a SCHC Header
-       generated with the SoR defined in the SCHC Header Instance.
+   3.  Encrypted ESP Compression (EEC): This Stratum contains a SCHC
+       Payload Instance with the SoR to compress the ESP packet header
+       that remains visible after encryption.  The compressed Encrypted
+       ESP Packet becomes the SCHC Payload of the EEC SCHC Packet,
+       comprising the RuleID, the Compressed Residue, and the CTEC SCHC
+       Packet.  The resulting EEC SCHC Packet may contain a SCHC Header
+       generated with the SoR defined in the SCHC Header Instance.  The
+       SCHC header is fully elided if its fields are well-known, in
+       which case, the SoR at the receiving EEC SCHC Header Instance
+       will serve to recreate the SCHC Header.
 
-   Note that the descriptions of the three SCHC strata provided in this
+   Note that the descriptions of the three SCHC Strata provided in this
    document meet the general purpose of ESP.  It is possible that in
-   some deployments, the SCHC instances from different SCHC layers can
+   some deployments, the SCHC instances from different SCHC Strata can
    be merged.  Typically, a specific implementation may merge the
    compression of IIPC and CTEC layers.
 
@@ -268,20 +272,20 @@ Internet-Draft                    EHCP                      January 2025
 
 3.  Terminology
 
-   ESP Header Compression Profile (EHCP):  A method to reduce the size
-      of ESP headers using predefined compression rules and contexts to
-      improve efficiency.
-
-   ESP Trailer:  A set of fields added at the end of the ESP payload,
+   ESP Header Compression:  A method to reduce the size of ESP headers
 
 
 
 
-Migault, et al.           Expires 30 July 2025                  [Page 5]
+Migault, et al.           Expires 2 August 2025                 [Page 5]
 
 Internet-Draft                    EHCP                      January 2025
 
 
+      and trailer using predefined compression rules and contexts to
+      improve efficiency.
+
+   ESP Trailer:  A set of fields added at the end of the ESP payload,
       including Padding, Pad Length, and Next Header, used to ensure
       alignment and indicate the next protocol.
 
@@ -309,8 +313,8 @@ Internet-Draft                    EHCP                      January 2025
    Static Context Header Compression (SCHC):  A framework for header
       compression designed for LPWANs, as defined in [RFC8724].
 
-   Static Context Header Compression Rules (SCHC Rules):  As defined in
-      [RFC8724], Section 5.
+   Static Context Header Compression Rules (SCHC Rules):  As defined in 
+      [I-D.ietf-schc-architecture]
 
    RuleID:  A unique identifier for each Rule part of the Set of Rules.
 
@@ -325,35 +329,35 @@ Internet-Draft                    EHCP                      January 2025
       port range, and protocol) used to define which traffic should be
       protected by a specific Security Association (SA).
 
-   It is assumed that the reader is familiar with other SCHC terminology
-   defined in [RFC8376], [RFC8724], and [I-D.ietf-schc-architecture].
 
 
 
 
-
-
-Migault, et al.           Expires 30 July 2025                  [Page 6]
+Migault, et al.           Expires 2 August 2025                 [Page 6]
 
 Internet-Draft                    EHCP                      January 2025
 
 
-4.  SCHC Integration into the IPsec Stack
+   It is assumed that the reader is familiar with other SCHC terminology
+   defined in [RFC8376], [RFC8724], and [I-D.ietf-schc-architecture].
 
-   The main principle of the ESP Header Compression Profile (EHCP) is to
-   avoid sending information that has already been shared by the peers.
-   Different profiles and technologies, such as those defined by
-   [RFC4301] and [RFC4303], ensure that ESP can be tailored to various
-   network requirements and security policies.  However, ESP is not
-   optimized for bandwidth efficiency because it has been designed as a
-   general-purpose protocol.  EHCP aims to address this by leveraging a
-   profile, expressed via the SCHC architecture, to optimize the ESP
-   header sizes for better efficiency in constrained environments.
+4.  Diet-ESP Integration into the IPsec Stack
 
-   Figure 2 illustrates the integration of SCHC into the IPsec stack,
-   detailing the different layers and components involved in the
-   compression and decompression processes.  The diagram is divided into
-   two entities, each representing an endpoint of a communication link.
+   The main principle of Diet-ESP is to avoid sending information that
+   has already been shared by the ESP peers.  Different profiles and
+   technologies, such as those defined by [RFC4301] and [RFC4303],
+   ensure that ESP can be tailored to various network requirements and
+   security policies.  However, ESP is not optimized for bandwidth
+   efficiency because it has been designed as a general-purpose
+   protocol.  Diet-ESP aims to improve bandwidth efficiency through
+   compression using the SCHC architecture.  The compression will
+   benefit ESP communications over constrained environments.
+
+   Figure 2 illustrates the integration of Diet-ESP into the IPsec
+   stack, detailing the different layers and components involved in the
+   compression and decompression processes.  The diagram depicts two
+   entities, each representing an endpoint of a communication session
+   protected with IPsec.
 
    Compression rules are derived from Security Association (SA)
    parameters negotiated through IKEv2 [RFC7296], such as Traffic
@@ -369,30 +373,33 @@ Internet-Draft                    EHCP                      January 2025
 
    Upon establishing the SA, Diet-ESP uses the AfRGs listed in Table 1
    for derivation of the SoR applicable to the SCHC Instance of a given
-   stratum.  The reference column in Table 1 indicates the source where
+   Stratum.  The reference column in Table 1 indicates the source where
    the parameter value is defined.  The C/D column specifies in which of
-   the SCHC strata the parameter is being used.
+   the SCHC Strata the parameter is being used.
 
-   EHCP defines three SCHC strata for compression: Inner IP Compression
-   (IIPC), Clear Text ESP Compression (CTEC), and Encrypted ESP
-   Compression (EEC).  The compression operations for each stratum are
-   described in Section 5.1, Section 5.3, and Section 5.4.
-
-   EHCP essentially limits the scope of the compression to the inner IP
-   headers and specific fields such as ports and checksums of transports
-   like UDP, UDP-Lite, TCP, SCTP.  Further and more specific compression
-   profiles may be defined in the future to cover compression of headers
-   of different upper layer protocols.
+   Diet-ESP defines three SCHC Strata for compression: Inner IP
+   Compression (IIPC), Clear Text ESP Compression (CTEC), and Encrypted
+   ESP Compression (EEC).  The compression operations for each stratum
+   are described in Section 5.1, Section 5.3, and Section 5.4.
 
 
 
 
 
 
-Migault, et al.           Expires 30 July 2025                  [Page 7]
+
+
+Migault, et al.           Expires 2 August 2025                 [Page 7]
 
 Internet-Draft                    EHCP                      January 2025
 
+
+   This document limits the scope of the compression to the inner IP
+   packet headers and upper layer header fields, such as port numbers
+   and checksums, of specific transport protocols like UDP, UDP-Lite,
+   TCP, and SCTP.  Further and more specific compression profiles may be
+   defined in the future to cover compression of headers of additional
+   upper layer protocols.
 
    At the receiver endpoint, the decompression of the inbound packet
    follows a reverse process.  First, the Encrypted ESP C/D (EEC)
@@ -404,7 +411,7 @@ Internet-Draft                    EHCP                      January 2025
    description but it is assumed that the outputs will be the same.
 
                     +----------------------------------------+
-                    | ESP Header Compression Session Manager |
+                    | Diet-ESP Compression Session Manager |
                     |   - Security Association               |
                     |   - Additional Parameters              |
                     +----------------------------------------+
@@ -434,6 +441,15 @@ Internet-Draft                    EHCP                      January 2025
    |  L2             |                               |  L2             |
    +-----------------+                               +-----------------+
 
+
+
+
+
+Migault, et al.           Expires 2 August 2025                 [Page 8]
+
+Internet-Draft                    EHCP                      January 2025
+
+
        Figure 2: SCHC Integration into the IPsec Stack.  Packets are
       described for IPsec in tunnel mode.  C designates the Compressed
      header for the fields inside.  IIP refers to the Inner IP packet,
@@ -442,13 +458,6 @@ Internet-Draft                    EHCP                      January 2025
        Compress Trailer)," and "SCHC (EEC: Compress ESP Header)" are
        added to indicate that different SCHC instances are applied at
                the IIPC, CTEC, and EEC layers, respectively.
-
-
-
-Migault, et al.           Expires 30 July 2025                  [Page 8]
-
-Internet-Draft                    EHCP                      January 2025
-
 
 4.1.  SCHC Parameters for Diet-ESP
 
@@ -463,14 +472,14 @@ Internet-Draft                    EHCP                      January 2025
 
                 Figure 3: Diet-ESP Compressed Header Format
 
-   The SCHC Profile for Diet-ESP is defined as follows:
+   The RuleID is a unique identifier for each SCHC rule.  It is included
+   in packets to ensure the receiver applies the correct decompression
+   rule, maintaining consistency in packet processing.  Note that the
+   Rule ID does not need to be explicitly agreed upon and can be defined
+   independently by each party.  The RuleID in Diet-ESP is expressed as
+   1 byte.
 
-   RuleID:  The RuleID is a unique identifier for each SCHC rule.  It is
-      included in packets to ensure the receiver applies the correct
-      decompression rule, maintaining consistency in packet processing.
-      Note that the Rule ID does not need to be explicitly agreed upon
-      and can be defined independently by each party.  The RuleID in
-      Diet-ESP is expressed as 1 byte.
+   Other variables required for the C/D in Diet-ESP are the following:
 
    Maximum Packet Size:  MAX_PACKET_SIZE is determined by the specific
       IPsec ESP configuration and the underlying transport, but it is
@@ -485,7 +494,19 @@ Internet-Draft                    EHCP                      January 2025
       not contain significant data.  In Diet-ESP, the SCHC padding is
       added in the CTEC strata to align the packet for encryption.
 
-   The resulting IP/ESP packet size is variable.  In some networks, the
+   In Diet-ESP, the SCHC padding is added in the CTEC strata to align
+   the packet for encryption.  However, after SCHC padding, additional
+   ESP padding may be applied before encryption to align the packet with
+   the required block size specified by the encryption algorithm.  The
+
+
+
+Migault, et al.           Expires 2 August 2025                 [Page 9]
+
+Internet-Draft                    EHCP                      January 2025
+
+
+   resulting IP/ESP packet size is variable.  In some networks, the
    packet will require fragmentation before transmission over the wire.
    Fragmentation is out of the scope of this document since it is
    dependent on the layer 2 technology.
@@ -493,27 +514,14 @@ Internet-Draft                    EHCP                      January 2025
    Figure 4 illustrates how the final compressed packet looks when using
    SCHC compression for ESP headers in the Diet-ESP profile.
 
-
-
-
-
-
-
-
-
-Migault, et al.           Expires 30 July 2025                  [Page 9]
-
-Internet-Draft                    EHCP                      January 2025
-
-
    0                   1                   2                   3
    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-  |                  SCHC EEC Header (EEC stratum)                |
+  |                  EEC SCHC Header (EEC Stratum)                |
   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ ----
-  |                 SCHC CTEC Header (CTEC stratum)               | ^
+  |                 CTEC SCHC Header (CTEC Stratum)               | ^
   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+ |
-  |                 SCHC IIP Header (IIPC stratum)                | |
+  |                 IIPC SCHC Header (IIPC Stratum)                | |
   +---------------------------------------------------------------+ En-
   |               Inner IP Payload Data* (variable)               | cry-
   ~                                                               ~ pted
@@ -530,17 +538,29 @@ Internet-Draft                    EHCP                      January 2025
 4.2.  Set of Rules (SoR) for Diet-ESP
 
    SCHC SoR are predefined sets of instructions that specify how to
-   compress and decompress the header fields of an ESP packet.  The
-   identification of a particular SoR will follow the specification in
-   [I-D.ietf-schc-architecture].
+   compress and decompress the header fields of an ESP packet.  A rule
+   in the SoR is identified by its RuleID.  The rule describes all the
+   header fields required for a certain transformation (e.g.,
+   compression, decompression, fragmentation, reassembly, etc).  Each
+   field is identified by a Field ID (FID).  Fields may include a
+   Direction Indicator (DI), which in Diet-ESP is set to Up for an
+   outbound SA and Down for an inbound SA.  Each field also contains a
+   Field Position parameter that is set to 1, unless specified
+   otherwise.
 
-   A rule describes all the header fields required for a certain
-   transformation (e.g., compression, decompression, fragmentation,
-   reassembly, etc).  The fields are identified by a Field ID (FID).
-   Fields may include a Direction Indicator (DI), which in Diet-ESP is
-   set to Up for an outbound SA and Down for an inbound SA.  Each field
-   also contains a Field Position parameter that is set to 1, unless
-   specified otherwise.
+   The identification of a particular SoR will use IPsec-related IDs.
+   Outbound packets MAY use the Traffic Selector to identify the SoR for
+   compression.  Inbound packets MAY use the SPI in the ESP header to
+   identify the SoR for decompression.
+
+
+
+
+
+Migault, et al.           Expires 2 August 2025                [Page 10]
+
+Internet-Draft                    EHCP                      January 2025
+
 
 4.3.  Attributes for Rules Generation
 
@@ -554,14 +574,6 @@ Internet-Draft                    EHCP                      January 2025
    [I-D.ietf-ipsecme-ikev2-diet-esp-extension].  However, the AfRG can
    be classified into two distinct categories.  The first category
    encompasses AfRG that are negotiated through a specific IKEv2
-
-
-
-Migault, et al.           Expires 30 July 2025                 [Page 10]
-
-Internet-Draft                    EHCP                      January 2025
-
-
    extension tailored for the negotiation of AfRG linked to a particular
    profile, the Diet-ESP profile in this context.  The AfRG referenced
    in Table 1 in this category are: the DSCP Compression/Decompression
@@ -598,6 +610,14 @@ Internet-Draft                    EHCP                      January 2025
    The ability to derive the SoR for the IIPC from the agreed Traffic
    Selectors is indicated by the variable iipc_profile.
 
+
+
+
+Migault, et al.           Expires 2 August 2025                [Page 11]
+
+Internet-Draft                    EHCP                      January 2025
+
+
    +===================+========================+===========+=========+
    | Variable          | Possible Values        | Reference | Stratum |
    +===================+========================+===========+=========+
@@ -610,14 +630,6 @@ Internet-Draft                    EHCP                      January 2025
    | ecn_cda           | "uncompress", "lower"  | ThisRFC   | IIPC    |
    +-------------------+------------------------+-----------+---------+
    | flow_label_cda    | "uncompress", "lower", | ThisRFC   | IIPC    |
-
-
-
-Migault, et al.           Expires 30 July 2025                 [Page 11]
-
-Internet-Draft                    EHCP                      January 2025
-
-
    |                   | "generated", "zero"    |           |         |
    +-------------------+------------------------+-----------+---------+
    | ts_ip_version     | "IPv4-only",           | RFC7296   | IIPC    |
@@ -654,6 +666,14 @@ Internet-Draft                    EHCP                      January 2025
    | esp_encr          | ESP Encryption         | RFC4301   | CTEC    |
    |                   | Algorithm              |           |         |
    +-------------------+------------------------+-----------+---------+
+
+
+
+Migault, et al.           Expires 2 August 2025                [Page 12]
+
+Internet-Draft                    EHCP                      January 2025
+
+
    | esp_spi           | ESP SPI                | RFC4301   | EEC     |
    +-------------------+------------------------+-----------+---------+
    | esp_spi_lsb       | 0-32                   | ThisRFC   | EEC     |
@@ -665,14 +685,6 @@ Internet-Draft                    EHCP                      January 2025
 
      Table 1: Set of Variables to establish Diet-ESP SCHC sessions in
                                  Diet-ESP
-
-
-
-
-Migault, et al.           Expires 30 July 2025                 [Page 12]
-
-Internet-Draft                    EHCP                      January 2025
-
 
    Any variable starting with "ts_" is associated with the Traffic
    Selectors (TSi/TSr) of the SA.  The notation is introduced by this
@@ -710,6 +722,14 @@ Internet-Draft                    EHCP                      January 2025
       compressed. "lower" indicates the value is read from the outer IP
       header - eventually with some adaptations when inner IP packet and
       outer IP packets have different versions. "generated" indicates
+
+
+
+Migault, et al.           Expires 2 August 2025                [Page 13]
+
+Internet-Draft                    EHCP                      January 2025
+
+
       that the field is generated by the receiving party.  In that case,
       the decompressed value may take a different value compared to its
       original value. "zero" indicates the field is set to zero.
@@ -722,13 +742,6 @@ Internet-Draft                    EHCP                      January 2025
       IP packet and outer IP packets have different versions.  "sa"
       indicates, compression is performed according to the DSCP values
       agreed by the SA (dscp_list).
-
-
-
-Migault, et al.           Expires 30 July 2025                 [Page 13]
-
-Internet-Draft                    EHCP                      January 2025
-
 
    ecn_cda:  indicates ECN CDA, that is how the ECN values of the inner
       IP packet are compressed / decompressed - See Section 4.3.1 for
@@ -766,6 +779,13 @@ Internet-Draft                    EHCP                      January 2025
       packet and has the same meaning as the Ending Address field of the
       remote TS.
 
+
+
+Migault, et al.           Expires 2 August 2025                [Page 14]
+
+Internet-Draft                    EHCP                      January 2025
+
+
    ts_proto:  designates the TS Protocol, that is the Protocol ID of the
       resulting TSi/TSr.  This profile considers the specific protocol
       values "TCP", "UDP", "UDP-Lite", "SCTP" and "ANY".  The
@@ -778,13 +798,6 @@ Internet-Draft                    EHCP                      January 2025
    ts_port_src_end:  designates the TS Port Source End, that is the high
       end value range of the source port range of the inner packet and
       has the same meaning as the End Port field of the local TS.
-
-
-
-Migault, et al.           Expires 30 July 2025                 [Page 14]
-
-Internet-Draft                    EHCP                      January 2025
-
 
    ts_port_dst_start:  designates TS Port Destination Start, that is the
       starting value of the destination port range of the inner packet
@@ -820,6 +833,15 @@ Internet-Draft                    EHCP                      January 2025
       used.  That IP address can be an IPv4 or IPv6 address.
 
    esp_encr:  designates the ESP Encryption Algorithm - also designated
+
+
+
+
+Migault, et al.           Expires 2 August 2025                [Page 15]
+
+Internet-Draft                    EHCP                      January 2025
+
+
       as Transform 1 in [RFC7296], Section 3.3.2.  The algorithm is
       needed to determine whether the ESP Payload Data needs to be
       aligned to some predefined block size and if the ESP Pad Length
@@ -834,14 +856,6 @@ Internet-Draft                    EHCP                      January 2025
       SPI.  A value of 32 for esp_spi_lsb will leave the SPI unchanged.
 
    esp_sn:  designates the ESP Sequence Number (SN) field defined in
-
-
-
-Migault, et al.           Expires 30 July 2025                 [Page 15]
-
-Internet-Draft                    EHCP                      January 2025
-
-
       [RFC4301].
 
    esp_sn_lsb:  designates the LSB to be considered for the compressed
@@ -873,6 +887,17 @@ Internet-Draft                    EHCP                      January 2025
                     Table 2: EHCP ESP related parameter
 
    lower:  is only used in a Tunnel Mode and indicates that the fields
+
+
+
+
+
+
+Migault, et al.           Expires 2 August 2025                [Page 16]
+
+Internet-Draft                    EHCP                      January 2025
+
+
       of the inner IP packet header are generated from the corresponding
       fields of the Tunnel IP header fields.  This CDA can be used for
       the DSCP, ECN, and IPv6 Flow Label (resp.  IPv4 identification)
@@ -890,13 +915,6 @@ Internet-Draft                    EHCP                      January 2025
 
    hop limit:  indicates that the hop limit is derived from the outer
       IPv6 header.
-
-
-
-Migault, et al.           Expires 30 July 2025                 [Page 16]
-
-Internet-Draft                    EHCP                      January 2025
-
 
    SCHC padding:  indicates that the SCHC padding bits are generated
       accordingly.
@@ -919,6 +937,22 @@ Internet-Draft                    EHCP                      January 2025
 
    The compression only affects UDP, UDP-Lite, TCP or SCTP packets and
    the type of packet is determined by the IP header.
+
+
+
+
+
+
+
+
+
+
+
+
+Migault, et al.           Expires 2 August 2025                [Page 17]
+
+Internet-Draft                    EHCP                      January 2025
+
 
    For UDP, UDP-Lite, TCP and SCTP packets, source ports, destination
    ports, and checksums are compressed.  For source port (resp.
@@ -944,16 +978,6 @@ Internet-Draft                    EHCP                      January 2025
 
    DSCP values are compressed according to the dscp_cda value:
 
-
-
-
-
-
-Migault, et al.           Expires 30 July 2025                 [Page 17]
-
-Internet-Draft                    EHCP                      January 2025
-
-
    *  If dscp_cda is set to "uncompress", the DSCP values are included
       in the inner IP header.  FL is set to 6 bits, TV is not set, MO is
       set to "ignore", CDA is set to "sent-value".
@@ -976,6 +1000,15 @@ Internet-Draft                    EHCP                      January 2025
    *  If ecn_cda is set to "uncompress", the ECN field is included in
       the inner IP header.  FL is set to 2 bits, TV is not set, MO is
       set to "ignore", CDA is set to "sent-value".
+
+
+
+
+
+Migault, et al.           Expires 2 August 2025                [Page 18]
+
+Internet-Draft                    EHCP                      January 2025
+
 
    *  If ecn_cda is set to "lower", the ECN value is elided and the ECN
       value is copied in the outer IP header.  FL is set to 2 bits, TV
@@ -1000,16 +1033,6 @@ Internet-Draft                    EHCP                      January 2025
       value.  FL is set to 20, TV is not set, MO is set to "ignore" and
       CDA is set to "generated".
 
-
-
-
-
-
-Migault, et al.           Expires 30 July 2025                 [Page 18]
-
-Internet-Draft                    EHCP                      January 2025
-
-
    *  If flow_label_cda is set to "zero", the Flow Label is elided and
       set to 0 at decompression.  A 0 value indicates no flow label is
       present.  Fl is set to 20 bits, TV is set to 0, MO is set to
@@ -1032,6 +1055,16 @@ Internet-Draft                    EHCP                      January 2025
    The IPv6 Hop Limit is read from the Tunnel IP Header Hop Limit.  FL
    is set to 8 bits, TV is not set, MO is set to "ignore" and CDA is set
    to "lower."
+
+
+
+
+
+
+Migault, et al.           Expires 2 August 2025                [Page 19]
+
+Internet-Draft                    EHCP                      January 2025
+
 
    The source and destination IPv6 addresses are compressed using MSB.
    In both cases, FL is set to 128, TV is respectively set to
@@ -1057,15 +1090,6 @@ Internet-Draft                    EHCP                      January 2025
    The IPv4 Header checksum is elided.  FL is set to 16, TV is omitted,
    MO is set to "ignore," and CDA is set to "checksum."
 
-
-
-
-
-Migault, et al.           Expires 30 July 2025                 [Page 19]
-
-Internet-Draft                    EHCP                      January 2025
-
-
 5.2.  ESP Payload Data Byte Alignment
 
    SCHC operates on bits, and the compression performed by SCHC may
@@ -1086,6 +1110,17 @@ Internet-Draft                    EHCP                      January 2025
    Inner IP packet.  This ensures that in both transport and tunnel
    mode, the Payload Data later encrypted by ESP result in an integer
    number of bytes.
+
+
+
+
+
+
+
+Migault, et al.           Expires 2 August 2025                [Page 20]
+
+Internet-Draft                    EHCP                      January 2025
+
 
 5.3.  Clear Text ESP Compression (CTEC)
 
@@ -1114,14 +1149,6 @@ Internet-Draft                    EHCP                      January 2025
    one byte.  This is represented by setting FL to (Pad Length + 1) * 8
    bits, leaving TV unset, configuring MO to "ignore," and designating
    CDA as padding.  The ESP Padding and Pad Length may vary from their
-
-
-
-Migault, et al.           Expires 30 July 2025                 [Page 20]
-
-Internet-Draft                    EHCP                      January 2025
-
-
    decompressed counterparts.  However, since the IPsec process removes
    the padding, these variations do not affect packet processing.  When
    esp_encr requires a specific block size, the ESP Pad Length and
@@ -1135,6 +1162,21 @@ Internet-Draft                    EHCP                      January 2025
    SN is compressed to their LSB, similarly to the SPI.  FL is set to 32
    bits, TV is not set, MO is set to "MSB( 4 - esp_sn_lsb)" and CDA is
    set to "LSB".
+
+
+
+
+
+
+
+
+
+
+
+Migault, et al.           Expires 2 August 2025                [Page 21]
+
+Internet-Draft                    EHCP                      January 2025
+
 
 6.  SCHC Compression for IPsec in Transport mode
 
@@ -1171,13 +1213,6 @@ Internet-Draft                    EHCP                      January 2025
    | "lower"              | ThisRFC   |
    | "sa"                 | ThisRFC   |
 
-
-
-Migault, et al.           Expires 30 July 2025                 [Page 21]
-
-Internet-Draft                    EHCP                      January 2025
-
-
    | ECN CDA Value       | Reference |
    +----------------------+-----------+
    | "uncompress"         | ThisRFC   |
@@ -1189,6 +1224,15 @@ Internet-Draft                    EHCP                      January 2025
    | "16 bit"             | ThisRFC   |
    | "32 bit"             | ThisRFC   |
    | "64 bit"             | ThisRFC   |
+
+
+
+
+
+Migault, et al.           Expires 2 August 2025                [Page 22]
+
+Internet-Draft                    EHCP                      January 2025
+
 
    | IPsec mode Value     | Reference |
    +----------------------+-----------+
@@ -1209,33 +1253,8 @@ Internet-Draft                    EHCP                      January 2025
    Value to either "uncompress" or "sa," and the ECN CDA Value to
    "uncompress."
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Migault, et al.           Expires 30 July 2025                 [Page 22]
-
-Internet-Draft                    EHCP                      January 2025
-
-
-   However, this protection is compromised if the Flow Label CAD Value,
-   DSCP CAD Value, or ECN CDA Values are set to "lower."  In such cases,
+   However, this protection is compromised if the Flow Label CDA Value,
+   DSCP CDA Value, or ECN CDA Values are set to "lower."  In such cases,
    the values from the inner packet for the respective fields will be
    derived from the outer IP header, leaving these fields unprotected.
    It is important to note that even the Authentication Header [RFC4302]
@@ -1244,7 +1263,7 @@ Internet-Draft                    EHCP                      January 2025
    provided in Transport mode.  This vulnerability could be exploited by
    an attacker within an untrusted domain, potentially disrupting load
    balancing strategies that rely on the Flow Label [RFC6438][RFC6437].
-   More broadly, when the Flow Label CAD Value is set to "lower," the
+   More broadly, when the Flow Label CDA Value is set to "lower," the
    relevant Flow Label Security Considerations from [RFC6437] apply.
    Additionally, an attacker may manipulate the DSCP values to diminish
    the priority of specific packets, resulting in packets from the same
@@ -1263,6 +1282,14 @@ Internet-Draft                    EHCP                      January 2025
    "generated," it must be produced in accordance with the
    specifications outlined in [RFC6437].
 
+
+
+
+Migault, et al.           Expires 2 August 2025                [Page 23]
+
+Internet-Draft                    EHCP                      January 2025
+
+
    The DSCP CDA Value is assigned as "sa" when DSCP values are linked to
    Security Associations (SAs), but it should not be utilized when all
    DSCP values are encompassed within a single SA.  In such instances,
@@ -1270,25 +1297,6 @@ Internet-Draft                    EHCP                      January 2025
 
    The encryption algorithm must adhere to the guidelines provided in
    [RFC8221] to guarantee contemporary cryptographic protection.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Migault, et al.           Expires 30 July 2025                 [Page 23]
-
-Internet-Draft                    EHCP                      January 2025
-
 
    The least significant bits (LSB) of the ESP Security Parameter Index
    (SPI) determine the number of bits allocated to the SPI.  An
@@ -1323,6 +1331,21 @@ Internet-Draft                    EHCP                      January 2025
 
 10.1.  Normative References
 
+
+
+
+
+
+
+
+
+
+
+Migault, et al.           Expires 2 August 2025                [Page 24]
+
+Internet-Draft                    EHCP                      January 2025
+
+
    [I-D.ietf-ipsecme-ikev2-diet-esp-extension]
               Migault, D., Guggemos, T., Schinazi, D., Atwood, J. W.,
               Liu, D., Preda, S., Hatami, M., and S. Cespedes, "Internet
@@ -1336,15 +1359,6 @@ Internet-Draft                    EHCP                      January 2025
               Requirement Levels", BCP 14, RFC 2119,
               DOI 10.17487/RFC2119, March 1997,
               <https://www.rfc-editor.org/info/rfc2119>.
-
-
-
-
-
-Migault, et al.           Expires 30 July 2025                 [Page 24]
-
-Internet-Draft                    EHCP                      January 2025
-
 
    [RFC4301]  Kent, S. and K. Seo, "Security Architecture for the
               Internet Protocol", RFC 4301, DOI 10.17487/RFC4301,
@@ -1379,6 +1393,15 @@ Internet-Draft                    EHCP                      January 2025
               DOI 10.17487/RFC8221, October 2017,
               <https://www.rfc-editor.org/info/rfc8221>.
 
+
+
+
+
+Migault, et al.           Expires 2 August 2025                [Page 25]
+
+Internet-Draft                    EHCP                      January 2025
+
+
    [RFC8724]  Minaburo, A., Toutain, L., Gomez, C., Barthel, D., and JC.
               Zuniga, "SCHC: Generic Framework for Static Context Header
               Compression and Fragmentation", RFC 8724,
@@ -1392,15 +1415,6 @@ Internet-Draft                    EHCP                      January 2025
               <https://www.rfc-editor.org/info/rfc8750>.
 
 10.2.  Informative References
-
-
-
-
-
-Migault, et al.           Expires 30 July 2025                 [Page 25]
-
-Internet-Draft                    EHCP                      January 2025
-
 
    [I-D.ietf-schc-architecture]
               Pelov, A., Thubert, P., and A. Minaburo, "Static Context
@@ -1434,6 +1448,16 @@ Internet-Draft                    EHCP                      January 2025
               Overview", RFC 8376, DOI 10.17487/RFC8376, May 2018,
               <https://www.rfc-editor.org/info/rfc8376>.
 
+
+
+
+
+
+Migault, et al.           Expires 2 August 2025                [Page 26]
+
+Internet-Draft                    EHCP                      January 2025
+
+
    [RFC9333]  Migault, D. and T. Guggemos, "Minimal IP Encapsulating
               Security Payload (ESP)", RFC 9333, DOI 10.17487/RFC9333,
               January 2023, <https://www.rfc-editor.org/info/rfc9333>.
@@ -1443,20 +1467,6 @@ Appendix A.  Appendix
    This appendix provides the details of the SCHC rules defined for
    Diet-ESP compression, alongside an explanation and an example
    outcome.
-
-
-
-
-
-
-
-
-
-
-Migault, et al.           Expires 30 July 2025                 [Page 26]
-
-Internet-Draft                    EHCP                      January 2025
-
 
 A.1.  JSON Representation of SCHC Rules for Diet-ESP Header Compression
 
@@ -1468,117 +1478,74 @@ A.1.  JSON Representation of SCHC Rules for Diet-ESP Header Compression
    numeric order.  The rules include all the compression_levels,
    including IIPC, CTEC, and EEC as defined in the Terminology section.
 
-   [
-     {
-       "RuleIDValue": 1,
-       "RuleIDLength": 8,
-       "Compression": [
-         {
-           "FID": "ESP.SPI",
-           "TV": 5,
-           "MO": "equal",
-           "CDA": "not-sent"
-         },
-         {
-           "FID": "ESP.SEQ",
-           "TV": 1,
-           "MO": "MSB",
-           "MO.VAL": 16,
-           "CDA": "LSB"
-         }
-       ]
-     },
-     {
-       "RuleIDValue": 2,
-       "RuleIDLength": 8,
-       "Compression": [
-         {
-           "FID": "UDP.DEV_PORT",
-           "TV": 123,
-           "MO": "MSB",
-           "MO.VAL": 12,
-           "CDA": "LSB"
-         },
-         {
-           "FID": "UDP.APP_PORT",
-           "TV": 4567,
-           "MO": "MSB",
-           "MO.VAL": 12,
-           "CDA": "LSB"
-         },
+A.1.1.  Transport mode:
+
+   In Transport Mode, since the IP header remains uncompressed, only the
+   UDP payload and ESP fields are compressed.  The new IANA-defined CDAs
+   are applied as follows: "checksum" is used for the UDP checksum,
+   meaning it is recalculated at decompression rather than transmitted.
+   "compute-length" eliminates the UDP Length field, as it can be
+   inferred from the payload size. "padding" ensures ESP padding aligns
+   with 8-bit boundaries. "not-sent" is applied to the IPv6 and ESP Next
+   Header fields because their values are predictable.  The UDP Source
+   and Destination Ports use "LSB" compression, reducing overhead by
+   sending only the least significant bits.  The ESP SPI and Sequence
+   Number are compressed similarly using "LSB" with an MSB mask.  Since
+   the IP header is retained, the Source and Destination IPv6 Addresses
+   are fully transmitted using "sent-value".  ~~~json [ { "ipsec_mode":
+   "Transport", "ts_ip_version": "IPv6-only", "compressed_fields": [ {
+   "FID": "IPv6.SourceAddress", "FL": 128, "TV": "2001:db8::1001", "MO":
+   "equal", "CDA": "sent-value" }, { "FID": "IPv6.DestinationAddress",
+   "FL": 128, "TV": "2001:db8::2002", "MO": "equal", "CDA": "sent-value"
+   }, { "FID": "IPv6.NextHeader", "FL": 8, "TV": 17, "MO": "equal",
+   "CDA": "not-sent" }, { "FID": "UDP.SourcePort", "FL": 16, "TV": 1234,
+   "MO": "MSB", "CDA": "LSB" }, { "FID": "UDP.DestinationPort", "FL":
+   16, "TV": 5678, "MO": "MSB", "CDA": "LSB" }, { "FID": "UDP.Length",
+   "FL": 16, "TV": null, "MO": "ignore", "CDA": "compute-length" }, {
+   "FID": "UDP.Checksum", "FL": 16, "TV": null, "MO": "ignore", "CDA":
+   "checksum" }, { "FID": "ESP.SPI", "FL": 32, "TV": null, "MO": "MSB(4
+   - esp_spi_lsb)", "CDA": "LSB" }, { "FID": "ESP.SequenceNumber", "FL":
+   32, "TV": null, "MO": "MSB(4 - esp_sn_lsb)", "CDA": "LSB" }, { "FID":
 
 
 
-Migault, et al.           Expires 30 July 2025                 [Page 27]
+Migault, et al.           Expires 2 August 2025                [Page 27]
 
 Internet-Draft                    EHCP                      January 2025
 
 
-         {
-           "FID": "UDP.LEN",
-           "TV": 0,
-           "MO": "ignore",
-           "CDA": "compute-length"
-         },
-         {
-           "FID": "UDP.CKSUM",
-           "TV": 0,
-           "MO": "ignore",
-           "CDA": "compute-checksum"
-         }
-       ]
-     },
-     {
-       "RuleIDValue": 0,
-       "RuleIDLength": 0,
-       "schc_header": [
-         {
-           "FID": "SCHC.NXT",
-           "TV": [17, 50, 41],
-           "MO": "equal",
-           "CDA": "not-sent"
-         }
-       ]
-     },
-     {
-       "RuleIDValue": 4,
-       "RuleIDLength": 8,
-       "Compression": [
-         {
-           "FID": "IPV6.DEV_PREFIX",
-           "TV": "ff02::5678",
-           "MO": "equal",
-           "CDA": "value-sent"
-         },
-         {
-           "FID": "IPV6.APP_PREFIX",
-           "TV": "2001:db8::1000",
-           "MO": "equal",
-           "CDA": "value-sent"
-         }
-       ]
-     },
-     {
-       "RuleIDValue": 5,
-       "RuleIDLength": 8,
-       "Compression": [
+   "ESP.Padding", "FL": 8, "TV": null, "MO": "ignore", "CDA": "padding"
+   }, { "FID": "ESP.NextHeader", "FL": 8, "TV": 17, "MO": "equal",
+   "CDA": "not-sent" }
 
+   ] } ] ~~~ ### Tunnel mode: In Tunnel Mode, the full inner IP packet
+   is compressed before encryption, making it more efficient for VPN
+   scenarios.  The "iipc_diet-esp" profile is used to indicate
+   compression of the inner packet.  The IPv6 Source and Destination
+   Addresses are compressed using "MSB", sending only the variable parts
+   while keeping the most significant bits.  UDP Source and Destination
+   Ports are compressed with "LSB", reducing their size. "compute-
+   length" removes the UDP Length field, and "checksum" omits the UDP
+   checksum, which is recalculated at decompression.  ESP SPI and
+   Sequence Number are compressed using "LSB" with an MSB mask.  The
+   "not-sent" CDA is used for Next Header fields in both IPv6 and ESP,
+   as their values are predictable.  ~~~json { "compressed": [ { "FID":
+   "IPv6.SourceAddress", "FL": 128, "TV": "2001:db8::1234", "MO": "MSB",
+   "CDA": "LSB" }, { "FID": "IPv6.DestinationAddress", "FL": 128, "TV":
+   "2001:db8::5678", "MO": "MSB", "CDA": "LSB" }, { "FID":
+   "IPv6.NextHeader", "FL": 8, "TV": 17, "MO": "equal", "CDA": "not-
+   sent" }, { "FID": "UDP.SourcePort", "FL": 16, "TV": 5001, "MO":
+   "MSB", "CDA": "LSB" }, { "FID": "UDP.DestinationPort", "FL": 16,
+   "TV": 4500, "MO": "MSB", "CDA": "LSB" }, { "FID": "UDP.Length", "FL":
+   16, "TV": null, "MO": "ignore", "CDA": "compute-length" }, { "FID":
+   "UDP.Checksum", "FL": 16, "TV": null, "MO": "ignore", "CDA":
+   "compute-checksum" }, { "FID": "ESP.SPI", "FL": 32, "TV": null, "MO":
+   "MSB(4 - esp_spi_lsb)", "CDA": "LSB" }, { "FID":
+   "ESP.SequenceNumber", "FL": 32, "TV": null, "MO": "MSB(4 -
+   esp_sn_lsb)", "CDA": "LSB" }, { "FID": "ESP.Padding", "FL": 8, "TV":
+   null, "MO": "ignore", "CDA": "padding" } ] }
 
-
-Migault, et al.           Expires 30 July 2025                 [Page 28]
-
-Internet-Draft                    EHCP                      January 2025
-
-
-         {
-           "FID": "ESP.NXT",
-           "TV": 41,
-           "MO": "equal",
-           "CDA": "not-sent"
-         }
-       ]
-     }
-   ]
+   ~~~
 
 A.2.  Example Outcome
 
@@ -1595,6 +1562,13 @@ A.2.1.  Input Packet
 
       -  Other attributes include Payload Length: 18, Next Header: UDP,
          and Hop Limit: 64.
+
+
+
+Migault, et al.           Expires 2 August 2025                [Page 28]
+
+Internet-Draft                    EHCP                      January 2025
+
 
    *  *UDP Header*:
 
@@ -1619,13 +1593,6 @@ A.2.2.  Compression Process
        *  Compressed using the UDP-specific rules from the Diet-ESP
           profile.
 
-
-
-Migault, et al.           Expires 30 July 2025                 [Page 29]
-
-Internet-Draft                    EHCP                      January 2025
-
-
        *  Ports are encoded as LSB fields, reducing the size to 2 bytes.
 
    2.  *IPv6 Header Compression*:
@@ -1647,6 +1614,17 @@ Internet-Draft                    EHCP                      January 2025
        *  Final compressed size: 2 bytes.
 
    4.  *ESP Clear Text Compression*:
+
+
+
+
+
+
+
+Migault, et al.           Expires 2 August 2025                [Page 29]
+
+Internet-Draft                    EHCP                      January 2025
+
 
        *  The ESP.NXT field (Next Header) is compressed using the match-
           mapping CDA: Rule: The ESP.NXT value is matched to a single
@@ -1674,14 +1652,6 @@ A.2.3.  Decompression Process
           where the value 41 (Next Header for IPv6) is retrieved from
           the mapping.
 
-
-
-
-Migault, et al.           Expires 30 July 2025                 [Page 30]
-
-Internet-Draft                    EHCP                      January 2025
-
-
    3.  *UDP Header Reconstruction*:
 
        *  Ports are restored using the compressed LSB values.
@@ -1704,6 +1674,13 @@ A.2.4.  Final Output Packet
    *  *IPv6 Header*:
 
       -  Source Address: 2001:db8::1000
+
+
+
+Migault, et al.           Expires 2 August 2025                [Page 30]
+
+Internet-Draft                    EHCP                      January 2025
+
 
       -  Destination Address: ff02::5678
 
@@ -1730,14 +1707,6 @@ A.2.4.  Final Output Packet
    This example demonstrates the efficiency and accuracy of the Diet-ESP
    profile when applied to compress and decompress network packets.
 
-
-
-
-Migault, et al.           Expires 30 July 2025                 [Page 31]
-
-Internet-Draft                    EHCP                      January 2025
-
-
    *  *Efficiency*: The SCHC rules reduce packet overhead:
 
       -  The UDP header is compressed from 8 bytes to 2 bytes.
@@ -1759,6 +1728,15 @@ Internet-Draft                    EHCP                      January 2025
       addresses the challenges of transmitting data efficiently in
       constrained networks, optimizing bandwidth utilization while
       retaining compatibility with standard protocols.
+
+
+
+
+
+Migault, et al.           Expires 2 August 2025                [Page 31]
+
+Internet-Draft                    EHCP                      January 2025
+
 
 A.2.5.  GitHub Repository: Diet-ESP SCHC Implementation
 
@@ -1787,13 +1765,6 @@ Authors' Addresses
    Email: maryam.hatami@mail.concordia.ca
 
 
-
-
-Migault, et al.           Expires 30 July 2025                 [Page 32]
-
-Internet-Draft                    EHCP                      January 2025
-
-
    Sandra Céspedes
    Concordia University
    Email: sandra.cespedes@concordia.ca
@@ -1812,6 +1783,15 @@ Internet-Draft                    EHCP                      January 2025
    Tobias Guggemos
    LMU
    Email: guggemos@nm.ifi.lmu.de
+
+
+
+
+
+
+Migault, et al.           Expires 2 August 2025                [Page 32]
+
+Internet-Draft                    EHCP                      January 2025
 
 
    Carsten Bormann
@@ -1845,4 +1825,24 @@ Internet-Draft                    EHCP                      January 2025
 
 
 
-Migault, et al.           Expires 30 July 2025                 [Page 33]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Migault, et al.           Expires 2 August 2025                [Page 33]
