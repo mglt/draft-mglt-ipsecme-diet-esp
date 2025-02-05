@@ -241,7 +241,7 @@ Outbound Traffic                                  Inbound Traffic
 
 ## SCHC Parameters for Diet-ESP
   
-The SCHC Payload section of a compressed SCHC packet is always in the form:
+The SCHC Payload {{!RFC8724}} is always in the form:
 
 ~~~              
 0 1 2 3 4 5 6 7
@@ -250,7 +250,7 @@ The SCHC Payload section of a compressed SCHC packet is always in the form:
 +-+-+-+-+-+-+-+---------...----------+~~~~~~~~~+---------------+
 |-------- Compressed Header ---------|         |-- as needed --|
 ~~~
-{: #tab-diet-esp-compressed-header-format artwork-align="center" title="Diet-ESP Compressed Header Format"}
+{: #tab-diet-esp-compressed-header-format artwork-align="center" title="SCHC Packet"}
 
 The RuleID is a unique identifier for each SCHC rule. It is included in packets to ensure the receiver applies the correct decompression rule, maintaining consistency in packet processing. Note that the Rule ID does not need to be explicitly agreed upon and can be defined independently by each party. The RuleID in Diet-ESP is expressed as 1 byte and is always elided as Rules are uniquely determined for compressors.
 
@@ -272,7 +272,7 @@ As outlined in {{sec-schc-ipsec-integration}}, this specification does not detai
 
 The second category pertains to AfRG that are negotiated through IKEv2 exchanges or extensions that are not specifically designed for compression purposes. This category includes AfRG associated with TS, as identified in {{tab-ehc-ctx-esp}}, which are the TS IP Version ts_ip_version, the TS IP Source Start ts_ip_src_start, the TS IP Source End ts_ip_src_end, the TS IP Destination Start ts_ip_dst_start, the TS IP Destination End ts_ip_dst_end, the TS Protocol ts_proto, the TS Port Source Start ts_port_src_start, the TS Port Source End ts_port_src_end, the TS Port Destination Start ts_port_dst_start, and the  TS Port Destination End ts_port_dst_end. These AfRG are derived from the Traffic Selectors established through TSi/TSr payloads during the IKEv2 CREATE_CHILD_SA exchange, as described in {{!RFC7296, Section 3.13}}. The AfRG IPsec Mode designated as ipsec_mode in {{tab-ehc-ctx-esp}} is determined by the presence or absence of the USE_TRANSPORT_MODE Notify Payload during the CREATE_CHILD_SA exchange, as detailed in {{!RFC7296, Section 1.3.1}}. The AfRG Tunnel IP designated as tunnel_ip in {{tab-ehc-ctx-esp}} is obtained from the IP address of the IKE messages exchanged during the CREATE_CHILD_SA process, as noted in {{!RFC7296, Section 1.1.3}}. The AfRGs designated as ESP Encryption Algorythm esp_encr and ESP Security Parameter Index (SPI) esp_spi in {{tab-ehc-ctx-esp}} are established through the SAi2/SAr2 payloads during the CREATE_CHILD_SA exchange, while the AfRG designated as ESP Sequence Number esp_sn in {{tab-ehc-ctx-esp}} is initialized upon the creation of the Child SA and incremented for each subsequent ESP message. 
 
-The ability to derive the SoR for the IIPC from the agreed Traffic Selectors is indicated by the variable iipc_profile. 
+The ability to derive the IPPC Rules for the IIPC from the agreed Traffic Selectors is indicated by the variable iipc_profile. 
  
 
 | Variable          | Possible Values             | Reference | Compressor |
@@ -303,7 +303,7 @@ The ability to derive the SoR for the IIPC from the agreed Traffic Selectors is 
 | esp_sn            | ESP Sequence Number         | RFC4301   | EEC   |
 | esp_sn_lsb        | 0-32                        | ThisRFC   | EEC   |
 |-------------------+-----------------------------+-----------+-------+
-{: #tab-ehc-ctx-esp title="Set of Variables to establish Diet-ESP SCHC sessions in Diet-ESP"}
+{: #tab-ehc-ctx-esp title="Set of Variables to generate IIPC, CTEC and EEC Rules in Diet-ESP"}
 
 Any variable starting with "ts_" is associated with the Traffic Selectors (TSi/TSr) of the SA. 
 The notation is introduced by this specification but the definitions of the variables are in {{!RFC4301}} and {{!RFC7296}}.

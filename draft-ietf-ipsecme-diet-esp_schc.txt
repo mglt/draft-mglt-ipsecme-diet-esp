@@ -459,8 +459,7 @@ Internet-Draft                    EHCP                     February 2025
 
 4.1.  SCHC Parameters for Diet-ESP
 
-   The SCHC Payload section of a compressed SCHC packet is always in the
-   form:
+   The SCHC Payload [RFC8724] is always in the form:
 
      0 1 2 3 4 5 6 7
      +-+-+-+-+-+-+-+---------...----------+~~~~~~~~~+---------------+
@@ -468,7 +467,7 @@ Internet-Draft                    EHCP                     February 2025
      +-+-+-+-+-+-+-+---------...----------+~~~~~~~~~+---------------+
      |-------- Compressed Header ---------|         |-- as needed --|
 
-                Figure 3: Diet-ESP Compressed Header Format
+                           Figure 3: SCHC Packet
 
    The RuleID is a unique identifier for each SCHC rule.  It is included
    in packets to ensure the receiver applies the correct decompression
@@ -497,6 +496,7 @@ Internet-Draft                    EHCP                     February 2025
    The list of attributes for the Rules Generation (AfRG) is shown in
    Table 1.  These attributes are used to express the various
    compressions that operate at the IIPC, CTEC, and EEC.
+
 
 
 
@@ -545,8 +545,8 @@ Internet-Draft                    EHCP                     February 2025
    Sequence Number esp_sn in Table 1 is initialized upon the creation of
    the Child SA and incremented for each subsequent ESP message.
 
-   The ability to derive the SoR for the IIPC from the agreed Traffic
-   Selectors is indicated by the variable iipc_profile.
+   The ability to derive the IPPC Rules for the IIPC from the agreed
+   Traffic Selectors is indicated by the variable iipc_profile.
 
    +===================+=====================+===========+============+
    | Variable          | Possible Values     | Reference | Compressor |
@@ -630,8 +630,8 @@ Internet-Draft                    EHCP                     February 2025
    | esp_sn_lsb        | 0-32                | ThisRFC   | EEC        |
    +-------------------+---------------------+-----------+------------+
 
-     Table 1: Set of Variables to establish Diet-ESP SCHC sessions in
-                                 Diet-ESP
+      Table 1: Set of Variables to generate IIPC, CTEC and EEC Rules
+                               in Diet-ESP
 
    Any variable starting with "ts_" is associated with the Traffic
    Selectors (TSi/TSr) of the SA.  The notation is introduced by this
