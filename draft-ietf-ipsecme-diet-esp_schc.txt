@@ -5,7 +5,7 @@
 IPsecme                                                       D. Migault
 Internet-Draft                                                  Ericsson
 Intended status: Standards Track                               M. Hatami
-Expires: 7 August 2025                                       S. Céspedes
+Expires: 9 August 2025                                       S. Céspedes
                                                                W. Atwood
                                                     Concordia University
                                                                   D. Liu
@@ -16,7 +16,7 @@ Expires: 7 August 2025                                       S. Céspedes
                                                  Universitaet Bremen TZI
                                                              D. Schinazi
                                                               Google LLC
-                                                         3 February 2025
+                                                         5 February 2025
 
 
                      ESP Header Compression Profile
@@ -43,7 +43,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 7 August 2025.
+   This Internet-Draft will expire on 9 August 2025.
 
 Copyright Notice
 
@@ -53,7 +53,7 @@ Copyright Notice
 
 
 
-Migault, et al.           Expires 7 August 2025                 [Page 1]
+Migault, et al.           Expires 9 August 2025                 [Page 1]
 
 Internet-Draft                    EHCP                     February 2025
 
@@ -109,7 +109,7 @@ Table of Contents
 
 
 
-Migault, et al.           Expires 7 August 2025                 [Page 2]
+Migault, et al.           Expires 9 August 2025                 [Page 2]
 
 Internet-Draft                    EHCP                     February 2025
 
@@ -165,7 +165,7 @@ Internet-Draft                    EHCP                     February 2025
 
 
 
-Migault, et al.           Expires 7 August 2025                 [Page 3]
+Migault, et al.           Expires 9 August 2025                 [Page 3]
 
 Internet-Draft                    EHCP                     February 2025
 
@@ -194,8 +194,8 @@ Internet-Draft                    EHCP                     February 2025
 
 2.1.  The Three compressors described in this specification
 
-   The document outlines three compressors utilized in Diet-ESP, which
-   are detailed as follows:
+   The document outlines the three compressors utilized in Diet-ESP,
+   which are detailed as follows:
 
    1.  Inner IP Compression (IIPC): This process pertains to the
        compression and decompression of the IP packet protected by ESP.
@@ -221,7 +221,7 @@ Internet-Draft                    EHCP                     February 2025
 
 
 
-Migault, et al.           Expires 7 August 2025                 [Page 4]
+Migault, et al.           Expires 9 August 2025                 [Page 4]
 
 Internet-Draft                    EHCP                     February 2025
 
@@ -277,7 +277,7 @@ Internet-Draft                    EHCP                     February 2025
 
 
 
-Migault, et al.           Expires 7 August 2025                 [Page 5]
+Migault, et al.           Expires 9 August 2025                 [Page 5]
 
 Internet-Draft                    EHCP                     February 2025
 
@@ -333,7 +333,7 @@ Internet-Draft                    EHCP                     February 2025
 
 
 
-Migault, et al.           Expires 7 August 2025                 [Page 6]
+Migault, et al.           Expires 9 August 2025                 [Page 6]
 
 Internet-Draft                    EHCP                     February 2025
 
@@ -348,8 +348,8 @@ Internet-Draft                    EHCP                     February 2025
 
 4.  Diet-ESP Integration into the IPsec Stack
 
-   Figure Figure 2 depicts the incorporation of Diet-ESP within the
-   IPsec framework.
+   Figure 2 depicts the incorporation of Diet-ESP within the IPsec
+   framework.
 
    IPsec necessitates that both endpoints agree on a shared context
    known as the Security Association (SA).  This SA is established via
@@ -378,7 +378,7 @@ Internet-Draft                    EHCP                     February 2025
    Header, there may be instances where the endpoint must explore
    multiple options, potentially leading to several lookups or, in the
    worst-case scenario, multiple signature verifications (see Section 8
-   for a more detailled discussion).  Once the SA is retrieved, the ESP
+   for a more detailed discussion).  Once the SA is retrieved, the ESP
    accesses the AfRG to ascertain the EEC Rule and proceeds to
    decompress the EE.  The ESP verifies the signature prior to
    decryption.  Following this, the CTEC Rule is derived from the AfRG
@@ -389,7 +389,7 @@ Internet-Draft                    EHCP                     February 2025
 
 
 
-Migault, et al.           Expires 7 August 2025                 [Page 7]
+Migault, et al.           Expires 9 August 2025                 [Page 7]
 
 Internet-Draft                    EHCP                     February 2025
 
@@ -445,7 +445,7 @@ Internet-Draft                    EHCP                     February 2025
 
 
 
-Migault, et al.           Expires 7 August 2025                 [Page 8]
+Migault, et al.           Expires 9 August 2025                 [Page 8]
 
 Internet-Draft                    EHCP                     February 2025
 
@@ -454,7 +454,7 @@ Internet-Draft                    EHCP                     February 2025
       described for IPsec in tunnel mode.  C designates the Compressed
      header for the fields inside.  IIP refers to the Inner IP packet,
        EH refers to the ESP Header, and ET refers to the ESP Trailer.
-     IIPC, CTEC and EEC respectively designates the Inner IP Compress,
+      IIPC, CTEC and EEC respectively designate the Inner IP Compress,
       the Clear Text ESP Compressor and the Encrypted ESP Compressor.
 
 4.1.  SCHC Parameters for Diet-ESP
@@ -501,7 +501,7 @@ Internet-Draft                    EHCP                     February 2025
 
 
 
-Migault, et al.           Expires 7 August 2025                 [Page 9]
+Migault, et al.           Expires 9 August 2025                 [Page 9]
 
 Internet-Draft                    EHCP                     February 2025
 
@@ -557,7 +557,7 @@ Internet-Draft                    EHCP                     February 2025
 
 
 
-Migault, et al.           Expires 7 August 2025                [Page 10]
+Migault, et al.           Expires 9 August 2025                [Page 10]
 
 Internet-Draft                    EHCP                     February 2025
 
@@ -613,7 +613,7 @@ Internet-Draft                    EHCP                     February 2025
 
 
 
-Migault, et al.           Expires 7 August 2025                [Page 11]
+Migault, et al.           Expires 9 August 2025                [Page 11]
 
 Internet-Draft                    EHCP                     February 2025
 
@@ -669,7 +669,7 @@ Internet-Draft                    EHCP                     February 2025
 
 
 
-Migault, et al.           Expires 7 August 2025                [Page 12]
+Migault, et al.           Expires 9 August 2025                [Page 12]
 
 Internet-Draft                    EHCP                     February 2025
 
@@ -725,7 +725,7 @@ Internet-Draft                    EHCP                     February 2025
 
 
 
-Migault, et al.           Expires 7 August 2025                [Page 13]
+Migault, et al.           Expires 9 August 2025                [Page 13]
 
 Internet-Draft                    EHCP                     February 2025
 
@@ -781,7 +781,7 @@ Internet-Draft                    EHCP                     February 2025
 
 
 
-Migault, et al.           Expires 7 August 2025                [Page 14]
+Migault, et al.           Expires 9 August 2025                [Page 14]
 
 Internet-Draft                    EHCP                     February 2025
 
@@ -837,7 +837,7 @@ Internet-Draft                    EHCP                     February 2025
 
 
 
-Migault, et al.           Expires 7 August 2025                [Page 15]
+Migault, et al.           Expires 9 August 2025                [Page 15]
 
 Internet-Draft                    EHCP                     February 2025
 
@@ -893,7 +893,7 @@ Internet-Draft                    EHCP                     February 2025
 
 
 
-Migault, et al.           Expires 7 August 2025                [Page 16]
+Migault, et al.           Expires 9 August 2025                [Page 16]
 
 Internet-Draft                    EHCP                     February 2025
 
@@ -949,7 +949,7 @@ Internet-Draft                    EHCP                     February 2025
 
 
 
-Migault, et al.           Expires 7 August 2025                [Page 17]
+Migault, et al.           Expires 9 August 2025                [Page 17]
 
 Internet-Draft                    EHCP                     February 2025
 
@@ -1005,7 +1005,7 @@ Internet-Draft                    EHCP                     February 2025
 
 
 
-Migault, et al.           Expires 7 August 2025                [Page 18]
+Migault, et al.           Expires 9 August 2025                [Page 18]
 
 Internet-Draft                    EHCP                     February 2025
 
@@ -1061,7 +1061,7 @@ Internet-Draft                    EHCP                     February 2025
 
 
 
-Migault, et al.           Expires 7 August 2025                [Page 19]
+Migault, et al.           Expires 9 August 2025                [Page 19]
 
 Internet-Draft                    EHCP                     February 2025
 
@@ -1117,7 +1117,7 @@ Internet-Draft                    EHCP                     February 2025
 
 
 
-Migault, et al.           Expires 7 August 2025                [Page 20]
+Migault, et al.           Expires 9 August 2025                [Page 20]
 
 Internet-Draft                    EHCP                     February 2025
 
@@ -1173,7 +1173,7 @@ Internet-Draft                    EHCP                     February 2025
 
 
 
-Migault, et al.           Expires 7 August 2025                [Page 21]
+Migault, et al.           Expires 9 August 2025                [Page 21]
 
 Internet-Draft                    EHCP                     February 2025
 
@@ -1229,7 +1229,7 @@ Internet-Draft                    EHCP                     February 2025
 
 
 
-Migault, et al.           Expires 7 August 2025                [Page 22]
+Migault, et al.           Expires 9 August 2025                [Page 22]
 
 Internet-Draft                    EHCP                     February 2025
 
@@ -1265,9 +1265,9 @@ Internet-Draft                    EHCP                     February 2025
               Liu, D., Preda, S., Hatami, M., and S. Cespedes, "Internet
               Key Exchange version 2 (IKEv2) extension for Header
               Compression Profile (HCP)", Work in Progress, Internet-
-              Draft, draft-ietf-ipsecme-ikev2-diet-esp-extension-02, 21
-              November 2024, <https://datatracker.ietf.org/doc/html/
-              draft-ietf-ipsecme-ikev2-diet-esp-extension-02>.
+              Draft, draft-ietf-ipsecme-ikev2-diet-esp-extension-03, 26
+              January 2025, <https://datatracker.ietf.org/doc/html/
+              draft-ietf-ipsecme-ikev2-diet-esp-extension-03>.
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
@@ -1285,7 +1285,7 @@ Internet-Draft                    EHCP                     February 2025
 
 
 
-Migault, et al.           Expires 7 August 2025                [Page 23]
+Migault, et al.           Expires 9 August 2025                [Page 23]
 
 Internet-Draft                    EHCP                     February 2025
 
@@ -1341,7 +1341,7 @@ Internet-Draft                    EHCP                     February 2025
 
 
 
-Migault, et al.           Expires 7 August 2025                [Page 24]
+Migault, et al.           Expires 9 August 2025                [Page 24]
 
 Internet-Draft                    EHCP                     February 2025
 
@@ -1397,7 +1397,7 @@ A.1.  JSON Representation of SCHC Rules for Diet-ESP Header Compression
 
 
 
-Migault, et al.           Expires 7 August 2025                [Page 25]
+Migault, et al.           Expires 9 August 2025                [Page 25]
 
 Internet-Draft                    EHCP                     February 2025
 
@@ -1453,7 +1453,7 @@ A.1.1.  Transport mode:
 
 
 
-Migault, et al.           Expires 7 August 2025                [Page 26]
+Migault, et al.           Expires 9 August 2025                [Page 26]
 
 Internet-Draft                    EHCP                     February 2025
 
@@ -1509,7 +1509,7 @@ A.2.2.  Compression Process
 
 
 
-Migault, et al.           Expires 7 August 2025                [Page 27]
+Migault, et al.           Expires 9 August 2025                [Page 27]
 
 Internet-Draft                    EHCP                     February 2025
 
@@ -1565,7 +1565,7 @@ A.2.3.  Decompression Process
 
 
 
-Migault, et al.           Expires 7 August 2025                [Page 28]
+Migault, et al.           Expires 9 August 2025                [Page 28]
 
 Internet-Draft                    EHCP                     February 2025
 
@@ -1621,7 +1621,7 @@ A.2.4.  Final Output Packet
 
 
 
-Migault, et al.           Expires 7 August 2025                [Page 29]
+Migault, et al.           Expires 9 August 2025                [Page 29]
 
 Internet-Draft                    EHCP                     February 2025
 
@@ -1677,7 +1677,7 @@ Authors' Addresses
 
 
 
-Migault, et al.           Expires 7 August 2025                [Page 30]
+Migault, et al.           Expires 9 August 2025                [Page 30]
 
 Internet-Draft                    EHCP                     February 2025
 
@@ -1733,4 +1733,4 @@ Internet-Draft                    EHCP                     February 2025
 
 
 
-Migault, et al.           Expires 7 August 2025                [Page 31]
+Migault, et al.           Expires 9 August 2025                [Page 31]

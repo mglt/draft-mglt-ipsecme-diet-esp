@@ -113,7 +113,7 @@ While ESP is effective in securing traffic, compression can reduce packet sizes,
 
 ## The Three compressors described in this specification 
 
-The document outlines three compressors utilized in Diet-ESP, which are detailed as follows:
+The document outlines the three compressors utilized in Diet-ESP, which are detailed as follows:
 
 1. Inner IP Compression (IIPC): This process pertains to the compression and decompression of the IP packet protected by ESP. For outbound packets, the ESP incorporates the compressed Inner IP (IIP) into the ESP Data Payload (refer to {{fig-esp}}). In the case of inbound packets, decompression occurs after the compressed IIP is retrieved from the Data Payload within the Clear Text ESP packet.
 
@@ -180,13 +180,13 @@ It is assumed that the reader is familiar with other SCHC terminology defined in
 
 # Diet-ESP Integration into the IPsec Stack {#sec-schc-ipsec-integration}
 
-Figure {{fig-arch}} depicts the incorporation of Diet-ESP within the IPsec framework.
+{{fig-arch}} depicts the incorporation of Diet-ESP within the IPsec framework.
 
 IPsec necessitates that both endpoints agree on a shared context known as the Security Association (SA). This SA is established via IKEv2 and encompasses all Attributes for Rules Generation (AfRG) (refer to {{sec-afrg}}) essential for formulating the Rules for each compressor, specifically the Inner IP packet Compressor (IIPC), the Clear Text ESP Compressor (CTEC), and the Encrypted ESP Compressor (EEC).
 
 When an Inner IP packet (IIP) is received, IPsec identifies the SA linked to that packet. The ESP then determines the IIPC Rule from the AfRG contained within the SA and compresses the IIP packet (IIPC: C {IIP}). Subsequently, ESP constructs the Clear Text ESP payload (CTE). The CTEC Rule is derived from the AfRG of the SA, allowing for the compression of the CTE (CTEC: C {C {IIP}, ET}, where ET represents the ESP Trailer). The ESP encrypts the payload, computes the Integrity Check Value (ICV), and forms the ESP Encrypted payload (EE). The EE Rule is derived from the AfRG of the SA, and then utilized to compress the EE. The resulting compressed ESP extension is integrated into an IP packet and transmitted as outbound traffic.
 
-For inbound traffic, the endpoint extracts the Security Parameter Index (SPI) from the compressed EE, along with any other selectors from the packet, to conduct a lookup for the SA. As outlined in {{sec-sec}}, since the SPI is derived from a potentially compressed ESP Header, there may be instances where the endpoint must explore multiple options, potentially leading to several lookups or, in the worst-case scenario, multiple signature verifications (see {{sec-sec}} for a more detailled discussion).
+For inbound traffic, the endpoint extracts the Security Parameter Index (SPI) from the compressed EE, along with any other selectors from the packet, to conduct a lookup for the SA. As outlined in {{sec-sec}}, since the SPI is derived from a potentially compressed ESP Header, there may be instances where the endpoint must explore multiple options, potentially leading to several lookups or, in the worst-case scenario, multiple signature verifications (see {{sec-sec}} for a more detailed discussion).
 Once the SA is retrieved, the ESP accesses the AfRG to ascertain the EEC Rule and proceeds to decompress the EE. The ESP verifies the signature prior to decryption. Following this, the CTEC Rule is derived from the AfRG of the SA, allowing for the subsequent decompression. Finally, ESP extracts the Data Payload from the CTE packet, retrieves the IIPC Rule from the AfRG of the SA, and decompresses the IIP.
 
 Note that implementations MAY differ from the architectural description but it is assumed that the outputs will be the same.
@@ -236,7 +236,7 @@ ESP     |                                                 |
         v                                                 | 
 Outbound Traffic                                  Inbound Traffic 
 ~~~
-{: #fig-arch artwork-align="center" title="SCHC Integration into the IPsec Stack. Packets are described for IPsec in tunnel mode. C designates the Compressed header for the fields inside. IIP refers to the Inner IP packet, EH refers to the ESP Header, and ET refers to the ESP Trailer. IIPC, CTEC and EEC respectively designates the Inner IP Compress, the Clear Text ESP Compressor and the Encrypted ESP Compressor."}
+{: #fig-arch artwork-align="center" title="SCHC Integration into the IPsec Stack. Packets are described for IPsec in tunnel mode. C designates the Compressed header for the fields inside. IIP refers to the Inner IP packet, EH refers to the ESP Header, and ET refers to the ESP Trailer. IIPC, CTEC and EEC respectively designate the Inner IP Compress, the Clear Text ESP Compressor and the Encrypted ESP Compressor."}
 
 
 ## SCHC Parameters for Diet-ESP
