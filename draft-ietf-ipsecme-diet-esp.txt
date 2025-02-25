@@ -79,13 +79,13 @@ Table of Contents
    4.  Diet-ESP Integration into the IPsec Stack . . . . . . . . . .   7
      4.1.  SCHC Parameters for Diet-ESP  . . . . . . . . . . . . . .  10
      4.2.  Attributes for Rules Generation . . . . . . . . . . . . .  11
-       4.2.1.  Compression/Decompression Actions in Diet-ESP . . . .  17
-   5.  SCHC Compression for IPsec in Tunnel mode . . . . . . . . . .  18
+       4.2.1.  Compression/Decompression Actions in Diet-ESP . . . .  16
+   5.  SCHC Compression for IPsec in Tunnel mode . . . . . . . . . .  17
      5.1.  Inner IP Compression (IIPC) . . . . . . . . . . . . . . .  18
        5.1.1.  Inner IP Payload Compression  . . . . . . . . . . . .  18
        5.1.2.  Inner IPv6 Header Compression . . . . . . . . . . . .  18
        5.1.3.  Inner IPv4 Header Compression . . . . . . . . . . . .  20
-     5.2.  ESP Payload Data Byte Alignment . . . . . . . . . . . . .  21
+     5.2.  ESP Payload Data Byte Alignment . . . . . . . . . . . . .  20
      5.3.  Clear Text ESP Compression (CTEC) . . . . . . . . . . . .  21
      5.4.  Encrypted ESP Compression (EEC) . . . . . . . . . . . . .  22
    6.  SCHC Compression for IPsec in Transport mode  . . . . . . . .  22
@@ -544,15 +544,15 @@ Internet-Draft                    EHCP                     February 2025
    a padding method other than SCHC Padding is to accommodate the length
    of the compressed ESP Payload Data
 
-   Other variables required for the C/D in Diet-ESP are the following:
+   Other variables required for the C/D in Diet-ESP includes Maximum
+   Packet Size (MAX_PACKET_SIZE) determined by the specific IPsec ESP
+   configuration and the underlying transport, but it is typically
+   aligned with the network’s MTU.  The size constraints are optimized
+   based on the available link capacity and negotiated parameters
+   between endpoints.
 
-   Maximum Packet Size:  MAX_PACKET_SIZE is determined by the specific
-      IPsec ESP configuration and the underlying transport, but it is
-      typically aligned with the network’s MTU.  The size constraints
-      are optimized based on the available link capacity and negotiated
-      parameters between endpoints.
 
-   SCHC Padding:  Padding in SCHC is used to align data to a specific
+
 
 
 
@@ -561,17 +561,6 @@ Migault, et al.          Expires 28 August 2025                [Page 10]
 
 Internet-Draft                    EHCP                     February 2025
 
-
-      boundary (typically byte-aligned or 8-bit aligned) to meet the
-      requirements for encryption which only considers octets instead of
-      bits.  The SCHC Padding is only used over the CTE as described in
-      Section 5.2.
-
-   SCHC padding is used solely to ensure byte alignment for the
-   Compressed Inner IP Packet (IIPC) before the ESP padding is applied.
-   This distinction is necessary because ESP Padding may be compressed
-   or omitted depending on the negotiated alignment.  In this document,
-   we refer to this specific use of SCHC padding as Byte Alignment.
 
 4.2.  Attributes for Rules Generation
 
@@ -610,14 +599,6 @@ Internet-Draft                    EHCP                     February 2025
    the USE_TRANSPORT_MODE Notify Payload during the CREATE_CHILD_SA
    exchange, as detailed in [RFC7296], Section 1.3.1.  The AfRG Tunnel
    IP designated as tunnel_ip in Table 1 is obtained from the IP address
-
-
-
-Migault, et al.          Expires 28 August 2025                [Page 11]
-
-Internet-Draft                    EHCP                     February 2025
-
-
    of the IKE messages exchanged during the CREATE_CHILD_SA process, as
    noted in [RFC7296], Section 1.1.3.  The AfRGs designated as ESP
    Encryption Algorithm esp_encr and ESP Security Parameter Index (SPI)
@@ -627,6 +608,15 @@ Internet-Draft                    EHCP                     February 2025
    the Child SA and incremented for each subsequent ESP message.  The
    DSCP values identified as dscp_list in Table 1 are established
    through the DSCP Notify Payload [I-D.mglt-ipsecme-dscp-np].
+
+
+
+
+
+Migault, et al.          Expires 28 August 2025                [Page 11]
+
+Internet-Draft                    EHCP                     February 2025
+
 
    The ability to derive the IPPC Rules for the IIPC from the agreed
    Traffic Selectors is indicated by the variable iipc_profile.
@@ -666,14 +656,6 @@ Internet-Draft                    EHCP                     February 2025
    |                   | SCTP, ANY, ...      |           |            |
    +-------------------+---------------------+-----------+------------+
    | ts_port_src_start | Port number         | RFC7296   | IIPC       |
-
-
-
-Migault, et al.          Expires 28 August 2025                [Page 12]
-
-Internet-Draft                    EHCP                     February 2025
-
-
    +-------------------+---------------------+-----------+------------+
    | ts_port_src_end   | Port number         | RFC7296   | IIPC       |
    +-------------------+---------------------+-----------+------------+
@@ -684,6 +666,14 @@ Internet-Draft                    EHCP                     February 2025
    | dscp_list         | list of DSCP        | RFCYYYY   | IIPC       |
    |                   | numbers             |           |            |
    +-------------------+---------------------+-----------+------------+
+
+
+
+Migault, et al.          Expires 28 August 2025                [Page 12]
+
+Internet-Draft                    EHCP                     February 2025
+
+
    | alignment         | "8 bit", "16 bit",  | ThisRFC   | CTEC       |
    |                   | "32 bit", "64 bit"  |           |            |
    +-------------------+---------------------+-----------+------------+
@@ -713,23 +703,6 @@ Internet-Draft                    EHCP                     February 2025
    specification but the definitions of the variables are in [RFC4301]
    and [RFC7296].
 
-
-
-
-
-
-
-
-
-
-
-
-
-Migault, et al.          Expires 28 August 2025                [Page 13]
-
-Internet-Draft                    EHCP                     February 2025
-
-
    The Traffic Selectors may result in a quite complex expression, and
    this specification restricts that complexity.  This specification
    restricts the resulting TSi/TSr to a single type of IP address (IPv4
@@ -748,6 +721,14 @@ Internet-Draft                    EHCP                     February 2025
    TSr - sent by the remote peer.
 
    The details of each parameter are the following:
+
+
+
+
+Migault, et al.          Expires 28 August 2025                [Page 13]
+
+Internet-Draft                    EHCP                     February 2025
+
 
    iipc_profile:  designates the behavior of the IIPC layer.  When set
       to "iipc_uncompress" IIPC is not performed.  This specification
@@ -775,17 +756,6 @@ Internet-Draft                    EHCP                     February 2025
       agreed by the SA (dscp_list).
 
    ecn_cda:  indicates ECN CDA, that is how the ECN values of the inner
-
-
-
-
-
-
-Migault, et al.          Expires 28 August 2025                [Page 14]
-
-Internet-Draft                    EHCP                     February 2025
-
-
       IP packet are compressed / decompressed - See Section 4.2.1 for
       more information.  In a nutshell, "uncompress" indicates that DSCP
       are not compressed. "lower" indicates the value is read from the
@@ -808,6 +778,14 @@ Internet-Draft                    EHCP                     February 2025
       local TS.
 
    ts_ip_src_end:  designates TS IP Source End that is the high end
+
+
+
+Migault, et al.          Expires 28 August 2025                [Page 14]
+
+Internet-Draft                    EHCP                     February 2025
+
+
       value range of source IP addresses of the inner packet and has the
       same meaning as the Ending Address field of the local TS.
 
@@ -834,14 +812,6 @@ Internet-Draft                    EHCP                     February 2025
       end value range of the source port range of the inner packet and
       has the same meaning as the End Port field of the local TS.
 
-
-
-
-Migault, et al.          Expires 28 August 2025                [Page 15]
-
-Internet-Draft                    EHCP                     February 2025
-
-
    ts_port_dst_start:  designates TS Port Destination Start, that is the
       starting value of the destination port range of the inner packet
       and has the same meaning as the Start Port field of the remote TS.
@@ -864,6 +834,13 @@ Internet-Draft                    EHCP                     February 2025
       inner traffic - see for example [I-D.mglt-ipsecme-dscp-np].  These
       are not Traffic Selectors, but the compression mandates that the
       packets take one of these listed DSCP values.
+
+
+
+Migault, et al.          Expires 28 August 2025                [Page 15]
+
+Internet-Draft                    EHCP                     February 2025
+
 
    alignment:  designates the ESP alignment as defined by [RFC4303].
 
@@ -890,14 +867,6 @@ Internet-Draft                    EHCP                     February 2025
       SPI.  A value of 32 for esp_spi_lsb will leave the SPI unchanged.
 
    esp_sn:  designates the ESP Sequence Number (SN) field defined in
-
-
-
-Migault, et al.          Expires 28 August 2025                [Page 16]
-
-Internet-Draft                    EHCP                     February 2025
-
-
       [RFC4301].
 
    esp_sn_lsb:  designates the LSB to be considered for the compressed
@@ -909,6 +878,25 @@ Internet-Draft                    EHCP                     February 2025
    in [RFC8724], Section 7.4, this specification uses the CDAs presented
    in Table 2.  These CDAs are either a refinement of the compute- * CDA
    or the result of a combined CDA.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Migault, et al.          Expires 28 August 2025                [Page 16]
+
+Internet-Draft                    EHCP                     February 2025
+
 
       +========================+=============+======================+
       | Action                 | Compression | Decompression        |
@@ -947,17 +935,24 @@ Internet-Draft                    EHCP                     February 2025
    hop limit:  indicates that the hop limit is derived from the outer
       IPv6 header.
 
+   Byte Alignment:  indicates that the the SCHC Byte Alignment bits are
+      generated accordingly.
+
+5.  SCHC Compression for IPsec in Tunnel mode
+
+
+
+
+
+
+
+
 
 
 Migault, et al.          Expires 28 August 2025                [Page 17]
 
 Internet-Draft                    EHCP                     February 2025
 
-
-   Byte Alignment:  indicates that the the SCHC Byte Alignment bits are
-      generated accordingly.
-
-5.  SCHC Compression for IPsec in Tunnel mode
 
 5.1.  Inner IP Compression (IIPC)
 
@@ -1000,16 +995,6 @@ Internet-Draft                    EHCP                     February 2025
 
    DSCP values are compressed according to the dscp_cda value:
 
-
-
-
-
-
-Migault, et al.          Expires 28 August 2025                [Page 18]
-
-Internet-Draft                    EHCP                     February 2025
-
-
    *  If dscp_cda is set to "uncompress", the DSCP values are included
       in the inner IP header.  FL is set to 6 bits, TV is not set, MO is
       set to "ignore", CDA is set to "sent-value".
@@ -1017,6 +1002,13 @@ Internet-Draft                    EHCP                     February 2025
    *  If dscp_cda is set to "lower", the DSCP field is elided and its
       value is copied from the Tunnel IP header.  FL is set to 6 bits,
       TV is not set, MO is set to "ignore", CDA is set to "lower".
+
+
+
+Migault, et al.          Expires 28 August 2025                [Page 18]
+
+Internet-Draft                    EHCP                     February 2025
+
 
    *  If dscp_cda is set to "sa", DSCP is compressed according to the
       DSCP values of the SA.  If dscp_list contains a single element,
@@ -1056,16 +1048,6 @@ Internet-Draft                    EHCP                     February 2025
       value.  FL is set to 20, TV is not set, MO is set to "ignore" and
       CDA is set to "generated".
 
-
-
-
-
-
-Migault, et al.          Expires 28 August 2025                [Page 19]
-
-Internet-Draft                    EHCP                     February 2025
-
-
    *  If flow_label_cda is set to "zero", the Flow Label is elided and
       set to 0 at decompression.  A 0 value indicates no flow label is
       present.  Fl is set to 20 bits, TV is set to 0, MO is set to
@@ -1076,6 +1058,13 @@ Internet-Draft                    EHCP                     February 2025
    bits, TV is not set, MO is set to "ignore", CDA is set to "lower".
 
    Next Header is compressed according to ts_proto:
+
+
+
+Migault, et al.          Expires 28 August 2025                [Page 19]
+
+Internet-Draft                    EHCP                     February 2025
+
 
    *  If ts_proto is the single value 0, Next Header is not compressed.
       FL is set to 8 bits, TV is not set, MO is set to "ignore", CDA is
@@ -1113,15 +1102,6 @@ Internet-Draft                    EHCP                     February 2025
    The IPv4 Header checksum is elided.  FL is set to 16, TV is omitted,
    MO is set to "ignore," and CDA is set to "checksum."
 
-
-
-
-
-Migault, et al.          Expires 28 August 2025                [Page 20]
-
-Internet-Draft                    EHCP                     February 2025
-
-
 5.2.  ESP Payload Data Byte Alignment
 
    SCHC operates on bits, and the compression performed by SCHC may
@@ -1134,6 +1114,14 @@ Internet-Draft                    EHCP                     February 2025
    result, the Byte Alignment field has between 0 and 7 bits, depending
    on the required alignment.  The total additional overhead can be up
    to 10 bits (3-bit length field + 0-7 bits padding).  If the
+
+
+
+Migault, et al.          Expires 28 August 2025                [Page 20]
+
+Internet-Draft                    EHCP                     February 2025
+
+
    complementing bits are less than or equal to 2 bits, the padding will
    result in adding an extra byte.
 
@@ -1166,6 +1154,18 @@ Internet-Draft                    EHCP                     February 2025
    derived from the inner packet.  Conversely, in tunnel mode, the
    Payload Data encompasses the entirety of the inner packet.
 
+   In transport mode, the Next Header field is obtained from either the
+   inner IP Header or the Security Association, as specified in
+   Section 5.1.3 or Section 5.1.2.  In tunnel mode, the Next Header is
+   elided, as it is determined by ts_ip_version.  FL is set to 8 bit, TV
+   is set to IPv4 or IPv6 depending on ts_ip_version, MO is set to
+   "equal" and CDA is set to "not-sent".
+
+
+
+
+
+
 
 
 
@@ -1177,13 +1177,6 @@ Migault, et al.          Expires 28 August 2025                [Page 21]
 
 Internet-Draft                    EHCP                     February 2025
 
-
-   In transport mode, the Next Header field is obtained from either the
-   inner IP Header or the Security Association, as specified in
-   Section 5.1.3 or Section 5.1.2.  In tunnel mode, the Next Header is
-   elided, as it is determined by ts_ip_version.  FL is set to 8 bit, TV
-   is set to IPv4 or IPv6 depending on ts_ip_version, MO is set to
-   "equal" and CDA is set to "not-sent".
 
    The ESP Pad Length and Padding fields are omitted only when ESP
    alignment has been selected to "8bit" and esp_encr does not
@@ -1227,19 +1220,19 @@ Internet-Draft                    EHCP                     February 2025
    We request IANA to create the following registries for the "diet-esp"
    IIPC Profile.
 
-
-
-Migault, et al.          Expires 28 August 2025                [Page 22]
-
-Internet-Draft                    EHCP                     February 2025
-
-
    | Flow Label CDA Value | Reference |
    +----------------------+-----------+
    | "uncompress"         | ThisRFC   |
    | "generated"          | ThisRFC   |
    | "lower"              | ThisRFC   |
    | "zero"               | ThisRFC   |
+
+
+
+Migault, et al.          Expires 28 August 2025                [Page 22]
+
+Internet-Draft                    EHCP                     February 2025
+
 
    | DSCP CDA Value       | Reference |
    +----------------------+-----------+
@@ -1282,6 +1275,13 @@ Internet-Draft                    EHCP                     February 2025
    DSCP CDA Value, or ECN CDA Values are set to "lower."  In such cases,
    the values from the inner packet for the respective fields will be
    derived from the outer IP header, leaving these fields unprotected.
+   It is important to note that even the Authentication Header [RFC4302]
+   does not provide protection for these fields.  When associated with a
+   CDA value of "lower," the level of protection is akin to that
+   provided in Transport mode.  This vulnerability could be exploited by
+   an attacker within an untrusted domain, potentially disrupting load
+   balancing strategies that rely on the Flow Label [RFC6438][RFC6437].
+   More broadly, when the Flow Label CDA Value is set to "lower," the
 
 
 
@@ -1290,13 +1290,6 @@ Migault, et al.          Expires 28 August 2025                [Page 23]
 Internet-Draft                    EHCP                     February 2025
 
 
-   It is important to note that even the Authentication Header [RFC4302]
-   does not provide protection for these fields.  When associated with a
-   CDA value of "lower," the level of protection is akin to that
-   provided in Transport mode.  This vulnerability could be exploited by
-   an attacker within an untrusted domain, potentially disrupting load
-   balancing strategies that rely on the Flow Label [RFC6438][RFC6437].
-   More broadly, when the Flow Label CDA Value is set to "lower," the
    relevant Flow Label Security Considerations from [RFC6437] apply.
    Additionally, an attacker may manipulate the DSCP values to diminish
    the priority of specific packets, resulting in packets from the same
@@ -1337,6 +1330,13 @@ Internet-Draft                    EHCP                     February 2025
    multiple SA lookups and signature verifications may be required.  It
    is advisable for a peer to ascertain the LSB associated with an
    incoming packet in a deterministic manner.
+
+
+
+
+
+
+
 
 
 
