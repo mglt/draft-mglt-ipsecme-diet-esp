@@ -28,7 +28,7 @@
 ]>
 
 
-<rfc ipr="trust200902" docName="draft-ietf-ipsecme-diet-esp-06" category="std" consensus="true" submissionType="IETF" tocInclude="true" sortRefs="true" symRefs="true">
+<rfc ipr="trust200902" docName="draft-ietf-ipsecme-diet-esp-07" category="std" consensus="true" submissionType="IETF" tocInclude="true" sortRefs="true" symRefs="true">
   <front>
     <title abbrev="EHCP">ESP Header Compression with Diet-ESP</title>
 
@@ -81,7 +81,7 @@
       </address>
     </author>
 
-    <date year="2025" month="March" day="16"/>
+    <date year="2025" month="April" day="07"/>
 
     <area>Security</area>
     <workgroup>IPsecme</workgroup>
@@ -107,7 +107,7 @@
 
 <?line 74?>
 
-<section anchor="requirements-notation"><name>Requirements notation</name>
+<section anchor="requirements-notation"><name>Requirements Notation</name>
 
 <t>The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL
 NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED",
@@ -149,18 +149,18 @@ appear in all capitals, as shown here.
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 ]]></artwork></figure>
 
-<section anchor="sec-3c"><name>The Three compressors described in this specification</name>
+<section anchor="sec-3c"><name>The Three Compressors Described in this Specification</name>
 
 <t>The document outlines the three compressors utilized in Diet-ESP, which are detailed as follows:</t>
 
 <t><list style="numbers" type="1">
-  <t>Inner IP Compression (IIPC): This process pertains to the compression and decompression of the Header of the Inner IP packet (IIP), i.e., the original packet to be protected by ESP. For outbound packets, after IIPC, ESP incorporates the compressed Header and the Payload into the ESP Data Payload of a Clear Text ESP packet (CTE) (refer to <xref target="fig-esp"/>). In the case of inbound packets, decompression occurs after the compressed Header is retrieved from the ESP Payload Data within the CTE.</t>
-  <t>Clear Text ESP Compression (CTEC): This process pertains to the compression and decompression of the segment of the ESP packet that is destined for encryption. This encompasses the ESP Data Payload and the ESP Trailer, which includes the Padding, Pad Length, and Next Header fields, as illustrated in <xref target="fig-esp"/>. At this stage, only the latter fields are eligible for compression. For outbound packets, ESP subsequently encrypts the compressed CTE packet. For inbound packets, decompression takes place following the decryption process of the ESP.</t>
-  <t>Encrypted ESP Compression (EEC): This process pertains to the compression and decompression of the Encrypted ESP packet (EE), which consists of the ESP Header, the encrypted payload, and the Integrity Check Value (ICV). Since neither the encrypted payload nor the ICV can be compressed, only the ESP Header, specifically the SPI and SN fields, are subject to compression.</t>
+  <t>Inner IP Compression (IIPC): The original packet to be protected by ESP, namely, the Inner IP packet (IIP), is split into a Header subject to compression and a Payload (see <xref target="sec-schc-ipsec-integration"/> for more details). The process in the IIPC pertains to the compression and decompression of fields of the Header of the IIP. For outbound packets, after IIPC, ESP incorporates the compressed Header and the (unaltered) Payload of the IIP into the ESP Data Payload of a Clear Text ESP packet (CTE) (refer to <xref target="fig-esp"/>). In the case of inbound packets, decompression occurs after the compressed Header is retrieved from the ESP Payload Data within the CTE.</t>
+  <t>Clear Text ESP Compression (CTEC): This process pertains to the compression and decompression of the segment of the ESP packet that is destined for encryption. This encompasses the ESP Data Payload and the ESP Trailer, which includes the Padding, Pad Length, and Next Header fields, as illustrated in <xref target="fig-esp"/>. For the CTEC stage, only these three ESP Trailer fields are eligible for compression. For outbound packets, ESP subsequently encrypts the compressed CTE packet. For inbound packets, decompression takes place following the decryption process of the ESP.</t>
+  <t>Encrypted ESP Compression (EEC): This process pertains to the compression and decompression of the Encrypted ESP packet (EE), which consists of the ESP Header, the encrypted payload, and the Integrity Check Value (ICV). Since neither the encrypted payload nor the ICV can be compressed, only the ESP Header, specifically the SPI and SN fields, is subject to compression.</t>
 </list></t>
 
 </section>
-<section anchor="the-scope-of-schc-in-this-specification"><name>The scope of SCHC in this specification</name>
+<section anchor="the-scope-of-schc-in-this-specification"><name>The Scope of SCHC in this Specification</name>
 
 <t>SCHC <xref target="RFC8724"/> offers a mechanism for header compression as well as an optional fragmentation feature. SCHC facilitates the compression and decompression of headers by utilizing a common context that may encompass multiple Rules. Each Rule is designed to correspond with specific values or ranges of values within the header fields. When a Rule is successfully matched, the corresponding header fields are substituted with the Rule ID and the Compression Residue. The Compression Residue for the packet header is the concatenation of the non-empty residues for each field of the header. The Compression Residue is directly followed by the packet payload and an optional padding to ensure byte alignment.</t>
 
@@ -237,7 +237,7 @@ appear in all capitals, as shown here.
 
 <t>IPsec requires that both endpoints agree on a shared context known as the Security Association (SA). This SA is established via IKEv2 and encompasses all Attributes for Rule Generation (AfRG) (refer to <xref target="sec-afrg"/>) essential for formulating the Rules for each compressor defined in <xref target="sec-3c"/>, specifically the Inner IP packet Compressor (IIPC), the Clear Text ESP Compressor (CTEC), and the Encrypted ESP Compressor (EEC).</t>
 
-<t>When an Inner IP packet (IIP) is received, IPsec identifies the SA linked to that packet. Upon the ESP  determining the IIPC Rule from the AfRG contained within the SA, the IIPC separates the IIP into Header and Payload, and compresses the Header. The compressed Header is composed of RuleID, Compressed Residue, and an optional padding field. The original payload of the IIP is then appended after the compressed header (IIPC: C{Header}, Payload). Subsequently, ESP constructs the Clear Text ESP packet (CTE). The CTEC Rule is derived from the AfRG of the SA, allowing for the compression of the CTE (CTEC: C {C{Header}, Payload, ET}, where ET represents the ESP Trailer). Then, ESP encrypts the ESP Data Payload, computes the Integrity Check Value (ICV), and forms the Encrypted ESP packet (EE). The EE Rule is derived from the AfRG of the SA, and then utilized to compress the EE (C {EH, C{C{Header}, Payload, ET}}, ICV}, where EH represents the ESP Header). The resulting compressed ESP extension is integrated into an IP packet and transmitted as outbound traffic.</t>
+<t>When an Inner IP packet (IIP) is received, IPsec identifies the SA linked to that packet. Upon the ESP  determining the IIPC Rule from the AfRG contained within the SA, the IIPC separates the IIP into Header and Payload, and compresses the Header. The compressed Header is composed of RuleID, Compressed Residue, and an optional padding field. The original Payload of the IIP is then appended after the compressed Header (IIPC: C{Header}, Payload). Subsequently, ESP constructs the Clear Text ESP packet (CTE). The CTEC Rule is derived from the AfRG of the SA, allowing for the compression of the CTE (CTEC: C {C{Header}, Payload, ET}, where ET represents the ESP Trailer). Then, ESP encrypts the ESP Data Payload, computes the Integrity Check Value (ICV), and forms the Encrypted ESP packet (EE). The EE Rule is derived from the AfRG of the SA, and then utilized to compress the EE (C {EH, C{C{Header}, Payload, ET}}, ICV}, where EH represents the ESP Header). The resulting compressed ESP extension is integrated into an IP packet and transmitted as outbound traffic.</t>
 
 <t>For inbound traffic, the endpoint extracts the Security Parameter Index (SPI) from the compressed EE, along with any other selectors from the packet, to conduct a lookup for the SA. As outlined in <xref target="sec-sec"/>, since the SPI is derived from a potentially compressed ESP Header, there may be instances where the endpoint must explore multiple options, potentially leading to several lookups or, in the worst-case scenario, multiple signature verifications (see <xref target="sec-sec"/> for a more detailed discussion).</t>
 
@@ -245,7 +245,7 @@ appear in all capitals, as shown here.
 
 <t>Note that implementations MAY differ from the architectural description but it is assumed that the output will be the same.</t>
 
-<figure title="SCHC Integration into the IPsec Stack. Packets are described for IPsec in tunnel mode. C designates the Compressed header for the fields inside. IIP refers to the Inner IP packet, EH refers to the ESP Header, and ET refers to the ESP Trailer. IIPC, CTEC and EEC respectively designate the Inner IP Compressor, the Clear Text ESP Compressor, and the Encrypted ESP Compressor." anchor="fig-arch"><artwork align="center"><![CDATA[
+<figure title="SCHC Integration into the IPsec Stack. Packets are described for IPsec in tunnel mode. C designates the Compressed Header for the fields inside. IIP refers to the Inner IP packet, EH refers to the ESP Header, and ET refers to the ESP Trailer. IIPC, CTEC and EEC respectively designate the Inner IP Compressor, the Clear Text ESP Compressor, and the Encrypted ESP Compressor." anchor="fig-arch"><artwork align="center"><![CDATA[
 Endpoint                                 Endpoint
 +------------------------+               +------------------------+
 | Inner IP packet        |               | Inner IP packet        | 
@@ -310,7 +310,7 @@ Outbound Traffic                                  Inbound Traffic
 
 <t>SCHC padding in SCHC serves the purpose of aligning data to a designated boundary, which is typically byte-aligned or aligned to 8 bits. This document presumes that this field is not utilized in CET and EEC. This document outlines a simpler form of padding for byte-alignment, as detailed in section <xref target="sec-iipc"/>. Such alignment is essential to ensure that encryption is applied to data that is byte-aligned. The rationale for employing a padding method other than SCHC Padding is to accommodate the length of the compressed ESP Payload Data.</t>
 
-<t>Another variable required for the C/D in Diet-ESP is the Maximum Packet Size (MAX_PACKET_SIZE) determined by the specific IPsec ESP configuration and the underlying transport, but it is typically aligned with the network’s MTU. The size constraints are optimized based on the available link capacity and negotiated parameters between endpoints.</t>
+<t>Another variable required for the C/D in Diet-ESP is the Maximum Packet Size (MAX_PACKET_SIZE) determined by the specific IPsec ESP configuration and the underlying transport, but it is typically aligned with the network's MTU. The size constraints are optimized based on the available link capacity and negotiated parameters between endpoints.</t>
 
 </section>
 <section anchor="sec-afrg"><name>Attributes for Rule Generation</name>
@@ -443,15 +443,17 @@ This specification restricts the resulting TSi/TSr to a single type of IP addres
   </dd>
   <dt>flow_label_cda:</dt>
   <dd>
-    <t>indicates the Flow Label CDA, that is how the Flow Label field of the inner IPv6 packet or the Identification field of the inner IPv4 packet is compressed / decompressed - See <xref target="sec-cda"/> for more information. In a nutshell, "not_compressed" indicates that Flow Label (resp. Identification) is not compressed. "lower" (using compute-*) indicates the value is read from the outer IP header - eventually with some adaptations when inner IP packet and outer IP packets have different versions. "generated" indicates that the field is generated by the receiving party. In that case, the decompressed value may take a different value compared to its original value. "zero" indicates the field is set to zero.</t>
+    <t>indicates the Flow Label CDA, that is how the Flow Label field of the inner IPv6 packet or the Identification field of the inner IPv4 packet is compressed / decompressed - See <xref target="sec-cda"/> for more information. In a nutshell, "not_compressed" indicates that Flow Label (resp. Identification) is not compressed and the field is sent as-is using value-sent. "lower" ( using compute-* ) indicates the value is read from the outer IP header - eventually with some adaptations when inner IP packet and outer IP packets have different versions. This field is computed from the outer IP header using compute-* ( MO: ignore, CDA: compute-* )."generated" indicates the value is re-generated at the decompressor side ( CDA: compute-* ). In that case, the decompressed value may take a different value compared to its original value. "zero" indicates the field is removed by matching against a target value of 0 (MO: equal, CDA: not-sent).
+See <xref target="sec-cda"/> for further details on the applied CDA logic.</t>
   </dd>
   <dt>dscp_cda:</dt>
   <dd>
-    <t>indicates the DSCP CDA, that is how the DSCP values of the inner IP packet are compressed / decompressed - See <xref target="sec-cda"/> for more information. In a nutshell, "not_compressed" indicates that DSCP are not compressed. "lower" (using compute-*) indicates the value is read from the outer IP header - eventually with some adaptations when inner IP packet and outer IP packets have different versions.  "sa" indicates, compression is performed according to the DSCP values agreed by the SA (dscp_list).</t>
+    <t>indicates the DSCP CDA, that is how the DSCP values of the inner IP packet are compressed / decompressed - See <xref target="sec-cda"/> for more information. In a nutshell, "not_compressed" indicates that DSCP are not compressed. "lower" indicates the value is read from the outer IP header - eventually with some adaptations when inner IP packet and outer IP packets have different versions ( compute-* ). "sa" indicates, compression is performed according to the pre-negotioated list of DSCP values (dscp_list) agreed by the SA, using SCHC's MO and index (CDA).
+See <xref target="sec-cda"/> for rule examples.</t>
   </dd>
   <dt>ecn_cda:</dt>
   <dd>
-    <t>indicates ECN CDA, that is how the ECN values of the inner IP packet are compressed / decompressed - See <xref target="sec-cda"/> for more information. In a nutshell, "not_compressed" indicates that DSCP are not compressed. "lower" (using compute-*) indicates the value is read from the outer IP header - eventually with some adaptations when inner IP packet and outer IP packets have different versions.</t>
+    <t>indicates ECN CDA, that is how the ECN values of the inner IP packet are compressed / decompressed - See <xref target="sec-cda"/> for more information. In a nutshell, "not_compressed" indicates that DSCP are not compressed. "lower" indicates the value is read from the outer IP header using compute-* (eventually with some adaptations when inner IP packet and outer IP packets have different versions).</t>
   </dd>
   <dt>ts_ip_version:</dt>
   <dd>
@@ -546,11 +548,13 @@ That IP address can be an IPv4 or IPv6 address.</t>
   </dd>
 </dl>
 
-<section anchor="sec-cda"><name>Diet-ESP SCHC Rule Table</name>
+<section anchor="sec-cda"><name>Illustrative Examples of Diet-ESP SCHC Rule Tables</name>
 
-<t><xref target="tab-cda"/> defines the SCHC compression rules for Diet-ESP in IPsec using specific Compression/Decompression Actions (CDAs) for this profile in addition to the ones defined in <xref section="7.4" sectionFormat="comma" target="RFC8724"/>. These CDAs are either a refinement of the compute-* CDA or the result of a combined CDA. It specifies how various IPv6, UDP/TCP, and ESP header fields are compressed and decompressed.</t>
+<t>The following tables in this section defines the SCHC compression rules examples for Diet-ESP in IPsec. The Compression/Decompression Actions (CDAs) specify how various IPv6, UDP/TCP, and ESP header fields are compressed and decompressed, which are derived from the AfRG discussed in Section <xref target="sec-afrg"/>.</t>
 
-<texttable title="Specific compute-* CDAs used in Diet-ESP" anchor="tab-cda">
+<t>The table <xref target="tab-diet-esp-rule-1"/> represents an example, when <spanx style="verb">flow_label_cda</spanx> is set to <spanx style="verb">lower</spanx>, this results in <spanx style="verb">MO = ignore</spanx> and <spanx style="verb">CDA = compute-*</spanx>, indicating that the value can be derived from the outer header. When <spanx style="verb">dscp_cda</spanx> is <spanx style="verb">not_compressed</spanx>, it translates to <spanx style="verb">MO = ignore</spanx> and <spanx style="verb">CDA = value-sent</spanx>, meaning the field is transmitted uncompressed. Address and port fields are matched using <spanx style="verb">MSB(n)</spanx> and transmitted using the <spanx style="verb">LSB</spanx> CDA, where the LSB value defines the number of variable bits sent.</t>
+
+<texttable title="Example of Diet-ESP Rule table when `flow_label_cda` is set to `lower`" anchor="tab-diet-esp-rule-1">
       <ttcol align='left'>Field</ttcol>
       <ttcol align='left'>FL</ttcol>
       <ttcol align='left'>FP</ttcol>
@@ -558,6 +562,7 @@ That IP address can be an IPv4 or IPv6 address.</t>
       <ttcol align='left'>TV</ttcol>
       <ttcol align='left'>MO</ttcol>
       <ttcol align='left'>CDA</ttcol>
+      <ttcol align='left'>Sent [bits]</ttcol>
       <c>Version</c>
       <c>3</c>
       <c>1</c>
@@ -565,34 +570,39 @@ That IP address can be an IPv4 or IPv6 address.</t>
       <c>ts_ipversion</c>
       <c>equal</c>
       <c>not-sent</c>
+      <c>0</c>
       <c>DSCP</c>
       <c>6</c>
       <c>1</c>
       <c>Dw</c>
-      <c>—</c>
+      <c>-</c>
       <c>ignore</c>
       <c>value-sent</c>
+      <c>6</c>
       <c>ECN</c>
       <c>2</c>
       <c>1</c>
       <c>Dw</c>
-      <c>—</c>
+      <c>-</c>
       <c>ignore</c>
       <c>value-sent</c>
+      <c>2</c>
       <c>Flow Label</c>
       <c>20</c>
       <c>1</c>
       <c>Dw</c>
-      <c>—</c>
+      <c>-</c>
       <c>ignore</c>
       <c>compute-*</c>
+      <c>0</c>
       <c>Payload Length</c>
       <c>16</c>
       <c>1</c>
       <c>Bi</c>
-      <c>—</c>
+      <c>-</c>
       <c>ignore</c>
       <c>compute-*</c>
+      <c>0</c>
       <c>Next Header</c>
       <c>8</c>
       <c>1</c>
@@ -600,109 +610,213 @@ That IP address can be an IPv4 or IPv6 address.</t>
       <c>ts_proto</c>
       <c>equal</c>
       <c>not-sent</c>
+      <c>0</c>
       <c>Hop Limit</c>
       <c>8</c>
       <c>1</c>
       <c>Dw</c>
-      <c>—</c>
-      <c>elided</c>
+      <c>-</c>
+      <c>ignore</c>
       <c>compute-*</c>
+      <c>0</c>
       <c>Source Address</c>
       <c>128</c>
       <c>1</c>
       <c>Bi</c>
       <c>msb(src_start, src_end)</c>
-      <c>MSB</c>
+      <c>MSB(64)</c>
       <c>LSB</c>
+      <c>64</c>
       <c>Destination Address</c>
       <c>128</c>
       <c>1</c>
       <c>Bi</c>
       <c>msb(dst_start, dst_end)</c>
-      <c>MSB</c>
+      <c>MSB(64)</c>
       <c>LSB</c>
+      <c>64</c>
       <c>Source Port (UDP/TCP)</c>
       <c>16</c>
       <c>1</c>
       <c>Bi</c>
       <c>msb(src_port_start, end)</c>
-      <c>MSB</c>
+      <c>MSB(8)</c>
       <c>LSB</c>
+      <c>8</c>
       <c>Destination Port (UDP/TCP)</c>
       <c>16</c>
       <c>1</c>
       <c>Bi</c>
       <c>msb(dst_port_start, end)</c>
-      <c>MSB</c>
+      <c>MSB(8)</c>
       <c>LSB</c>
+      <c>8</c>
       <c>Checksum</c>
       <c>16</c>
       <c>1</c>
       <c>Bi</c>
-      <c>—</c>
+      <c>-</c>
       <c>ignore</c>
       <c>compute-*</c>
+      <c>0</c>
       <c>UDP Length</c>
       <c>16</c>
       <c>1</c>
       <c>Bi</c>
-      <c>—</c>
+      <c>-</c>
       <c>ignore</c>
       <c>compute-*</c>
+      <c>0</c>
       <c>ESP Padding</c>
       <c>-</c>
       <c>-</c>
       <c>-</c>
-      <c>—</c>
+      <c>-</c>
+      <c>ignore</c>
       <c>compute-*</c>
-      <c>elided</c>
+      <c>0</c>
       <c>Byte Alignment</c>
       <c>8</c>
       <c>1</c>
       <c>Bi</c>
-      <c>—</c>
+      <c>-</c>
+      <c>ignore</c>
       <c>compute-*</c>
-      <c>send</c>
+      <c>0</c>
       <c>SPI</c>
       <c>32</c>
       <c>1</c>
       <c>Dw</c>
-      <c>—</c>
-      <c>MSB(4 - esp_spi_lsb)</c>
+      <c>-</c>
+      <c>MSB(24)</c>
       <c>LSB</c>
+      <c>8</c>
       <c>SN</c>
       <c>32</c>
       <c>1</c>
       <c>Dw</c>
-      <c>—</c>
-      <c>MSB(4 - esp_sn_lsb)</c>
+      <c>-</c>
+      <c>MSB(24)</c>
       <c>LSB</c>
+      <c>8</c>
 </texttable>
 
-<t>Here are a few key features from the table:</t>
+<t>Here are more key features from the table:</t>
 
-<t>The IPv6 Header Compression includes the following fields: Version, DSCP, ECN, Flow Label, etc.</t>
+<t><list style="symbols">
+  <t>The IPv6 Header Compression operates on several fields, of which the address and port fields provide the most opportunity for compression.</t>
+  <t>The UDP/TCP Header Compression includes the following fields: Ports, Checksum, Length.</t>
+  <t>The ESP Header Compression fields include the following: Padding, Sequence Number (SN), SPI.</t>
+  <t>The Byte Alignment Padding is maintained to comply with the byte-aligned ESP Payload requirement.</t>
+</list></t>
 
-<t>The UDP/TCP Header Compression includes the following fields: Ports, Checksum, Length.</t>
+<t>The table <xref target="tab-diet-esp-rule-2"/> illustrates a case where the DSCP field is compressed using a pre-negotiated Security Association (SA) list. Here, <spanx style="verb">dscp_cda = sa</spanx> results in <spanx style="verb">MO = match-mapping</spanx> and <spanx style="verb">CDA = index</spanx>, meaning the field value is matched from a list and only the index is sent. The ECN field is computed from the outer header (<spanx style="verb">ecn_cda = lower</spanx>), so it is not sent. The Flow Label is removed from transmission by setting a target value of 0 (<spanx style="verb">flow_label_cda = zero</spanx>), which results in <spanx style="verb">MO = equal</spanx> and <spanx style="verb">CDA = not-sent</spanx>.</t>
 
-<t>The ESP Header Compression fields include the following: Padding, Sequence Number (SN), SPI.</t>
+<texttable title="Example of Diet-ESP Rule table where the DSCP field is compressed using a pre-negotiated Security Association (SA) list" anchor="tab-diet-esp-rule-2">
+      <ttcol align='left'>Field</ttcol>
+      <ttcol align='left'>MO</ttcol>
+      <ttcol align='left'>CDA</ttcol>
+      <ttcol align='left'>Sent [bits]</ttcol>
+      <c>DSCP</c>
+      <c>match-mapping</c>
+      <c>index</c>
+      <c>3</c>
+      <c>ECN</c>
+      <c>ignore</c>
+      <c>compute-*</c>
+      <c>0</c>
+      <c>Flow Label</c>
+      <c>equal (TV=0)</c>
+      <c>not-sent</c>
+      <c>0</c>
+      <c>SPI</c>
+      <c>MSB(24)</c>
+      <c>LSB</c>
+      <c>8</c>
+      <c>SN</c>
+      <c>MSB(24)</c>
+      <c>LSB</c>
+      <c>8</c>
+</texttable>
 
-<t>The Byte Alignment Padding is maintained to comply with the byte-aligned ESP Payload requirement.</t>
+<t>The table <xref target="tab-diet-esp-rule-3"/> configuration disables all compression mechanisms. Every field is transmitted in full using <spanx style="verb">MO = ignore</spanx> and <spanx style="verb">CDA = value-sent</spanx>, which is the result of setting each <spanx style="verb">_cda</spanx> attribute to <spanx style="verb">not_compressed</spanx>.</t>
 
-<t>Here are the additional CDAs defined in this profile:</t>
+<texttable title="Example of Diet-ESP Rule table with all compression mechanisms disabled" anchor="tab-diet-esp-rule-3">
+      <ttcol align='left'>Field</ttcol>
+      <ttcol align='left'>MO</ttcol>
+      <ttcol align='left'>CDA</ttcol>
+      <ttcol align='left'>Sent [bits]</ttcol>
+      <c>DSCP</c>
+      <c>ignore</c>
+      <c>value-sent</c>
+      <c>6</c>
+      <c>ECN</c>
+      <c>ignore</c>
+      <c>value-sent</c>
+      <c>2</c>
+      <c>Flow Label</c>
+      <c>ignore</c>
+      <c>value-sent</c>
+      <c>20</c>
+      <c>Payload Length</c>
+      <c>ignore</c>
+      <c>value-sent</c>
+      <c>16</c>
+      <c>Hop Limit</c>
+      <c>ignore</c>
+      <c>value-sent</c>
+      <c>8</c>
+      <c>SPI</c>
+      <c>ignore</c>
+      <c>value-sent</c>
+      <c>32</c>
+      <c>SN</c>
+      <c>ignore</c>
+      <c>value-sent</c>
+      <c>32</c>
+</texttable>
+
+<t>The table <xref target="tab-diet-esp-rule-4"/> demonstrates a mixed strategy. The Flow Label is generated at the decompressor side and not transmitted (<spanx style="verb">flow_label_cda = generated</spanx> results in <spanx style="verb">MO = ignore</spanx>, <spanx style="verb">CDA = compute-*</spanx>). The ECN field is again derived from the outer header, while the DSCP field is transmitted as-is (<spanx style="verb">dscp_cda = not_compressed</spanx>).</t>
+
+<texttable title="Example of Diet-ESP Rule table with a mixed strategy" anchor="tab-diet-esp-rule-4">
+      <ttcol align='left'>Field</ttcol>
+      <ttcol align='left'>MO</ttcol>
+      <ttcol align='left'>CDA</ttcol>
+      <ttcol align='left'>Sent [bits]</ttcol>
+      <c>DSCP</c>
+      <c>ignore</c>
+      <c>value-sent</c>
+      <c>6</c>
+      <c>ECN</c>
+      <c>ignore</c>
+      <c>compute-*</c>
+      <c>0</c>
+      <c>Flow Label</c>
+      <c>ignore</c>
+      <c>compute-*</c>
+      <c>0</c>
+      <c>SPI</c>
+      <c>MSB(28)</c>
+      <c>LSB</c>
+      <c>4</c>
+      <c>SN</c>
+      <c>MSB(28)</c>
+      <c>LSB</c>
+      <c>4</c>
+</texttable>
 
 </section>
 </section>
 </section>
-<section anchor="diet-esp-for-ipsec-in-tunnel-mode"><name>Diet-ESP for IPsec in Tunnel mode</name>
+<section anchor="diet-esp-for-ipsec-in-tunnel-mode"><name>Diet-ESP for IPsec in Tunnel Mode</name>
 
 <section anchor="sec-iipc"><name>Inner IP Compression (IIPC)</name>
 
-<t>When iipc_profile is set to "iipc_not_compressed", the packet is not compressed. When iipc_profile is set to "iipc_diet-esp", IIPC proceeds to the compression of the inner IP Packet composed of Header and Payload. In the latter case, the Header is compressed when ipsec_mode is set to "Tunnel" and not compressed otherwise. ts_ip_version determines how the IPv6 Header (resp. the IPv4 header) is compressed - see <xref target="sec-inner-ip6"/> (resp. <xref target="sec-inner-ip4"/>).</t>
+<t>When iipc_profile is set to "iipc_not_compressed", the inner IP Packet (IIP) is not compressed.  When iipc_profile is set to "iipc_diet-esp", IIPC proceeds with the compression.  The Header fields subject to compression depend on the encapsulation mode. When ipsec_mode is set to "Tunnel", all Header fields of the IIP structure are subject to compression. ts_ip_version determines how the IPv6 header (resp. the IPv4 header) is compressed - see <xref target="sec-inner-ip6"/> (resp.  <xref target="sec-inner-ip4"/>). Conversely, when ipsec_mode is set to "Transport", the compression applies only to Header fields other than the IPv4 or IPv6 header fields. This means that the IPv4 and IPv6 headers remain uncompressed, while other Header fields within the IIP structure are subject to compression.</t>
 
-<t>The SCHC packet illustrated in <xref target="fig-schc-compressed-packet-format"/> appends the padding at the end of the SCHC Packet. This approach presents notable challenges, including handling a Payload that lacks byte alignment. Furthermore, the absence of a specified Payload length would necessitate the inclusion of the padding length within the padding itself, which would require a particular padding construction akin to that utilized by the Padding ESP, thereby posing difficulties for hardware implementations.</t>
+<t>Note that the SCHC packet illustrated in <xref target="fig-schc-compressed-packet-format"/> appends the padding at the end of the SCHC Packet. This approach presents notable challenges, including handling a Payload that lacks byte alignment. Furthermore, the absence of a specified Payload length would necessitate the inclusion of the padding length within the padding itself, which would require a particular padding construction akin to that utilized by the ESP Padding, thereby posing difficulties for hardware implementations.</t>
 
-<t>To address these issues, IIPC uses a pre-processing phase where the IIP is divided into two segments: the Header, which is subject to compression, and the Payload, which is not. Following this, the compression process applies the defined rule to the Header, resulting in a SCHC Packet (refer to <xref target="fig-schc-compressed-packet-format"/>) that features an empty SCHC Payload field, with a padding field positioned after the Compression Residue. Ultimately, a post-processing phase merges the SCHC Packet with the Payload, allowing the compressor to produce an IIPC packet in the format outlined in <xref target="fig-diet-esp-compressed-header-format"/>.</t>
+<t>To address these issues, IIPC uses a pre-processing phase where the IIP is divided into two segments: the Header and the Payload and only the Header is considered as the candidate structure for compression. By construction, the compression process applies the defined rule to the Header, resulting in a SCHC Packet (refer to <xref target="fig-schc-compressed-packet-format"/>) that features an empty SCHC Payload field, with a padding field positioned after the Compression Residue. Ultimately, a post-processing phase merges the SCHC Packet with the Payload, allowing the compressor to produce an IIPC packet in the format outlined in <xref target="fig-diet-esp-compressed-header-format"/>.</t>
 
 <figure title="Packet format after IIPC compression" anchor="fig-diet-esp-compressed-header-format"><artwork align="center"><![CDATA[
  0 1 2 3 4 5 6 7|<---- s bits ------->|<-0..7 bits->|<---n bytes--->|
@@ -714,9 +828,9 @@ That IP address can be an IPv4 or IPv6 address.</t>
 
 <t>It is important to observe that the resulting packet is byte-aligned. Additionally, the division between Header and Payload can only occur because all the Header fields are of a fixed size.</t>
 
-<section anchor="sec-payload"><name>Inner IP Payload Compression</name>
+<section anchor="sec-payload"><name>Compression of the Inner IP payload</name>
 
-<t>This section describes the compression of the inner IP Payload. The compression described herein only affects UDP, UDP-Lite, TCP or SCTP segments. The type of segment is specified in the IP Header.</t>
+<t>This section describes the compression of the inner IP payload. The compression described herein only affects UDP, UDP-Lite, TCP or SCTP segments. The type of segment is specified in the IP header.</t>
 
 <t>For UDP, UDP-Lite, TCP and SCTP segments, source ports, destination ports, and checksums are compressed. 
 For source port (resp. destination port) only the least significant bits are sent. FL is set to 16 bits,  TV is set to msb( ts_port_src_start, ts_port_src_end ) ( resp. ts_port_dst_start, ts_port_dst_end ), MO is set to "MSB" and CDA to "LSB". 
@@ -726,7 +840,7 @@ This may result in decompressing a zero-checksum UDP packet with a valid checksu
 <t>For UDP or UDP-Lite the length field is elided. FL is set to 16, TV is not set, MO is set to "ignore".</t>
 
 </section>
-<section anchor="sec-inner-ip6"><name>Inner IPv6 packet Headers Compression</name>
+<section anchor="sec-inner-ip6"><name>Compression of the Inner IPv6 header</name>
 
 <t>The version field is elided, FL is set to 3, TV is set to ts_ipversion, MO is set to "equal" and CDA is set to "not-sent".</t>
 
@@ -752,13 +866,13 @@ For ECN, FL is set to 2 bits, TV is not set, MO is set to ignore and CDA is set 
 <t>Flow label is compressed according to the flow_label_cda value:</t>
 
 <t><list style="symbols">
-  <t>If flow_label_cda is set to "not_compressed", the Flow label is included in the IPv6 Header. FL is set to 20 bits, TV is not set, MO is set to "ignore", and CDA is set to "sent-value".</t>
-  <t>If flow_label_cda is set to "lower", the Flow Label is elided and read from the outer IP Header (using compute-*(See <xref target="sec-cda"/>)). FL is set to 20 bits, TV is not set, MO is set to "ignore", and CDA is set to "lower". If the outer IP header is an IPv4 header, only the 16 LSB of the Flow Label are inserted into the IPv4 Header. At the decompression, the 4 MSB of the Flow Label are set to 0.</t>
+  <t>If flow_label_cda is set to "not_compressed", the Flow label is included in the IPv6 header. FL is set to 20 bits, TV is not set, MO is set to "ignore", and CDA is set to "sent-value".</t>
+  <t>If flow_label_cda is set to "lower", the Flow Label is elided and read from the outer IP header (using compute-*(See <xref target="sec-cda"/>)). FL is set to 20 bits, TV is not set, MO is set to "ignore", and CDA is set to "lower". If the outer IP header is an IPv4 header, only the 16 LSB of the Flow Label are inserted into the IPv4 header. At the decompression, the 4 MSB of the Flow Label are set to 0.</t>
   <t>If flow_label_cda is set to "generated", the Flow Label is elided and the Flow Label is then re-generated (using compute-*) at the decompression (See <xref target="sec-cda"/>). The resulting Flow Label differs from the initial value. FL is set to 20, TV is not set, MO is set to "ignore" and CDA is set to "generated".</t>
   <t>If flow_label_cda is set to "zero", the Flow Label is elided and set to 0 at decompression. A 0 value indicates no flow label is present. Fl is set to 20 bits, TV is set to 0, MO is set to "equal" and CDA is set to "not-sent".</t>
 </list></t>
 
-<t>Payload Length is elided and determined from the Tunnel IP Header Payload Length as well as the decompressed Payload. FL is set to 16 bits, TV is not set, MO is set to "ignore", CDA is set to "lower".</t>
+<t>Payload Length is elided and determined from the Tunnel IP header Payload Length as well as the decompressed Payload. FL is set to 16 bits, TV is not set, MO is set to "ignore", CDA is set to "lower".</t>
 
 <t>Next Header is compressed according to ts_proto:</t>
 
@@ -767,20 +881,20 @@ For ECN, FL is set to 2 bits, TV is not set, MO is set to ignore and CDA is set 
   <t>If ts_proto is a single non zero value, Next Header is compressed. FL is set to 8 bits, TV is set to ts_proto, MO is set to "equal" and CDA is set to "not-sent".</t>
 </list></t>
 
-<t>The IPv6 Hop Limit is read from the Tunnel IP Header Hop Limit. FL is set to 8 bits, TV is not set, MO is set to "ignore" and CDA is set to "lower."</t>
+<t>The IPv6 Hop Limit is read from the Tunnel IP header Hop Limit. FL is set to 8 bits, TV is not set, MO is set to "ignore" and CDA is set to "lower."</t>
 
 <t>The source and destination IPv6 addresses are compressed using MSB. 
 In both cases, FL is set to 128, TV is respectively set to  msb(ts_ip_src_start, ts_ip_src_ed) or msb(ts_ip_dst_start, ts_ip_dst_end), the MO is set to "MSB," and the CDA is set to "LSB."</t>
 
 </section>
-<section anchor="sec-inner-ip4"><name>Inner IPv4 packet Header Compression</name>
+<section anchor="sec-inner-ip4"><name>Compression of the Inner IPv4 header</name>
 
 <t>The fields Version, DSCP, ECN, Source Address and Destination Address are compressed as described for IPv6 in <xref target="sec-inner-ip6"/>.
-The field Total Length (16 bits) is compressed similarly to the IPv6 field Payload Length. The field Identification (16 bits) is compressed similarly to the IPv6 field Flow Label. If the tunnel IP Header is an IPv6 Header, the Identification is placed as the LSB of the IPv6 Header and the 4 remaining MSB are set to 0.  The field Time to Live is compressed similarly to the IPv6 Hop Limit field. The Protocol field is compressed similarly to the last IPv6 Next Header field.</t>
+The field Total Length (16 bits) is compressed similarly to the IPv6 field Payload Length. The field Identification (16 bits) is compressed similarly to the IPv6 field Flow Label. If the tunnel IP header is an IPv6 header, the Identification is placed as the LSB of the IPv6 header and the 4 remaining MSB are set to 0.  The field Time to Live is compressed similarly to the IPv6 Hop Limit field. The Protocol field is compressed similarly to the last IPv6 Next Header field.</t>
 
 <t>The Internet Header Length (IHL) is not compressed, FL is set to 4 bits, TV is not set, MO is set to ignore and CDA is set to "value-sent".</t>
 
-<t>The IPv4 Header checksum is elided.
+<t>The IPv4 header checksum is elided.
 FL is set to 16, TV is omitted, MO is set to "ignore," and CDA is set to "checksum."</t>
 
 </section>
@@ -795,7 +909,7 @@ FL is set to 16, TV is omitted, MO is set to "ignore," and CDA is set to "checks
 
 <t>In transport mode, the IP header of the inner packet remains not compressed during the IIPC phase, and the ESP Payload Data is derived from the inner packet. Conversely, in tunnel mode, the ESP Payload Data encompasses the entirety of the packet generated by the IIPC.</t>
 
-<t>In transport mode, the Next Header field is obtained from either the inner IP Header or the Security Association, as specified in <xref target="sec-inner-ip4"/> or <xref target="sec-inner-ip6"/>. In tunnel mode, the Next Header is elided, as it is determined by ts_ip_version. FL is set to 8 bit, TV is set to IPv4 or IPv6 depending on ts_ip_version, MO is set to "equal" and CDA is set to "not-sent".</t>
+<t>In transport mode, the Next Header field is obtained from either the inner IP header or the Security Association, as specified in <xref target="sec-inner-ip4"/> or <xref target="sec-inner-ip6"/>. In tunnel mode, the Next Header is elided, as it is determined by ts_ip_version. FL is set to 8 bit, TV is set to IPv4 or IPv6 depending on ts_ip_version, MO is set to "equal" and CDA is set to "not-sent".</t>
 
 <t>The ESP Pad Length and ESP Padding fields are omitted only when ESP alignment has been selected to "8bit" and esp_encr does not necessitate a specific block size alignment, or if that block size is one byte. This is represented by setting FL to (Pad Length + 1) * 8 bits, leaving TV unset, configuring MO to "ignore," and designating CDA as padding. The ESP Padding and ESP Pad Length may vary from their decompressed counterparts. However, since the IPsec process removes the padding, these variations do not affect packet processing. When esp_encr requires a specific block size, the ESP Pad Length and ESP Padding fields remain not compressed.</t>
 
@@ -807,12 +921,12 @@ FL is set to 16, TV is omitted, MO is set to "ignore," and CDA is set to "checks
 <t>SPI is compressed to its LSB.
 FL is set to 32 bits, TV is not set, MO is set to "MSB( 4 - esp_spi_lsb)" and CDA is set to "LSB".</t>
 
-<t>SN is compressed to their LSB, similarly to the SPI. 
+<t>SN is compressed to its LSB, similarly to the SPI. 
 FL is set to 32 bits, TV is not set, MO is set to "MSB( 4 - esp_sn_lsb)" and CDA is set to "LSB".</t>
 
 </section>
 </section>
-<section anchor="diet-esp-compression-for-ipsec-in-transport-mode"><name>Diet-ESP Compression for IPsec in Transport mode</name>
+<section anchor="diet-esp-compression-for-ipsec-in-transport-mode"><name>Diet-ESP Compression for IPsec in Transport Mode</name>
 
 <t>The transport mode mostly differs from the Tunnel mode in that the IP header of the packet is not encrypted. As a result, the IP Payload is compressed as described in <xref target="sec-payload"/>. The IP header is not compressed. The byte alignment of the Compressed Payload is performed as described in <xref target="sec-iipc"/>. The Clear Text ESP Compression is performed as described in <xref target="sec-ctec"/> except for the Next Header Field, which is compressed as described in <xref target="sec-inner-ip6"/>.</t>
 
@@ -890,7 +1004,7 @@ A peer may compress its SPIs differently, in which case a incoming packet may ha
 
 <t>The ESP SN LSB must be established in a manner that allows the receiving peer to clearly ascertain the sequence number of the IPsec packet. If this requirement is not met, it will lead to an invalid signature verification, resulting in the rejection of the packet. Furthermore, the LSB should have the capacity to accommodate the maximum number of packets that may be in transit simultaneously. This approach will guarantee that the last packet received is correctly linked to the corresponding sequence number.</t>
 
-<t>The ESP extension for IPv6 (and similarly for IPv4) requires a 64-bit (or 32-bit) alignment. Choosing alternative alignment values may result in a packet that fails to comply with this alignment requirement, potentially leading to rejection. The necessity for such alignment in IPv6 extensions arises from the fact that the length field in an IPv6 header extension is defined in terms of 64-bit words, making proper alignment essential for accurate packet parsing. Parsing of ESP does not present complications, as it is compatible with IPv6; the ESP extension is processed exclusively by the terminal IPsec peers and not by intermediary nodes. Furthermore, the ESP extension lacks a dedicated length field. Instead, its length is determined by the IPv6 Header Length field, which is measured in bytes, along with the starting position of the ESP header extension. Consequently, it remains entirely feasible to parse an ESP extension that is not aligned to 64 bits. The same principle is applicable to IPv4.</t>
+<t>The ESP extension for IPv6 (and similarly for IPv4) requires a 64-bit (or 32-bit) alignment. Choosing alternative alignment values may result in a packet that fails to comply with this alignment requirement, potentially leading to rejection. The necessity for such alignment in IPv6 extensions arises from the fact that the length field in an IPv6 header extension is defined in terms of 64-bit words, making proper alignment essential for accurate packet parsing. Parsing of ESP does not present complications, as it is compatible with IPv6; the ESP extension is processed exclusively by the terminal IPsec peers and not by intermediary nodes. Furthermore, the ESP extension lacks a dedicated length field. Instead, its length is determined by the IPv6 header Length field, which is measured in bytes, along with the starting position of the ESP header extension. Consequently, it remains entirely feasible to parse an ESP extension that is not aligned to 64 bits. The same principle is applicable to IPv4.</t>
 
 </section>
 <section anchor="acknowledgements"><name>Acknowledgements</name>
@@ -947,7 +1061,7 @@ A peer may compress its SPIs differently, in which case a incoming packet may ha
 </references>
 
 
-<?line 643?>
+<?line 683?>
 
 <section anchor="appendix"><name>Appendix</name>
 
@@ -957,7 +1071,7 @@ A peer may compress its SPIs differently, in which case a incoming packet may ha
 
 <t>This section provides a structured example of how Diet-ESP operates in Tunnel Mode. The example includes Attributes for Rule Generation (AfRG), SCHC rules, the Inner IP packet (IIP), the compression process, and the decompression process.</t>
 
-<section anchor="json-representation-in-tunnel-mode"><name>Json representation in Tunnel mode</name>
+<section anchor="json-representation-in-tunnel-mode"><name>Json Representation in Tunnel Mode</name>
 
 <t>In Tunnel Mode, the full inner IP packet is compressed before encryption, making it more efficient for VPN scenarios. The "iipc_diet-esp" profile is used to indicate compression of the inner packet. The IPv6 Source and Destination Addresses are compressed using "MSB", sending only the variable parts while keeping the most significant bits. UDP Source and Destination Ports are compressed with "LSB", reducing their size. "compute-length" removes the UDP Length field, and "checksum" omits the UDP checksum, which is recalculated at decompression. ESP SPI and Sequence Number are compressed using "LSB" with an MSB mask. The "not-sent" CDA is used for Next Header fields in both IPv6 and ESP, as their values are predictable.</t>
 
@@ -1032,7 +1146,7 @@ A peer may compress its SPIs differently, in which case a incoming packet may ha
       "FL": 8,
       "TV": null,
       "MO": "ignore",
-      "CDA": "padding"
+      "CDA": "compute-padding"
     }, 
     {
       "FID": "alignment",
@@ -1062,11 +1176,9 @@ A peer may compress its SPIs differently, in which case a incoming packet may ha
 </list></t>
 
 </section>
-<section anchor="diet-esp-compression"><name>Diet-ESP Compression</name>
+<section anchor="inner-ip-packet-iip"><name>Inner IP Packet (IIP)</name>
 
-<t>The rules for the IIPC, CTEC, and EEC layers are defined as IIPC to compress IPv6 headers and UDP headers, CTEC to compress ESP Trailer fields, and EEC to compress ESP SPI and Sequence Number.</t>
-
-<t>The IIPC original packet before compression consists of:</t>
+<t>The original packet (IIP), before compression consists of:</t>
 
 <t><list style="symbols">
   <t>IPv6 Source Address: 2001:db8::1234</t>
@@ -1074,10 +1186,14 @@ A peer may compress its SPIs differently, in which case a incoming packet may ha
   <t>UDP Source Port: 5001</t>
   <t>UDP Destination Port: 4500</t>
   <t>UDP Length: 16 bytes</t>
-  <t>ESP Payload Data</t>
+  <t>Payload Data</t>
 </list></t>
 
-<t>Each compressor applies the rule selected by the SA as follows:</t>
+</section>
+<section anchor="diet-esp-compression"><name>Diet-ESP Compression</name>
+
+<t>The rules for the IIPC, CTEC, and EEC layers are defined as IIPC to compress IPv6 headers and UDP headers, CTEC to compress ESP Trailer fields, and EEC to compress ESP SPI and Sequence Number.
+Each compressor applies the rule selected by the SA as follows:</t>
 
 <t><list style="numbers" type="1">
   <t>IIPC: UDP Header Compression
@@ -1103,7 +1219,7 @@ A peer may compress its SPIs differently, in which case a incoming packet may ha
     </list></t>
 </list></t>
 
-<t>The final compressed packet consists of the compressed ESP header, IIPC compressed data, and payload.</t>
+<t>The final compressed packet consists of an EEC packet with a compressed ESP header, a compressed IIP Header, and the payload.</t>
 
 </section>
 <section anchor="diet-esp-decompression"><name>Diet-ESP Decompression</name>
@@ -1134,9 +1250,9 @@ A peer may compress its SPIs differently, in which case a incoming packet may ha
 
 <t>This section follows the same structure as Tunnel Mode but applies to Transport Mode, where the IP header remains not compressed.</t>
 
-<section anchor="json-representation-in-transport-mode"><name>Json representation in Transport mode</name>
+<section anchor="json-representation-in-transport-mode"><name>Json Representation in Transport Mode</name>
 
-<t>In Transport Mode, since the IP header remains not compressed, only the UDP payload and ESP fields are compressed. The new IANA-defined CDAs are applied as follows: "checksum" is used for the UDP checksum, meaning it is recalculated at decompression rather than transmitted. "compute-length" eliminates the UDP Length field, as it can be inferred from the payload size. "padding" ensures ESP padding aligns with 8-bit boundaries. "not-sent" is applied to the IPv6 and ESP Next Header fields because their values are predictable. The UDP Source and Destination Ports use "LSB" compression, reducing overhead by sending only the least significant bits. The ESP SPI and Sequence Number are compressed similarly using "LSB" with an MSB mask. Since the IP header is retained, the Source and Destination IPv6 Addresses are fully transmitted using "sent-value".</t>
+<t>In Transport Mode, since the IP header remains not compressed, only the UDP header fields in the IIP payload and the ESP header fields are compressed. The new IANA-defined CDAs are applied as follows: "checksum" is used for the UDP checksum, meaning it is recalculated at decompression rather than transmitted. "compute-length" eliminates the UDP Length field, as it can be inferred from the payload size. "padding" ensures ESP padding aligns with 8-bit boundaries. "not-sent" is applied to the IPv6 and ESP Next Header fields because their values are predictable. The UDP Source and Destination Ports use "LSB" compression, reducing overhead by sending only the least significant bits. The ESP SPI and Sequence Number are compressed similarly using "LSB" with an MSB mask. Since the IP header is retained, the Source and Destination IPv6 Addresses are fully transmitted using "sent-value".</t>
 
 <figure><sourcecode type="json"><![CDATA[
 [
@@ -1149,14 +1265,14 @@ A peer may compress its SPIs differently, in which case a incoming packet may ha
       "FL": 128,
       "TV": "2001:db8::1001",
       "MO": "equal",
-      "CDA": "sent-value"
+      "CDA": "value-sent"
     },
     {
       "FID": "ts_ip_dst_start",
       "FL": 128,
       "TV": "2001:db8::2002",
       "MO": "equal",
-      "CDA": "sent-value"
+      "CDA": "value-sent"
     },
     {
       "FID": "IPv6.NextHeader",
@@ -1212,7 +1328,7 @@ A peer may compress its SPIs differently, in which case a incoming packet may ha
       "FL": 8,
       "TV": null,
       "MO": "ignore",
-      "CDA": "padding"
+      "CDA": "compute-padding"
     },
     {
       "FID": "ESP.NextHeader",
@@ -1250,7 +1366,7 @@ A peer may compress its SPIs differently, in which case a incoming packet may ha
 </list></t>
 
 </section>
-<section anchor="inner-ip-packet-iip"><name>Inner IP Packet (IIP)</name>
+<section anchor="inner-ip-packet-iip-1"><name>Inner IP Packet (IIP)</name>
 
 <t>The original packet before compression consists of:</t>
 
@@ -1309,380 +1425,403 @@ A peer may compress its SPIs differently, in which case a incoming packet may ha
   </back>
 
 <!-- ##markdown-source:
-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
-HCPa84XN8SGTTZNLsAxpjpNVRXrfLK2mN2lHmojem9cZc6ZT8JZe0itUQVDf
-KUOrw1wVQUsLMM9ZaObsFKVbXTdWBDUyvQ+2AxGCIL+OEpa4iuOoEK7U7NZw
-HT03AKQtdtNuuWgic8EmS0mN9/i6NsH1kMSf1NnbJSy4cL0ozk5SIftWwe4j
-Z2cj/dWUYiZ9OJ6xaMb4LWyMGVK9MkWnD1oPDfqZe85ep7t5BEeyLqNIN4IO
-Zd086ndUPCapkYTP1HWXu9Q7Cv+ScExcaaP3ibTu4im00tBFZrOMyI5iCmde
-gGj0ljM+KEzOXsfpbgaTuzZ9tbe6fUPJOKEbYgiffKpUYEsjkcNcmEw1x2uz
-UI3IljLHhrlDtzlszY8ux+1XD0m4Fmd5x970hkH2Hg7XG/q6qWBn1CXxSLke
-0dlx4lQ1eHR2ejxO9r1g+HiXmYxx7HMJ3Sy99oW4nAygy+oySHU58LHyrByH
-3iMz8F78jl43XthLyrTk+ztrFT3wU5cHAD1RrS2zWDJ/Dr6x1wi4zM3knM4s
-Z/egoRIrc6J/n42WejUnwSgu6Vq5aEefcaWXCrAw6BTBuxImasqYqHdk0Uaz
-RMOYVNVWIaIssp7qt/4gfzt+4gUG7JqDQtkBiD5f/NpeWaUW0//xC0rEENh7
-33AqpjgYEt7TNvj73NFqrDlJSL7Izf2AvNwaFdy+NMbsa1RrCzEQy00QSvXE
-eHx/Qv+eYm2FYwr6+LEvIATfvnjV9RRXGj7pjBNxPx/8v+bXO5rf/RSjXH40
-8Y2teT6mfx/hP9/l+C/Zaa67P/mQwPkEbTN+CiLjqDaRXTgqCXp9MHvqRz28
-wX///d/+Zz+M4T0caTTwR0+JDJmRqQrIwcv+bna/3rjGi9kx7sN7Gdf5HvTJ
-wKfSu5su7QePnka7e3/jhtdpRh88S9pYFQV/2uabY9Xzcpmc4MXKXd2YUTeD
-suRtb7BasfrsR7G3/MGj3WfhalG1Nlk+YlTakeagI3fM5SR6SmfI2Cj249DB
-zlFNCpDYTT59VFkrWTS2hdruuFFjjNK1svnM6eg7X7LWaOieUXGBXzoq1ZOt
-V4tW8698emBtXSf2q49rL+xtdTPSf/XXu8aNR+Cn8anCcb/D0gb7rQhg/qBF
-LT5v3Frj0824fRGq9AEGen4SvQC82n6CHlwjAfacoV4m9MXjkqS704nPGkGK
-iRJahMTfYKQwI5lN60vYWNDnWLuCcqKTy+wmeZvd6rWFpkwv5v6Ajk4xXKRP
-dtysENwb6m/LZAltTwWSIckIQ+TYQ8M+4SA3EwkSExLwGWMgCamH7nwP5bRJ
-v923u/iCQ/56Dx+E5m9K6dJShqQace8RsptCDVpyxdeS1iAAsgnaChpW6zX2
-obHZJnJ++3txaF+N8G6F/b1BeMdAUJ/JWBOoXsGaW4xFnaH6GFJvPkhIMg7m
-rlC7oTESdkV13d2hSXKiEDxbeLjH0OQiKaRKhS0K3y40764YlrtofYRVWFZe
-9AuO1TC5pn6+kkHA9SKChXItj5u8zsaRg95ZQHy8jD1kEh8nj5+I6rMTzYmN
-v1LJBBc/ypdPQeWUr8MXTygQ1lSU0t3pur53bTkkjMGmAvhSVUbQvn0TkSmM
-JAZQ+K4qKQpUK6NjzDiqz5NZOsdaJuix8JcWuRv9fMFIMq/ModM6vhkzrCRE
-h8Yn9rr6CZnDAK2dckPXjZjb+wSbKIDEo5euU7/yNx24kjtNnc0vNQGeu5Uj
-HVVdkA9c0X8qhfI2L9x9DK4mjgRjKW0hK28jV6UBdlMJnxxt+OhcFltCn5kY
-yVbpzIZsrs/rmrxEdMhW5LTCzRmZ6x6XM6xU7gujy00I0/w6n9q6F3KDdb1n
-TpGpINR9ga9PYXfF9N0XgBvd5cE77pIMqmEpcUTzihIMnY/3w1PAkC2uFt9F
-fscpEAeYY51pwbfSaZ9SSpydA3LRYHDhBG0g7kxmb5LoKKU2Tn6AKcOgZLvH
-8vZ1096hRVZdWUOTrMqxHX/Dhr1iz1x4AgtfctIGGZOJ7AqR8PXl0ibyciCk
-XNUUAy2mWQ5aaJBpF6ZLosp0H/4erRlJzT40MW78Azx9OB5/Sw/pr9GooNNf
-09tWLbnuanK+mNwmNe3IuNNR1Q5buTp2idfLVTa7p7nor+uK26EdyJW0iyva
-3bkld1S1O7X3Rgl6EkqYw7eVfNQLl4L7gMsLqjrmXUj+0HmZICyRte/kG734
-FOkLQV7dtW0eTiZ8zi6ZTFaYczFJ2Ro/t5zcWAyJE1zm7wCa6DAYs1H32EsO
-3K/deJaEJBrwo1zqqWXEfKLA3UKJuy0zbOizWOQ6YvYGXV7SHclR0iwKyXQ3
-2Pmpo7fcpWYUydPE5zSolEihbe76AfR0dHRON6/b3oc2qgX+iuMparmxRwTw
-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
-AxMq0xbr+wAA
+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
+eDZkdBzbguV2+o64hC/jQVAvRuXtHD2PtWz5OCC2sU8t+srQ5GSNbnIPMhPZ
+YVbAVnSZWTVsuxYZG+J1AjvFWre83djFpo9xkt6g7o031dCuSoUGy4ezdkYk
++Z/mQhdwZOQO6UworMh+RdA3FhUEvUpIwvkajm5gX6oSJBiqBjVGJMfu5PlJ
+BazBc0ff1mrqcT0mmXYPDNzgV9HLDTq1bXTpjnyjY5vhi6aTt7ltNadFe78f
+HX7k758G2iPq0h3DBZsyUGtPskLVhiyuDU3UjmhisfrdMvXsXLQrMnHcByNU
+qd6kxbCAdhLCRJhz9LE5bZjnxSfkjECago9WQWMNUMIK8RRzXphnlml6xeFE
+FgYvuu0PvHd4eKvVZhAGz/HxPYDDxy63lmxXJ1pzb9sAk+PngFVdkIGvME8L
+oOdtAOI3+6qPrFD4hF1xkIdApkILe8D62kBX86Zyh3F+iyur7pDrFMiFa/Uy
+3nsiNRBhxxFRZxxQ73aXJwNHd9bHiGMFLIUVKiDI8cVaGQ2PeU3dSAnIOfqY
+w22SFcX7xdygJ0mDvnZQDPAJ02CyRamxKNzkGDiPmkk+kOgAuI4pDLYJJXpS
+ucJdlKOvN++eB5zZokIIzTMUmI2+gGlINfDGglOr2vsK+AJU8vLK0K4yUFkX
+7tuqHpKtuxonOToJDmzHyACTDSmCDozWtvLcEBAK7WJ8Wo0XHAUCG//KQOnA
+M4hb3+F4PLZklg4G6efHqiIm5BdCIyzcOEkmFTNvwSGRowfd8sylW7ugOay0
+lFeNOfsHx8iainP2F1I3axf2GWYYDEm70lwP630vah3KGo8HBnzmDmu9CwPC
+0hBz5S7r9V4ao0mounpx8CdRW9m+HU4S/cqttiYCvkgMDg2mF84PEFdjWFC9
+1og9No8Vwdf9acPer4cdf03HtK6GvbsG16L+VKF/VXfDB5nId/J39919//5N
+PwjL3Jz7+r+7zdfQ8u4dsXBMMwOgfdVxPx9m5g3Sa2001Zbxw2V2rqWxsOa7
+d+1iSjjmmpm2dIsxqmskFvHL/ILltA7sjGC51kNRsDvraZ20obkSqqAUOIDF
+w0568z878M3933W/PBQVI+5+9VD0vash9GFZSb14Ovo46mj4EGuJYCI/GEsW
+4M2qxRzzlRm2pMX4Ikt3H95N6/bxMBvDIkwT3o3vXQ1pYxwuf1UfR4cf25py
+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
+tQwBAA==
 
 -->
 

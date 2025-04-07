@@ -1,7 +1,7 @@
 ---
 title: ESP Header Compression with Diet-ESP
 abbrev: EHCP
-docname: draft-ietf-ipsecme-diet-esp-06
+docname: draft-ietf-ipsecme-diet-esp-07
 ipr: trust200902
 area: Security
 wg: IPsecme
@@ -30,7 +30,7 @@ author:
         name: Sandra Céspedes
         org: Concordia University
         email: sandra.cespedes@concordia.ca
-      -
+      -  
         ins:  W. Atwood
         name: J. William Atwood
         org: Concordia University
@@ -73,7 +73,7 @@ This document specifies Diet-ESP, a compression mechanism for control informatio
 
 --- middle
 
-#  Requirements notation
+#  Requirements Notation
 
 {::boilerplate bcp14}
 
@@ -111,18 +111,18 @@ While ESP is effective in securing traffic, compression can reduce packet sizes,
 ~~~
 {: #fig-esp artwork-align="center" title="Top-Level Format of an ESP Packet"}
 
-## The Three compressors described in this specification {#sec-3c} 
+## The Three Compressors Described in this Specification {#sec-3c} 
 
 The document outlines the three compressors utilized in Diet-ESP, which are detailed as follows:
 
-1. Inner IP Compression (IIPC): This process pertains to the compression and decompression of the Header of the Inner IP packet (IIP), i.e., the original packet to be protected by ESP. For outbound packets, after IIPC, ESP incorporates the compressed Header and the Payload into the ESP Data Payload of a Clear Text ESP packet (CTE) (refer to {{fig-esp}}). In the case of inbound packets, decompression occurs after the compressed Header is retrieved from the ESP Payload Data within the CTE.
+1. Inner IP Compression (IIPC): The original packet to be protected by ESP, namely, the Inner IP packet (IIP), is split into a Header subject to compression and a Payload (see {{sec-schc-ipsec-integration}} for more details). The process in the IIPC pertains to the compression and decompression of fields of the Header of the IIP. For outbound packets, after IIPC, ESP incorporates the compressed Header and the (unaltered) Payload of the IIP into the ESP Data Payload of a Clear Text ESP packet (CTE) (refer to {{fig-esp}}). In the case of inbound packets, decompression occurs after the compressed Header is retrieved from the ESP Payload Data within the CTE.
 
-2. Clear Text ESP Compression (CTEC): This process pertains to the compression and decompression of the segment of the ESP packet that is destined for encryption. This encompasses the ESP Data Payload and the ESP Trailer, which includes the Padding, Pad Length, and Next Header fields, as illustrated in {{fig-esp}}. At this stage, only the latter fields are eligible for compression. For outbound packets, ESP subsequently encrypts the compressed CTE packet. For inbound packets, decompression takes place following the decryption process of the ESP.
+2. Clear Text ESP Compression (CTEC): This process pertains to the compression and decompression of the segment of the ESP packet that is destined for encryption. This encompasses the ESP Data Payload and the ESP Trailer, which includes the Padding, Pad Length, and Next Header fields, as illustrated in {{fig-esp}}. For the CTEC stage, only these three ESP Trailer fields are eligible for compression. For outbound packets, ESP subsequently encrypts the compressed CTE packet. For inbound packets, decompression takes place following the decryption process of the ESP.
 
-3. Encrypted ESP Compression (EEC): This process pertains to the compression and decompression of the Encrypted ESP packet (EE), which consists of the ESP Header, the encrypted payload, and the Integrity Check Value (ICV). Since neither the encrypted payload nor the ICV can be compressed, only the ESP Header, specifically the SPI and SN fields, are subject to compression.
+3. Encrypted ESP Compression (EEC): This process pertains to the compression and decompression of the Encrypted ESP packet (EE), which consists of the ESP Header, the encrypted payload, and the Integrity Check Value (ICV). Since neither the encrypted payload nor the ICV can be compressed, only the ESP Header, specifically the SPI and SN fields, is subject to compression.
 
 
-## The scope of SCHC in this specification
+## The Scope of SCHC in this Specification
 
 SCHC {{!RFC8724}} offers a mechanism for header compression as well as an optional fragmentation feature. SCHC facilitates the compression and decompression of headers by utilizing a common context that may encompass multiple Rules. Each Rule is designed to correspond with specific values or ranges of values within the header fields. When a Rule is successfully matched, the corresponding header fields are substituted with the Rule ID and the Compression Residue. The Compression Residue for the packet header is the concatenation of the non-empty residues for each field of the header. The Compression Residue is directly followed by the packet payload and an optional padding to ensure byte alignment.
 
@@ -181,7 +181,7 @@ It is assumed that the reader is familiar with other SCHC terminology defined in
 
 IPsec requires that both endpoints agree on a shared context known as the Security Association (SA). This SA is established via IKEv2 and encompasses all Attributes for Rule Generation (AfRG) (refer to {{sec-afrg}}) essential for formulating the Rules for each compressor defined in {{sec-3c}}, specifically the Inner IP packet Compressor (IIPC), the Clear Text ESP Compressor (CTEC), and the Encrypted ESP Compressor (EEC).
 
-When an Inner IP packet (IIP) is received, IPsec identifies the SA linked to that packet. Upon the ESP  determining the IIPC Rule from the AfRG contained within the SA, the IIPC separates the IIP into Header and Payload, and compresses the Header. The compressed Header is composed of RuleID, Compressed Residue, and an optional padding field. The original payload of the IIP is then appended after the compressed header (IIPC: C{Header}, Payload). Subsequently, ESP constructs the Clear Text ESP packet (CTE). The CTEC Rule is derived from the AfRG of the SA, allowing for the compression of the CTE (CTEC: C {C{Header}, Payload, ET}, where ET represents the ESP Trailer). Then, ESP encrypts the ESP Data Payload, computes the Integrity Check Value (ICV), and forms the Encrypted ESP packet (EE). The EE Rule is derived from the AfRG of the SA, and then utilized to compress the EE (C {EH, C{C{Header}, Payload, ET}}, ICV}, where EH represents the ESP Header). The resulting compressed ESP extension is integrated into an IP packet and transmitted as outbound traffic.
+When an Inner IP packet (IIP) is received, IPsec identifies the SA linked to that packet. Upon the ESP  determining the IIPC Rule from the AfRG contained within the SA, the IIPC separates the IIP into Header and Payload, and compresses the Header. The compressed Header is composed of RuleID, Compressed Residue, and an optional padding field. The original Payload of the IIP is then appended after the compressed Header (IIPC: C{Header}, Payload). Subsequently, ESP constructs the Clear Text ESP packet (CTE). The CTEC Rule is derived from the AfRG of the SA, allowing for the compression of the CTE (CTEC: C {C{Header}, Payload, ET}, where ET represents the ESP Trailer). Then, ESP encrypts the ESP Data Payload, computes the Integrity Check Value (ICV), and forms the Encrypted ESP packet (EE). The EE Rule is derived from the AfRG of the SA, and then utilized to compress the EE (C {EH, C{C{Header}, Payload, ET}}, ICV}, where EH represents the ESP Header). The resulting compressed ESP extension is integrated into an IP packet and transmitted as outbound traffic.
 
 For inbound traffic, the endpoint extracts the Security Parameter Index (SPI) from the compressed EE, along with any other selectors from the packet, to conduct a lookup for the SA. As outlined in {{sec-sec}}, since the SPI is derived from a potentially compressed ESP Header, there may be instances where the endpoint must explore multiple options, potentially leading to several lookups or, in the worst-case scenario, multiple signature verifications (see {{sec-sec}} for a more detailed discussion).
 
@@ -237,7 +237,7 @@ ESP     |                                                 |
         v                                                 | 
 Outbound Traffic                                  Inbound Traffic 
 ~~~
-{: #fig-arch artwork-align="center" title="SCHC Integration into the IPsec Stack. Packets are described for IPsec in tunnel mode. C designates the Compressed header for the fields inside. IIP refers to the Inner IP packet, EH refers to the ESP Header, and ET refers to the ESP Trailer. IIPC, CTEC and EEC respectively designate the Inner IP Compressor, the Clear Text ESP Compressor, and the Encrypted ESP Compressor."}
+{: #fig-arch artwork-align="center" title="SCHC Integration into the IPsec Stack. Packets are described for IPsec in tunnel mode. C designates the Compressed Header for the fields inside. IIP refers to the Inner IP packet, EH refers to the ESP Header, and ET refers to the ESP Trailer. IIPC, CTEC and EEC respectively designate the Inner IP Compressor, the Clear Text ESP Compressor, and the Encrypted ESP Compressor."}
 
 
 ## SCHC Parameters for Diet-ESP
@@ -261,7 +261,7 @@ The RuleID is a unique identifier for each SCHC Rule. It is included in packets 
 SCHC padding in SCHC serves the purpose of aligning data to a designated boundary, which is typically byte-aligned or aligned to 8 bits. This document presumes that this field is not utilized in CET and EEC. This document outlines a simpler form of padding for byte-alignment, as detailed in section {{sec-iipc}}. Such alignment is essential to ensure that encryption is applied to data that is byte-aligned. The rationale for employing a padding method other than SCHC Padding is to accommodate the length of the compressed ESP Payload Data.
 
 
-Another variable required for the C/D in Diet-ESP is the Maximum Packet Size (MAX_PACKET_SIZE) determined by the specific IPsec ESP configuration and the underlying transport, but it is typically aligned with the network’s MTU. The size constraints are optimized based on the available link capacity and negotiated parameters between endpoints.
+Another variable required for the C/D in Diet-ESP is the Maximum Packet Size (MAX_PACKET_SIZE) determined by the specific IPsec ESP configuration and the underlying transport, but it is typically aligned with the network's MTU. The size constraints are optimized based on the available link capacity and negotiated parameters between endpoints.
 
 ## Attributes for Rule Generation {#sec-afrg}
 
@@ -319,13 +319,16 @@ iipc_profile:
 : designates the behavior of the IIPC layer. When set to "iipc_not_compressed" IIPC is not performed. This specification describes IIPC that corresponds to the "iipc_diet-esp" profile.
  
 flow_label_cda:
-: indicates the Flow Label CDA, that is how the Flow Label field of the inner IPv6 packet or the Identification field of the inner IPv4 packet is compressed / decompressed - See {{sec-cda}} for more information. In a nutshell, "not_compressed" indicates that Flow Label (resp. Identification) is not compressed. "lower" (using compute-*) indicates the value is read from the outer IP header - eventually with some adaptations when inner IP packet and outer IP packets have different versions. "generated" indicates that the field is generated by the receiving party. In that case, the decompressed value may take a different value compared to its original value. "zero" indicates the field is set to zero.
+: indicates the Flow Label CDA, that is how the Flow Label field of the inner IPv6 packet or the Identification field of the inner IPv4 packet is compressed / decompressed - See {{sec-cda}} for more information. In a nutshell, "not_compressed" indicates that Flow Label (resp. Identification) is not compressed and the field is sent as-is using value-sent. "lower" ( using compute-* ) indicates the value is read from the outer IP header - eventually with some adaptations when inner IP packet and outer IP packets have different versions. This field is computed from the outer IP header using compute-* ( MO: ignore, CDA: compute-* )."generated" indicates the value is re-generated at the decompressor side ( CDA: compute-* ). In that case, the decompressed value may take a different value compared to its original value. "zero" indicates the field is removed by matching against a target value of 0 (MO: equal, CDA: not-sent).
+See {{sec-cda}} for further details on the applied CDA logic.
+
 
 dscp_cda:
-: indicates the DSCP CDA, that is how the DSCP values of the inner IP packet are compressed / decompressed - See {{sec-cda}} for more information. In a nutshell, "not_compressed" indicates that DSCP are not compressed. "lower" (using compute-*) indicates the value is read from the outer IP header - eventually with some adaptations when inner IP packet and outer IP packets have different versions.  "sa" indicates, compression is performed according to the DSCP values agreed by the SA (dscp_list). 
+: indicates the DSCP CDA, that is how the DSCP values of the inner IP packet are compressed / decompressed - See {{sec-cda}} for more information. In a nutshell, "not_compressed" indicates that DSCP are not compressed. "lower" indicates the value is read from the outer IP header - eventually with some adaptations when inner IP packet and outer IP packets have different versions ( compute-* ). "sa" indicates, compression is performed according to the pre-negotioated list of DSCP values (dscp_list) agreed by the SA, using SCHC's MO and index (CDA).
+See {{sec-cda}} for rule examples. 
 
 ecn_cda:
-: indicates ECN CDA, that is how the ECN values of the inner IP packet are compressed / decompressed - See {{sec-cda}} for more information. In a nutshell, "not_compressed" indicates that DSCP are not compressed. "lower" (using compute-*) indicates the value is read from the outer IP header - eventually with some adaptations when inner IP packet and outer IP packets have different versions. 
+: indicates ECN CDA, that is how the ECN values of the inner IP packet are compressed / decompressed - See {{sec-cda}} for more information. In a nutshell, "not_compressed" indicates that DSCP are not compressed. "lower" indicates the value is read from the outer IP header using compute-\* (eventually with some adaptations when inner IP packet and outer IP packets have different versions). 
 
 ts_ip_version:
 : designates the TS IP version. Its value is set  to "IPv4-only" when only IPv4 IP addresses are considered and to "IPv6-only" when only IPv6 addresses are considered.
@@ -399,55 +402,92 @@ esp_sn_lsb:
 : designates the LSB to be considered for the compressed SN. It works similarly to ESP SPI LSB (see esp_spi_lsb). 
 
 
-### Diet-ESP SCHC Rule Table {#sec-cda}
+### Illustrative Examples of Diet-ESP SCHC Rule Tables {#sec-cda}
 
-{{tab-cda}} defines the SCHC compression rules for Diet-ESP in IPsec using specific Compression/Decompression Actions (CDAs) for this profile in addition to the ones defined in {{!RFC8724, Section 7.4}}. These CDAs are either a refinement of the compute-\* CDA or the result of a combined CDA. It specifies how various IPv6, UDP/TCP, and ESP header fields are compressed and decompressed.
+The following tables in this section defines the SCHC compression rules examples for Diet-ESP in IPsec. The Compression/Decompression Actions (CDAs) specify how various IPv6, UDP/TCP, and ESP header fields are compressed and decompressed, which are derived from the AfRG discussed in Section {{sec-afrg}}.
 
 
-| Field                      | FL  | FP | DI  | TV                          | MO                  | CDA             | 
-|----------------------------|-----|----|-----|-----------------------------|---------------------|-----------------|
-| Version                    | 3   | 1  | Bi  | ts_ipversion                | equal               | not-sent        |
-| DSCP                       | 6   | 1  | Dw  | —                           | ignore              | value-sent      |
-| ECN                        | 2   | 1  | Dw  | —                           | ignore              | value-sent      |
-| Flow Label                 | 20  | 1  | Dw  | —                           | ignore              | compute-*       |
-| Payload Length             | 16  | 1  | Bi  | —                           | ignore              | compute-*       |
-| Next Header                | 8   | 1  | Bi  | ts_proto                    | equal               | not-sent        |
-| Hop Limit                  | 8   | 1  | Dw  | —                           | elided              | compute-*       |
-| Source Address             | 128 | 1  | Bi  | msb(src_start, src_end)     | MSB                 | LSB             |
-| Destination Address        | 128 | 1  | Bi  | msb(dst_start, dst_end)     | MSB                 | LSB             |
-| Source Port (UDP/TCP)      | 16  | 1  | Bi  | msb(src_port_start, end)    | MSB                 | LSB             |
-| Destination Port (UDP/TCP) | 16  | 1  | Bi  | msb(dst_port_start, end)    | MSB                 | LSB             |
-| Checksum                   | 16  | 1  | Bi  | —                           | ignore              | compute-*       |
-| UDP Length                 | 16  | 1  | Bi  | —                           | ignore              | compute-*       |
-| ESP Padding                | -   | -  | -   | —                           | compute-*           | elided          |
-| Byte Alignment             | 8   | 1  | Bi  | —                           | compute-*           | send            |
-| SPI                        | 32  | 1  | Dw  | —                           | MSB(4 - esp_spi_lsb)| LSB             |
-| SN                         | 32  | 1  | Dw  | —                           | MSB(4 - esp_sn_lsb) | LSB             |
-{: #tab-cda title="Specific compute-* CDAs used in Diet-ESP"}
-
-Here are a few key features from the table:
-
-The IPv6 Header Compression includes the following fields: Version, DSCP, ECN, Flow Label, etc.
-
-The UDP/TCP Header Compression includes the following fields: Ports, Checksum, Length.
-
-The ESP Header Compression fields include the following: Padding, Sequence Number (SN), SPI.
-
-The Byte Alignment Padding is maintained to comply with the byte-aligned ESP Payload requirement.
-
-Here are the additional CDAs defined in this profile:
+The table {{tab-diet-esp-rule-1}} represents an example, when `flow_label_cda` is set to `lower`, this results in `MO = ignore` and `CDA = compute-*`, indicating that the value can be derived from the outer header. When `dscp_cda` is `not_compressed`, it translates to `MO = ignore` and `CDA = value-sent`, meaning the field is transmitted uncompressed. Address and port fields are matched using `MSB(n)` and transmitted using the `LSB` CDA, where the LSB value defines the number of variable bits sent.
 
 
 
-# Diet-ESP for IPsec in Tunnel mode
+| Field                      | FL  | FP | DI  | TV                          | MO        | CDA         | Sent [bits] |
+|----------------------------|-----|----|-----|-----------------------------|-----------|--------------|--------------|
+| Version                    | 3   | 1  | Bi  | ts_ipversion                | equal     | not-sent     | 0            |
+| DSCP                       | 6   | 1  | Dw  | -                           | ignore    | value-sent   | 6            |
+| ECN                        | 2   | 1  | Dw  | -                           | ignore    | value-sent   | 2            |
+| Flow Label                 | 20  | 1  | Dw  | -                           | ignore    | compute-*    | 0            |
+| Payload Length             | 16  | 1  | Bi  | -                           | ignore    | compute-*    | 0            |
+| Next Header                | 8   | 1  | Bi  | ts_proto                    | equal     | not-sent     | 0            |
+| Hop Limit                  | 8   | 1  | Dw  | -                           | ignore    | compute-*    | 0            |
+| Source Address             | 128 | 1  | Bi  | msb(src_start, src_end)     | MSB(64)   | LSB          | 64           |
+| Destination Address        | 128 | 1  | Bi  | msb(dst_start, dst_end)     | MSB(64)   | LSB          | 64           |
+| Source Port (UDP/TCP)      | 16  | 1  | Bi  | msb(src_port_start, end)    | MSB(8)    | LSB          | 8            |
+| Destination Port (UDP/TCP) | 16  | 1  | Bi  | msb(dst_port_start, end)    | MSB(8)    | LSB          | 8            |
+| Checksum                   | 16  | 1  | Bi  | -                           | ignore    | compute-*    | 0            |
+| UDP Length                 | 16  | 1  | Bi  | -                           | ignore    | compute-*    | 0            |
+| ESP Padding                | -   | -  | -   | -                           | ignore    | compute-*    | 0            |
+| Byte Alignment             | 8   | 1  | Bi  | -                           | ignore    | compute-*    | 0            |
+| SPI                        | 32  | 1  | Dw  | -                           | MSB(24)   | LSB          | 8            |
+| SN                         | 32  | 1  | Dw  | -                           | MSB(24)   | LSB          | 8            |
+{: #tab-diet-esp-rule-1 title="Example of Diet-ESP Rule table when `flow_label_cda` is set to `lower`"}
+
+Here are more key features from the table:
+
+* The IPv6 Header Compression operates on several fields, of which the address and port fields provide the most opportunity for compression.
+* The UDP/TCP Header Compression includes the following fields: Ports, Checksum, Length.
+* The ESP Header Compression fields include the following: Padding, Sequence Number (SN), SPI.
+* The Byte Alignment Padding is maintained to comply with the byte-aligned ESP Payload requirement.
+
+
+The table {{tab-diet-esp-rule-2}} illustrates a case where the DSCP field is compressed using a pre-negotiated Security Association (SA) list. Here, `dscp_cda = sa` results in `MO = match-mapping` and `CDA = index`, meaning the field value is matched from a list and only the index is sent. The ECN field is computed from the outer header (`ecn_cda = lower`), so it is not sent. The Flow Label is removed from transmission by setting a target value of 0 (`flow_label_cda = zero`), which results in `MO = equal` and `CDA = not-sent`.
+
+| Field       | MO              | CDA         | Sent [bits] |
+|-------------|------------------|-------------|-------------|
+| DSCP        | match-mapping    | index       | 3           |
+| ECN         | ignore           | compute-*   | 0           |
+| Flow Label  | equal (TV=0)     | not-sent    | 0           |
+| SPI         | MSB(24)          | LSB         | 8           |
+| SN          | MSB(24)          | LSB         | 8           |
+{: #tab-diet-esp-rule-2 title="Example of Diet-ESP Rule table where the DSCP field is compressed using a pre-negotiated Security Association (SA) list"}
+
+The table {{tab-diet-esp-rule-3}} configuration disables all compression mechanisms. Every field is transmitted in full using `MO = ignore` and `CDA = value-sent`, which is the result of setting each `_cda` attribute to `not_compressed`.
+
+
+| Field           | MO     | CDA         | Sent [bits] |
+|----------------|--------|-------------|-------------|
+| DSCP           | ignore | value-sent  | 6           |
+| ECN            | ignore | value-sent  | 2           |
+| Flow Label     | ignore | value-sent  | 20          |
+| Payload Length | ignore | value-sent  | 16          |
+| Hop Limit      | ignore | value-sent  | 8           |
+| SPI            | ignore | value-sent  | 32          |
+| SN             | ignore | value-sent  | 32          |
+{: #tab-diet-esp-rule-3 title="Example of Diet-ESP Rule table with all compression mechanisms disabled"}
+
+The table {{tab-diet-esp-rule-4}} demonstrates a mixed strategy. The Flow Label is generated at the decompressor side and not transmitted (`flow_label_cda = generated` results in `MO = ignore`, `CDA = compute-*`). The ECN field is again derived from the outer header, while the DSCP field is transmitted as-is (`dscp_cda = not_compressed`).
+
+
+| Field       | MO     | CDA         | Sent [bits] |
+|-------------|--------|-------------|-------------|
+| DSCP        | ignore | value-sent  | 6           |
+| ECN         | ignore | compute-*   | 0           |
+| Flow Label  | ignore | compute-*   | 0           |
+| SPI         | MSB(28)| LSB         | 4           |
+| SN          | MSB(28)| LSB         | 4           |
+{: #tab-diet-esp-rule-4 title="Example of Diet-ESP Rule table with a mixed strategy"}
+
+
+
+# Diet-ESP for IPsec in Tunnel Mode
 
 ## Inner IP Compression (IIPC) {#sec-iipc}
 
-When iipc_profile is set to "iipc_not_compressed", the packet is not compressed. When iipc_profile is set to "iipc_diet-esp", IIPC proceeds to the compression of the inner IP Packet composed of Header and Payload. In the latter case, the Header is compressed when ipsec_mode is set to "Tunnel" and not compressed otherwise. ts_ip_version determines how the IPv6 Header (resp. the IPv4 header) is compressed - see {{sec-inner-ip6}} (resp. {{sec-inner-ip4}}). 
+When iipc_profile is set to "iipc_not_compressed", the inner IP Packet (IIP) is not compressed.  When iipc_profile is set to "iipc_diet-esp", IIPC proceeds with the compression.  The Header fields subject to compression depend on the encapsulation mode. When ipsec_mode is set to "Tunnel", all Header fields of the IIP structure are subject to compression. ts_ip_version determines how the IPv6 header (resp. the IPv4 header) is compressed - see {{sec-inner-ip6}} (resp.  {{sec-inner-ip4}}). Conversely, when ipsec_mode is set to "Transport", the compression applies only to Header fields other than the IPv4 or IPv6 header fields. This means that the IPv4 and IPv6 headers remain uncompressed, while other Header fields within the IIP structure are subject to compression. 
 
-The SCHC packet illustrated in {{fig-schc-compressed-packet-format}} appends the padding at the end of the SCHC Packet. This approach presents notable challenges, including handling a Payload that lacks byte alignment. Furthermore, the absence of a specified Payload length would necessitate the inclusion of the padding length within the padding itself, which would require a particular padding construction akin to that utilized by the Padding ESP, thereby posing difficulties for hardware implementations.
+Note that the SCHC packet illustrated in {{fig-schc-compressed-packet-format}} appends the padding at the end of the SCHC Packet. This approach presents notable challenges, including handling a Payload that lacks byte alignment. Furthermore, the absence of a specified Payload length would necessitate the inclusion of the padding length within the padding itself, which would require a particular padding construction akin to that utilized by the ESP Padding, thereby posing difficulties for hardware implementations.
 
-To address these issues, IIPC uses a pre-processing phase where the IIP is divided into two segments: the Header, which is subject to compression, and the Payload, which is not. Following this, the compression process applies the defined rule to the Header, resulting in a SCHC Packet (refer to {{fig-schc-compressed-packet-format}}) that features an empty SCHC Payload field, with a padding field positioned after the Compression Residue. Ultimately, a post-processing phase merges the SCHC Packet with the Payload, allowing the compressor to produce an IIPC packet in the format outlined in {{fig-diet-esp-compressed-header-format}}.
+To address these issues, IIPC uses a pre-processing phase where the IIP is divided into two segments: the Header and the Payload and only the Header is considered as the candidate structure for compression. By construction, the compression process applies the defined rule to the Header, resulting in a SCHC Packet (refer to {{fig-schc-compressed-packet-format}}) that features an empty SCHC Payload field, with a padding field positioned after the Compression Residue. Ultimately, a post-processing phase merges the SCHC Packet with the Payload, allowing the compressor to produce an IIPC packet in the format outlined in {{fig-diet-esp-compressed-header-format}}.
 
 
 ~~~              
@@ -461,9 +501,9 @@ To address these issues, IIPC uses a pre-processing phase where the IIP is divid
 
 It is important to observe that the resulting packet is byte-aligned. Additionally, the division between Header and Payload can only occur because all the Header fields are of a fixed size.
 
-### Inner IP Payload Compression {#sec-payload}
+### Compression of the Inner IP payload {#sec-payload}
 
-This section describes the compression of the inner IP Payload. The compression described herein only affects UDP, UDP-Lite, TCP or SCTP segments. The type of segment is specified in the IP Header.
+This section describes the compression of the inner IP payload. The compression described herein only affects UDP, UDP-Lite, TCP or SCTP segments. The type of segment is specified in the IP header.
 
 For UDP, UDP-Lite, TCP and SCTP segments, source ports, destination ports, and checksums are compressed. 
 For source port (resp. destination port) only the least significant bits are sent. FL is set to 16 bits,  TV is set to msb( ts_port_src_start, ts_port_src_end ) ( resp. ts_port_dst_start, ts_port_dst_end ), MO is set to "MSB" and CDA to "LSB". 
@@ -472,7 +512,7 @@ This may result in decompressing a zero-checksum UDP packet with a valid checksu
 
 For UDP or UDP-Lite the length field is elided. FL is set to 16, TV is not set, MO is set to "ignore". 
 
-###  Inner IPv6 packet Headers Compression {#sec-inner-ip6}
+###  Compression of the Inner IPv6 header {#sec-inner-ip6}
 
 The version field is elided, FL is set to 3, TV is set to ts_ipversion, MO is set to "equal" and CDA is set to "not-sent".
 
@@ -493,34 +533,34 @@ ECN values are compressed according to the ecn_cda value:
 
 Flow label is compressed according to the flow_label_cda value:
 
-* If flow_label_cda is set to "not_compressed", the Flow label is included in the IPv6 Header. FL is set to 20 bits, TV is not set, MO is set to "ignore", and CDA is set to "sent-value".
-* If flow_label_cda is set to "lower", the Flow Label is elided and read from the outer IP Header (using compute-*(See {{sec-cda}})). FL is set to 20 bits, TV is not set, MO is set to "ignore", and CDA is set to "lower". If the outer IP header is an IPv4 header, only the 16 LSB of the Flow Label are inserted into the IPv4 Header. At the decompression, the 4 MSB of the Flow Label are set to 0. 
+* If flow_label_cda is set to "not_compressed", the Flow label is included in the IPv6 header. FL is set to 20 bits, TV is not set, MO is set to "ignore", and CDA is set to "sent-value".
+* If flow_label_cda is set to "lower", the Flow Label is elided and read from the outer IP header (using compute-*(See {{sec-cda}})). FL is set to 20 bits, TV is not set, MO is set to "ignore", and CDA is set to "lower". If the outer IP header is an IPv4 header, only the 16 LSB of the Flow Label are inserted into the IPv4 header. At the decompression, the 4 MSB of the Flow Label are set to 0. 
 * If flow_label_cda is set to "generated", the Flow Label is elided and the Flow Label is then re-generated (using compute-*) at the decompression (See {{sec-cda}}). The resulting Flow Label differs from the initial value. FL is set to 20, TV is not set, MO is set to "ignore" and CDA is set to "generated". 
 * If flow_label_cda is set to "zero", the Flow Label is elided and set to 0 at decompression. A 0 value indicates no flow label is present. Fl is set to 20 bits, TV is set to 0, MO is set to "equal" and CDA is set to "not-sent". 
 
 
-Payload Length is elided and determined from the Tunnel IP Header Payload Length as well as the decompressed Payload. FL is set to 16 bits, TV is not set, MO is set to "ignore", CDA is set to "lower". 
+Payload Length is elided and determined from the Tunnel IP header Payload Length as well as the decompressed Payload. FL is set to 16 bits, TV is not set, MO is set to "ignore", CDA is set to "lower". 
 
 Next Header is compressed according to ts_proto:
 
 * If ts_proto is the single value 0, Next Header is not compressed. FL is set to 8 bits, TV is not set, MO is set to "ignore", CDA is set to "sent-value".
 * If ts_proto is a single non zero value, Next Header is compressed. FL is set to 8 bits, TV is set to ts_proto, MO is set to "equal" and CDA is set to "not-sent".
  
-The IPv6 Hop Limit is read from the Tunnel IP Header Hop Limit. FL is set to 8 bits, TV is not set, MO is set to "ignore" and CDA is set to "lower."
+The IPv6 Hop Limit is read from the Tunnel IP header Hop Limit. FL is set to 8 bits, TV is not set, MO is set to "ignore" and CDA is set to "lower."
 
 The source and destination IPv6 addresses are compressed using MSB. 
 In both cases, FL is set to 128, TV is respectively set to  msb(ts_ip_src_start, ts_ip_src_ed) or msb(ts_ip_dst_start, ts_ip_dst_end), the MO is set to "MSB," and the CDA is set to "LSB."
 
 
-###  Inner IPv4 packet Header Compression {#sec-inner-ip4}
+###  Compression of the Inner IPv4 header {#sec-inner-ip4}
 
 The fields Version, DSCP, ECN, Source Address and Destination Address are compressed as described for IPv6 in {{sec-inner-ip6}}.
-The field Total Length (16 bits) is compressed similarly to the IPv6 field Payload Length. The field Identification (16 bits) is compressed similarly to the IPv6 field Flow Label. If the tunnel IP Header is an IPv6 Header, the Identification is placed as the LSB of the IPv6 Header and the 4 remaining MSB are set to 0.  The field Time to Live is compressed similarly to the IPv6 Hop Limit field. The Protocol field is compressed similarly to the last IPv6 Next Header field.
+The field Total Length (16 bits) is compressed similarly to the IPv6 field Payload Length. The field Identification (16 bits) is compressed similarly to the IPv6 field Flow Label. If the tunnel IP header is an IPv6 header, the Identification is placed as the LSB of the IPv6 header and the 4 remaining MSB are set to 0.  The field Time to Live is compressed similarly to the IPv6 Hop Limit field. The Protocol field is compressed similarly to the last IPv6 Next Header field.
 
 
 The Internet Header Length (IHL) is not compressed, FL is set to 4 bits, TV is not set, MO is set to ignore and CDA is set to "value-sent".
  
-The IPv4 Header checksum is elided.
+The IPv4 header checksum is elided.
 FL is set to 16, TV is omitted, MO is set to "ignore," and CDA is set to "checksum."
 
 
@@ -534,7 +574,7 @@ Conversely, when esp_trailer is set to "Optional", the Next Header Pad Length an
 
 In transport mode, the IP header of the inner packet remains not compressed during the IIPC phase, and the ESP Payload Data is derived from the inner packet. Conversely, in tunnel mode, the ESP Payload Data encompasses the entirety of the packet generated by the IIPC.
 
-In transport mode, the Next Header field is obtained from either the inner IP Header or the Security Association, as specified in {{sec-inner-ip4}} or {{sec-inner-ip6}}. In tunnel mode, the Next Header is elided, as it is determined by ts_ip_version. FL is set to 8 bit, TV is set to IPv4 or IPv6 depending on ts_ip_version, MO is set to "equal" and CDA is set to "not-sent". 
+In transport mode, the Next Header field is obtained from either the inner IP header or the Security Association, as specified in {{sec-inner-ip4}} or {{sec-inner-ip6}}. In tunnel mode, the Next Header is elided, as it is determined by ts_ip_version. FL is set to 8 bit, TV is set to IPv4 or IPv6 depending on ts_ip_version, MO is set to "equal" and CDA is set to "not-sent". 
 
 The ESP Pad Length and ESP Padding fields are omitted only when ESP alignment has been selected to "8bit" and esp_encr does not necessitate a specific block size alignment, or if that block size is one byte. This is represented by setting FL to (Pad Length + 1) * 8 bits, leaving TV unset, configuring MO to "ignore," and designating CDA as padding. The ESP Padding and ESP Pad Length may vary from their decompressed counterparts. However, since the IPsec process removes the padding, these variations do not affect packet processing. When esp_encr requires a specific block size, the ESP Pad Length and ESP Padding fields remain not compressed.
 
@@ -545,10 +585,10 @@ Once the Clear Text Packet has undergone compression as outlined in {{sec-iipc}}
 SPI is compressed to its LSB.
 FL is set to 32 bits, TV is not set, MO is set to "MSB( 4 - esp_spi_lsb)" and CDA is set to "LSB".
 
-SN is compressed to their LSB, similarly to the SPI. 
+SN is compressed to its LSB, similarly to the SPI. 
 FL is set to 32 bits, TV is not set, MO is set to "MSB( 4 - esp_sn_lsb)" and CDA is set to "LSB".
   
-# Diet-ESP Compression for IPsec in Transport mode
+# Diet-ESP Compression for IPsec in Transport Mode
 
 The transport mode mostly differs from the Tunnel mode in that the IP header of the packet is not encrypted. As a result, the IP Payload is compressed as described in {{sec-payload}}. The IP header is not compressed. The byte alignment of the Compressed Payload is performed as described in {{sec-iipc}}. The Clear Text ESP Compression is performed as described in {{sec-ctec}} except for the Next Header Field, which is compressed as described in {{sec-inner-ip6}}.
 
@@ -627,7 +667,7 @@ A peer may compress its SPIs differently, in which case a incoming packet may ha
 
 The ESP SN LSB must be established in a manner that allows the receiving peer to clearly ascertain the sequence number of the IPsec packet. If this requirement is not met, it will lead to an invalid signature verification, resulting in the rejection of the packet. Furthermore, the LSB should have the capacity to accommodate the maximum number of packets that may be in transit simultaneously. This approach will guarantee that the last packet received is correctly linked to the corresponding sequence number.
 
-The ESP extension for IPv6 (and similarly for IPv4) requires a 64-bit (or 32-bit) alignment. Choosing alternative alignment values may result in a packet that fails to comply with this alignment requirement, potentially leading to rejection. The necessity for such alignment in IPv6 extensions arises from the fact that the length field in an IPv6 header extension is defined in terms of 64-bit words, making proper alignment essential for accurate packet parsing. Parsing of ESP does not present complications, as it is compatible with IPv6; the ESP extension is processed exclusively by the terminal IPsec peers and not by intermediary nodes. Furthermore, the ESP extension lacks a dedicated length field. Instead, its length is determined by the IPv6 Header Length field, which is measured in bytes, along with the starting position of the ESP header extension. Consequently, it remains entirely feasible to parse an ESP extension that is not aligned to 64 bits. The same principle is applicable to IPv4.
+The ESP extension for IPv6 (and similarly for IPv4) requires a 64-bit (or 32-bit) alignment. Choosing alternative alignment values may result in a packet that fails to comply with this alignment requirement, potentially leading to rejection. The necessity for such alignment in IPv6 extensions arises from the fact that the length field in an IPv6 header extension is defined in terms of 64-bit words, making proper alignment essential for accurate packet parsing. Parsing of ESP does not present complications, as it is compatible with IPv6; the ESP extension is processed exclusively by the terminal IPsec peers and not by intermediary nodes. Furthermore, the ESP extension lacks a dedicated length field. Instead, its length is determined by the IPv6 header Length field, which is measured in bytes, along with the starting position of the ESP header extension. Consequently, it remains entirely feasible to parse an ESP extension that is not aligned to 64 bits. The same principle is applicable to IPv4.
 
 
 # Acknowledgements
@@ -646,7 +686,7 @@ This appendix provides the details of the SCHC rules defined for Diet-ESP compre
 
 This section provides a structured example of how Diet-ESP operates in Tunnel Mode. The example includes Attributes for Rule Generation (AfRG), SCHC rules, the Inner IP packet (IIP), the compression process, and the decompression process.
 
-### Json representation in Tunnel mode
+### Json Representation in Tunnel Mode
 
 In Tunnel Mode, the full inner IP packet is compressed before encryption, making it more efficient for VPN scenarios. The "iipc_diet-esp" profile is used to indicate compression of the inner packet. The IPv6 Source and Destination Addresses are compressed using "MSB", sending only the variable parts while keeping the most significant bits. UDP Source and Destination Ports are compressed with "LSB", reducing their size. "compute-length" removes the UDP Length field, and "checksum" omits the UDP checksum, which is recalculated at decompression. ESP SPI and Sequence Number are compressed using "LSB" with an MSB mask. The "not-sent" CDA is used for Next Header fields in both IPv6 and ESP, as their values are predictable. 
 
@@ -721,7 +761,7 @@ In Tunnel Mode, the full inner IP packet is compressed before encryption, making
       "FL": 8,
       "TV": null,
       "MO": "ignore",
-      "CDA": "padding"
+      "CDA": "compute-padding"
     }, 
     {
       "FID": "alignment",
@@ -747,19 +787,20 @@ The SCHC rules for Tunnel Mode are derived from the following AfRG:
 * ESP SPI Compression: LSB
 * ESP SN Compression: LSB
 
-### Diet-ESP Compression
+### Inner IP Packet (IIP)
 
-The rules for the IIPC, CTEC, and EEC layers are defined as IIPC to compress IPv6 headers and UDP headers, CTEC to compress ESP Trailer fields, and EEC to compress ESP SPI and Sequence Number.
-
-The IIPC original packet before compression consists of:
+The original packet (IIP), before compression consists of:
 
 * IPv6 Source Address: 2001:db8::1234
 * IPv6 Destination Address: 2001:db8::5678
 * UDP Source Port: 5001
 * UDP Destination Port: 4500
 * UDP Length: 16 bytes
-* ESP Payload Data
+* Payload Data
 
+### Diet-ESP Compression
+
+The rules for the IIPC, CTEC, and EEC layers are defined as IIPC to compress IPv6 headers and UDP headers, CTEC to compress ESP Trailer fields, and EEC to compress ESP SPI and Sequence Number.
 Each compressor applies the rule selected by the SA as follows:
 
 1. IIPC: UDP Header Compression
@@ -776,7 +817,7 @@ Each compressor applies the rule selected by the SA as follows:
     * SPI and SN are compressed using LSB.
     * Compressed Packet Output
 
-The final compressed packet consists of the compressed ESP header, IIPC compressed data, and payload.
+The final compressed packet consists of an EEC packet with a compressed ESP header, a compressed IIP Header, and the payload.
 
 ### Diet-ESP Decompression
 
@@ -798,9 +839,9 @@ The decompression process reverses these steps:
 
 This section follows the same structure as Tunnel Mode but applies to Transport Mode, where the IP header remains not compressed.
 
-### Json representation in Transport mode
+### Json Representation in Transport Mode
 
-In Transport Mode, since the IP header remains not compressed, only the UDP payload and ESP fields are compressed. The new IANA-defined CDAs are applied as follows: "checksum" is used for the UDP checksum, meaning it is recalculated at decompression rather than transmitted. "compute-length" eliminates the UDP Length field, as it can be inferred from the payload size. "padding" ensures ESP padding aligns with 8-bit boundaries. "not-sent" is applied to the IPv6 and ESP Next Header fields because their values are predictable. The UDP Source and Destination Ports use "LSB" compression, reducing overhead by sending only the least significant bits. The ESP SPI and Sequence Number are compressed similarly using "LSB" with an MSB mask. Since the IP header is retained, the Source and Destination IPv6 Addresses are fully transmitted using "sent-value". 
+In Transport Mode, since the IP header remains not compressed, only the UDP header fields in the IIP payload and the ESP header fields are compressed. The new IANA-defined CDAs are applied as follows: "checksum" is used for the UDP checksum, meaning it is recalculated at decompression rather than transmitted. "compute-length" eliminates the UDP Length field, as it can be inferred from the payload size. "padding" ensures ESP padding aligns with 8-bit boundaries. "not-sent" is applied to the IPv6 and ESP Next Header fields because their values are predictable. The UDP Source and Destination Ports use "LSB" compression, reducing overhead by sending only the least significant bits. The ESP SPI and Sequence Number are compressed similarly using "LSB" with an MSB mask. Since the IP header is retained, the Source and Destination IPv6 Addresses are fully transmitted using "sent-value". 
 
 ~~~json
 [
@@ -813,14 +854,14 @@ In Transport Mode, since the IP header remains not compressed, only the UDP payl
       "FL": 128,
       "TV": "2001:db8::1001",
       "MO": "equal",
-      "CDA": "sent-value"
+      "CDA": "value-sent"
     },
     {
       "FID": "ts_ip_dst_start",
       "FL": 128,
       "TV": "2001:db8::2002",
       "MO": "equal",
-      "CDA": "sent-value"
+      "CDA": "value-sent"
     },
     {
       "FID": "IPv6.NextHeader",
@@ -876,7 +917,7 @@ In Transport Mode, since the IP header remains not compressed, only the UDP payl
       "FL": 8,
       "TV": null,
       "MO": "ignore",
-      "CDA": "padding"
+      "CDA": "compute-padding"
     },
     {
       "FID": "ESP.NextHeader",
